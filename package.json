@@ -1,0 +1,22 @@
+{
+  "name": "multiverso-literario",
+  "module": "server.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun --watch server.ts "
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/express": "^5.0.6",
+    "@types/figlet": "^1.7.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "express": "^5.2.1",
+    "figlet": "^1.9.4"
+  }
+}
