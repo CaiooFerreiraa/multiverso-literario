@@ -1,15 +1,15 @@
 import express from 'express';
 import { database } from '../../../infrastructure/database/NeonClient';
 import { UserDatabase } from '../../../infrastructure/user/UserDatabase';
-import UserController from './RegisterController';
+import { RegisterController } from './RegisterController';
 import { UserRegister } from '../../../application/User/usecases/UserRegister';
 const router = express.Router();
 
-const useRepo = new UserDatabase(database);
-const userRegister = new UserRegister(useRepo)
-const userController = new UserController(userRegister);
+const useDatabase = new UserDatabase(database);
+const useRegister = new UserRegister(useDatabase)
+const useController = new RegisterController(useRegister);
 
-router.get("/", (req, res) => userController.register(req, res));
+router.post("/register", (req, res) => useController.register(req, res));
 router.get("/test", (req, res) => res.send('Agora foi'))
 
 export default router;

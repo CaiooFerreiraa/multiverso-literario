@@ -17,6 +17,7 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "express": "^5.2.1",
-    "figlet": "^1.9.4"
+    "figlet": "^1.9.4",
+    "zod": "^4.3.5"
   }
 }

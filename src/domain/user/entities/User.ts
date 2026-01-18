@@ -1,12 +1,19 @@
+import { CreateUserDTO } from "../../../application/User/dtos/CreateUserDTO"
+
 export class User {
-  constructor(
-    public fullName: String,
-    public birthday: Date,
-    public email: String,
-    public phoneNumber: String,
-    public city: String,
-    public password: String
-  ) {
-    if (!email.includes("@")) throw new Error("Email inválido");
+  public fullName: string;
+  public birthday: Date;
+  public email: string;
+  public phoneNumber: string;
+  public city: string;
+  public password: string;
+
+  constructor(data: CreateUserDTO) {
+    this.fullName = data.fullname;
+    this.birthday = data.birthday;
+    this.email = data.email;
+    this.phoneNumber = data.phoneNumber;
+    this.city = data.city;
+    this.password = data.password;
   }
 }
