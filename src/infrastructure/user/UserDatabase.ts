@@ -46,8 +46,38 @@ export class UserDatabase implements UseRepository {
     throw new Error("Method not implemented.");
   }
 
-  update(idOldUser: number, newUser: User): Promise<User> {
-    throw new Error("Method not implemented.");
+  async update(idOldUser: number, newUser: User): Promise<User> {
+    try {
+      await this.#updateInUsers(idOldUser, newUser)
+      return newUser
+    } catch (error: unknown) {
+      throw new Error(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async #updateInUsers(idOldUser: number, user: User) {
+    try {
+      await this.database`
+        UPDATE users
+        SET fullname = ${user.fullName}, email = ${user.email}, password = ${user.password}
+        WHERE id_user = ${idOldUser};
+      `
+      await this.#updateInMember(idOldUser, user)
+    } catch (error: unknown) {
+      throw new Error(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async #updateInMember(idOldUser: number, user: User) {
+    try {
+      await this.database`
+        UPDATE member
+        SET birthday = ${user.birthday}, "phoneNumber" = ${user.phoneNumber}, city = ${user.city}
+        WHERE id_user = ${idOldUser}; 
+      `
+    } catch (error: unknown) {
+      throw new Error(error instanceof Error ? error.message : String(error));
+    }
   }
 
   delete(user: User): Promise<User> {

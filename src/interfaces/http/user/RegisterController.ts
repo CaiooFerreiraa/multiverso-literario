@@ -5,7 +5,7 @@ import { CreateUserDTO, CreateUserSchema } from "../../../application/User/dtos/
 export class RegisterController {
   constructor(private useCase: UserRegister) {};
 
-  async register(req: Request, res: Response) {
+  async execute(req: Request, res: Response) {
     try {
       const useData: CreateUserDTO = CreateUserSchema.parse(req.body);
       const { password, ...user } = await this.useCase.execute(useData)
