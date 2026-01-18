@@ -1,8 +1,9 @@
 import type { User } from "../../domain/user/entities/User";
 import type { UseRepository } from "../../domain/user/repositories/UserRepository";
-import { database } from "../database/NeonClient";
 
 export class UserDatabase implements UseRepository {
+  constructor(private database: any) {}
+  
   async create(user: User): Promise<any> {
     throw new Error("Method not implemented.")
   }

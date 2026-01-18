@@ -1,5 +1,5 @@
 import express from "express";
-import homeRouter from './user.route'
+import homeRouter from './src/interfaces/http/user/user.route'
 const router = express.Router();
 
 router.use("/", homeRouter);
