@@ -3,6 +3,7 @@ import { database } from '../../../infrastructure/database/NeonClient';
 import { UserDatabase } from '../../../infrastructure/user/UserDatabase';
 
 import { UpdateController } from './UpdateController';
+import { ReadController } from './ReadController';
 import { RegisterController } from './RegisterController';
 import { DeleteController } from './DeleteController';
 
@@ -10,7 +11,6 @@ import { UserRegister } from '../../../application/User/usecases/UserRegister';
 import { UserUpdate } from '../../../application/User/usecases/UserUpdate';
 import { UserDelete } from '../../../application/User/usecases/UserDelete';
 import { UserRead } from '../../../application/User/usecases/UserRead';
-import { ReadController } from './ReadController';
 
 const router = express.Router();
 
