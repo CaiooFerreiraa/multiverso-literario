@@ -11,7 +11,7 @@ bun install
 ### Executar o projeto
 
 ```bash
-bun run index.ts
+bun start
 ```
 
 Este projeto foi criado utilizando `bun init` na versão **v1.3.5** do Bun.
