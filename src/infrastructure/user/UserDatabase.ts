@@ -42,8 +42,18 @@ export class UserDatabase implements UseRepository {
     }
   }
 
-  async read(idUser: number): Promise<User> {
-    throw new Error("Method not implemented.");
+  async read(email: string): Promise<User> {
+    try {
+      const user = await this.database`
+        SELECT a.fullname, a.email, a.password, b.birthday, b.city, b."phoneNumber" 
+        FROM users a
+        JOIN member b ON a.id_user = b.id_user
+        WHERE a.email = ${email}
+      `
+      return user;
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : String(error));
+    }
   }
 
   async update(idOldUser: number, newUser: User): Promise<User> {
@@ -80,8 +90,15 @@ export class UserDatabase implements UseRepository {
     }
   }
 
-  delete(user: User): Promise<User> {
-    throw new Error("Method not implemented.");
+  async delete(idUser: number): Promise<any> {
+    try {
+      await this.database`
+        DELETE FROM users
+        WHERE id_user = ${idUser}
+      `
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : String(error));
+    }
   }
   
 }
