@@ -65,7 +65,7 @@ Utilizado, por exemplo, quando o usuário acessa o próprio perfil.
 
 ### Parâmetros de entrada
 
-* **id_user** *(number)*: Identificador do usuário
+* **email** *(string)*: Identificador do usuário
 
 ### Retorno
 
@@ -100,7 +100,7 @@ Endpoint responsável por atualizar os dados de um usuário existente.
 
 ### Retorno
 
-A API retorna os dados atualizados, **sem a senha**, juntamente com o `id_user`.
+A API retorna os dados atualizados, **sem a senha**.
 
 ```json
 {
