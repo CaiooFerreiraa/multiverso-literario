@@ -26,9 +26,9 @@ const useControllerRead = new ReadController(useRead);
 const useControllerUpdate = new UpdateController(useUpdate);
 const useControllerDelete = new DeleteController(useDelete);
 
-router.post("/register", (req, res) => useControllerCreate.execute(req, res));
+router.post("/create", (req, res) => useControllerCreate.execute(req, res));
+router.get("/read", (req, res) => useControllerRead.execute(req, res))
 router.put("/update", (req, res) => useControllerUpdate.execute(req, res));
 router.delete("/delete", (req, res) => useControllerDelete.execute(req, res));
-router.get("/read", (req, res) => useControllerRead.execute(req, res))
 
 export default router;

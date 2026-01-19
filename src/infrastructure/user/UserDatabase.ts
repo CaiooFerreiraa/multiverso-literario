@@ -6,8 +6,8 @@ export class UserDatabase implements UseRepository {
   
   async create(user: User): Promise<User> {
     try {
-      const id_user = await this.#insertInUser(user);
-      await this.#insertInMember(id_user, user);
+      const id_user = await this.insertInUser(user);
+      await this.insertInMember(id_user, user);
 
       return user;
     } catch (error: any) {
@@ -15,7 +15,7 @@ export class UserDatabase implements UseRepository {
     }
   }
 
-  async #insertInUser(user: User): Promise<number> {
+  private async insertInUser(user: User): Promise<number> {
     try {
       const [{ id_user }] = await this.database<
         { id_user: number }[]
@@ -30,7 +30,7 @@ export class UserDatabase implements UseRepository {
     }
   }
 
-  async #insertInMember(id_user: number, user: User) {
+  private async insertInMember(id_user: number, user: User) {
     try {
       await this.database`
         INSERT INTO member (id_user, birthday, "phoneNumber", city) VALUES (
@@ -58,27 +58,27 @@ export class UserDatabase implements UseRepository {
 
   async update(idOldUser: number, newUser: User): Promise<User> {
     try {
-      await this.#updateInUsers(idOldUser, newUser)
+      await this.updateInUsers(idOldUser, newUser)
       return newUser
     } catch (error: unknown) {
       throw new Error(error instanceof Error ? error.message : String(error));
     }
   }
 
-  async #updateInUsers(idOldUser: number, user: User) {
+  private async updateInUsers(idOldUser: number, user: User) {
     try {
       await this.database`
         UPDATE users
         SET fullname = ${user.fullName}, email = ${user.email}, password = ${user.password}
         WHERE id_user = ${idOldUser};
       `
-      await this.#updateInMember(idOldUser, user)
+      await this.updateInMember(idOldUser, user)
     } catch (error: unknown) {
       throw new Error(error instanceof Error ? error.message : String(error));
     }
   }
 
-  async #updateInMember(idOldUser: number, user: User) {
+  private async updateInMember(idOldUser: number, user: User) {
     try {
       await this.database`
         UPDATE member
