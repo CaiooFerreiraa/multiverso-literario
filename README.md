@@ -1,66 +1,146 @@
-# multiverso-literario
+# Multiverso Literário
 
-To install dependencies:
+## Instalação e Execução
+
+### Instalar dependências
 
 ```bash
 bun install
 ```
 
-To run:
+### Executar o projeto
 
 ```bash
 bun run index.ts
 ```
 
-This project was created using `bun init` in bun v1.3.5. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+Este projeto foi criado utilizando `bun init` na versão **v1.3.5** do Bun.
+O **Bun** é um runtime JavaScript moderno, rápido e completo.
+Mais informações: [https://bun.com](https://bun.com)
+
+---
 
 # Documentação da API
 
-## Rota de Cadastro do Usuário
+## Cadastro de Usuário
 
-A rota de cadastro de usuários conta com os seguintes parametros a serem enviados pelo sistema para ela:
+Endpoint responsável por cadastrar um novo usuário no sistema.
 
-- **fullname**: Representa o nome completo
-- **email**: O email do usuário que será cadastrado (tem que ser um email válido)
-- **birthday**: Data de nasciemnto do usuário, para gerar o cálculo de idade
-- **password**: Senha do usuário que deve conter um número, um caractere especial, uma letra maiúscula e no mínimo 8 caracteres
-- **city**: Cidade do usuário
-- **phoneNumber**: Número de telefone do usuário
+### Parâmetros de entrada
 
-Após o envio a API retorna os mesmo dados enviados sem a senha
+* **fullname** *(string)*: Nome completo do usuário
+* **email** *(string)*: E-mail válido do usuário
+* **birthday** *(string | yyyy-MM-dd)*: Data de nascimento (utilizada para cálculo de idade)
+* **password** *(string)*: Senha do usuário
 
-```
+  * Deve conter no mínimo 8 caracteres
+  * Deve possuir pelo menos:
+
+    * 1 letra maiúscula
+    * 1 número
+    * 1 caractere especial
+* **city** *(string)*: Cidade do usuário
+* **phoneNumber** *(string)*: Número de telefone no formato internacional
+
+### Retorno
+
+A API retorna os dados cadastrados, **sem a senha**.
+
+```json
 {
-  "fullname": string,
-  "email": string,
+  "fullname": "string",
+  "email": "string",
   "birthday": "yyyy-MM-dd",
-  "city": string,
+  "city": "string",
   "phoneNumber": "5599999999999"
 }
-
 ```
 
-## Rota de Atualização do Usuário
+---
 
-A rota de atualização de usuários conta com os seguintes parametros a serem enviados pelo sistema para ela:
+## Leitura de Usuário
 
-- **id_user**
-- **fullname**: Representa o nome completo
-- **email**: O email do usuário que será cadastrado (tem que ser um email válido)
-- **birthday**: Data de nasciemnto do usuário, para gerar o cálculo de idade
-- **password**: Senha do usuário que deve conter um número, um caractere especial, uma letra maiúscula e no mínimo 8 caracteres
-- **city**: Cidade do usuário
-- **phoneNumber**: Número de telefone do usuário
+Endpoint responsável por retornar os dados de um usuário.
+Utilizado, por exemplo, quando o usuário acessa o próprio perfil.
 
-Após o envio a API retorna os mesmo dados enviados sem a senha e o id_user
+### Parâmetros de entrada
 
-```
+* **id_user** *(number)*: Identificador do usuário
+
+### Retorno
+
+Retorna todos os dados do usuário, incluindo a senha.
+
+```json
 {
-  "fullname": string,
-  "email": string,
+  "fullname": "string",
+  "email": "string",
   "birthday": "yyyy-MM-dd",
-  "city": string,
+  "city": "string",
+  "phoneNumber": "5599999999999",
+  "password": "string"
+}
+```
+
+---
+
+## Atualização de Usuário
+
+Endpoint responsável por atualizar os dados de um usuário existente.
+
+### Parâmetros de entrada
+
+* **id_user** *(number)*: Identificador do usuário
+* **fullname** *(string)*: Nome completo
+* **email** *(string)*: E-mail válido
+* **birthday** *(string | yyyy-MM-dd)*: Data de nascimento
+* **password** *(string)*: Nova senha (seguindo as regras de segurança)
+* **city** *(string)*: Cidade do usuário
+* **phoneNumber** *(string)*: Número de telefone
+
+### Retorno
+
+A API retorna os dados atualizados, **sem a senha**, juntamente com o `id_user`.
+
+```json
+{
+  "fullname": "string",
+  "email": "string",
+  "birthday": "yyyy-MM-dd",
+  "city": "string",
   "phoneNumber": "5599999999999"
 }
-
 ```
+
+---
+
+## Exclusão de Usuário
+
+Endpoint responsável por remover definitivamente um usuário do sistema.
+Utilizado quando o usuário seleciona a opção **Deletar Conta**.
+
+### Parâmetros de entrada
+
+* **id_user** *(number)*: Identificador do usuário
+
+### Retorno
+
+Retorna os dados do usuário que foram excluídos.
+
+```json
+{
+  "fullname": "string",
+  "email": "string",
+  "birthday": "yyyy-MM-dd",
+  "city": "string",
+  "phoneNumber": "5599999999999"
+}
+```
+
+---
+
+📌 **Observações**
+
+* Todas as rotas devem validar os dados de entrada
+* Recomenda-se o uso de HTTPS
+* Senhas devem ser armazenadas de forma criptografada
