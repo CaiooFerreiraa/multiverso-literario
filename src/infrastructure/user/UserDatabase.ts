@@ -8,7 +8,6 @@ export class UserDatabase implements UseRepository {
     try {
       const id_user = await this.insertInUser(user);
       await this.insertInMember(id_user, user);
-
       return user;
     } catch (error: any) {
       throw new Error(error instanceof Error ? error.message : String(error));

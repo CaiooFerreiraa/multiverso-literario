@@ -1,10 +1,10 @@
 import { CreateTimelineDTO } from "../../../application/timeline/dtos/CreateTimilineDTO"
 
 export class Timeline {
-  private dateStart: Date
-  private dateEnd: Date
-  private authorBook: string
-  private nameBook: string
+  public dateStart: Date
+  public dateEnd: Date
+  public authorBook: string
+  public nameBook: string
 
   constructor(data: CreateTimelineDTO) {
     this.authorBook = data.authorBook;

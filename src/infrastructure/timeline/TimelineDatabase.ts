@@ -6,17 +6,37 @@ export class TimelineDatabase implements TimelineRepository {
 
   async create(timeline: Timeline): Promise<any> {
     try {
-      
-    } catch (error) {
-      
+      await this.insertDatesTimeline(timeline)
+    } catch (error: unknown) {
+      throw new Error(error instanceof Error ? error.message : String(error));
     }
   }
 
   private async insertDatesTimeline(timeline: Timeline) {
     try {
-      
-    } catch (error) {
-      
+      const [{id_timeline}] = await this.database<{
+          id_timeline: number}[]>
+        `
+          INSERT INTO timeline (date_start, date_end) VALUES (
+            ${timeline.dateStart}, ${timeline.dateEnd}
+          ) RETURNING id_timeline
+        `
+
+        await this.insertBookTimeline(id_timeline, timeline);
+    } catch (error: unknown) {
+      throw new Error(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  private async insertBookTimeline(id_timeline: number, timeline: Timeline) {
+    try {
+      await this.database`
+        INSERT INTO timeline_book (id_timeline_book, author, name) VALUES (
+          ${id_timeline}, ${timeline.authorBook}, ${timeline.nameBook}
+        )
+      `
+    } catch (error: unknown) {
+      throw new Error(error instanceof Error ? error.message : String(error));
     }
   }
 
