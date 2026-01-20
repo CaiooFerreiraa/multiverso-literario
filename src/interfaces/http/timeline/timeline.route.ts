@@ -11,5 +11,9 @@ const createController = new CreateController(createTimline);
 const router = express.Router();
 
 router.post('/create', (req, res) => createController.execute(req, res));
+router.get('/read', (req, res) => {
+  console.log(req);
+  res.status(200).json(req.query.nameBook)
+})
 
 export default router;
