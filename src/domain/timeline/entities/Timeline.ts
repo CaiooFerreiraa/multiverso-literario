@@ -1,4 +1,4 @@
-import { CreateTimelineDTO } from "../../../application/timeline/dtos/CreateTimilineDTO"
+import { CreateTimelineDTO } from "../../../application/timeline/dtos/CreateTimelineDTO"
 
 export class Timeline {
   public dateStart: Date

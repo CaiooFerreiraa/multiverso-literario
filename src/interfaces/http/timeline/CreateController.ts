@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { TimelineCreate } from "../../../application/timeline/usecases/TimelineCreate";
-import { CreateTimelineDTO, CreateTimelineSchema } from "../../../application/timeline/dtos/CreateTimilineDTO";
+import { CreateTimelineDTO, CreateTimelineSchema } from "../../../application/timeline/dtos/CreateTimelineDTO";
 
 export class CreateController {
   constructor(private useCase: TimelineCreate) {};

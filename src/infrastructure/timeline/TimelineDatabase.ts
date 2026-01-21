@@ -40,8 +40,20 @@ export class TimelineDatabase implements TimelineRepository {
     }
   }
 
-  read(id_timeline: number): Promise<Timeline> {
-    throw new Error("")
+  async read(id_timeline: number): Promise<Timeline> {
+    try {
+      const timeline = await this.database`
+        SELECT a.date_start, a.date_end, b.name, b.author
+        FROM timeline a
+        JOIN timeline_book b ON a.id_timeline = b.id_timeline_book
+        WHERE a.id_timeline = ${id_timeline};
+      `
+      console.log(timeline);
+
+      return timeline;
+    } catch (error: unknown) {
+      throw new Error(error instanceof Error ? error.message : String(error));
+    }
   }
 
   update(id_timeline: number, timeline: Timeline): Promise<any> {
