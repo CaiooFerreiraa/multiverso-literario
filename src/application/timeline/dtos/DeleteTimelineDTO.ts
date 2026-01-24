@@ -5,4 +5,3 @@ export const DeleteTimelineSchema = z.object({
 });
 
 export type DeleteTimelineDTO = z.infer<typeof DeleteTimelineSchema>;
-

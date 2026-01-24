@@ -1,4 +1,4 @@
-import { CreateUserDTO } from "../../../application/User/dtos/CreateUserDTO"
+import { CreateUserDTO } from "../../../application/user/dtos/CreateUserDTO"
 
 export class User {
   public fullName: string;
