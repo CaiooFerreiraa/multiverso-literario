@@ -8,8 +8,8 @@ export class Timeline {
 
   constructor(data: CreateTimelineDTO) {
     this.authorBook = data.authorBook;
-    this.dateEnd = data.dateEnd;
-    this.dateStart = data.dateStart;
+    this.dateEnd = new Date(data.dateEnd);
+    this.dateStart = new Date(data.dateStart);
     this.nameBook = data.nameBook;
   }
 }

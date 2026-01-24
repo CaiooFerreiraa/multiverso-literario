@@ -1,7 +1,7 @@
 import { User } from "../../domain/user/entities/User";
 import type { UseRepository } from "../../domain/user/repositories/UserRepository";
 
-export class UserDatabase implements UseRepository {
+export class UserNeonDatabase implements UseRepository {
   constructor(private database: any) {}
   
   async create(user: User): Promise<User> {
