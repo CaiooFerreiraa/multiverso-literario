@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import type { UserRegister } from "../../../application/User/usecases/UserRegister";
-import { CreateUserDTO, CreateUserSchema } from "../../../application/User/dtos/CreateUserDTO";
+import type { UserRegister } from "../../../application/users/usecases/UserRegister";
+import { CreateUserDTO, CreateUserSchema } from "../../../application/users/dtos/CreateUserDTO";
 
 export class RegisterController {
   constructor(private useCase: UserRegister) {};

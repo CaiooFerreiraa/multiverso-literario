@@ -1,5 +1,5 @@
-import { User } from "../../../domain/user/entities/User";
-import type { UseRepository } from "../../../domain/user/repositories/UserRepository";
+import { User } from "../../../domain/users/entities/User";
+import type { UseRepository } from "../../../domain/users/repositories/UserRepository";
 import { CreateUserDTO } from "../dtos/CreateUserDTO";
 
 export class UserRegister {

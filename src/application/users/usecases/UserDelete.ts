@@ -1,4 +1,4 @@
-import { UseRepository } from "../../../domain/user/repositories/UserRepository";
+import { UseRepository } from "../../../domain/users/repositories/UserRepository";
 import { DeleteUserDTO } from "../dtos/DeleteUserDTO";
 
 export class UserDelete {

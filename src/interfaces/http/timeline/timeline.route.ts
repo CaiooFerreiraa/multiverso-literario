@@ -1,6 +1,6 @@
 import express from 'express';
 import { database } from '../../../infrastructure/database/NeonClient';
-import { TimelineNeonDatabase } from '../../../infrastructure/timeline/TimelineNeonDatabase';
+import { TimelineNeonDatabase } from '../../../infrastructure/timeline/Timeline.databaseNeon';
 
 import { TimelineCreate } from '../../../application/timeline/usecases/TimelineCreate';
 import { TimelineRead } from '../../../application/timeline/usecases/TimelineRead';

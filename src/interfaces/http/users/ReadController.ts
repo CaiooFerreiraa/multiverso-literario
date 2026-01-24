@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { UserRead } from "../../../application/User/usecases/UserRead";
-import { ReadUserDTO, ReadUserSchema } from "../../../application/User/dtos/ReadUserDTO";
+import { UserRead } from "../../../application/users/usecases/UserRead";
+import { ReadUserDTO, ReadUserSchema } from "../../../application/users/dtos/ReadUserDTO";
 
 export class ReadController {
   constructor(private useCase: UserRead){}

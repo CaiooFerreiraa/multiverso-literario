@@ -1,16 +1,16 @@
 import express from 'express';
 import { database } from '../../../infrastructure/database/NeonClient';
-import { UserNeonDatabase } from '../../../infrastructure/user/UserNeonDatabase';
+import { UserNeonDatabase } from '../../../infrastructure/users/User.databaseNeon';
 
 import { UpdateController } from './UpdateController';
 import { ReadController } from './ReadController';
 import { RegisterController } from './RegisterController';
 import { DeleteController } from './DeleteController';
 
-import { UserRegister } from '../../../application/User/usecases/UserRegister';
-import { UserUpdate } from '../../../application/User/usecases/UserUpdate';
-import { UserDelete } from '../../../application/User/usecases/UserDelete';
-import { UserRead } from '../../../application/User/usecases/UserRead';
+import { UserRegister } from '../../../application/users/usecases/UserRegister';
+import { UserUpdate } from '../../../application/users/usecases/UserUpdate';
+import { UserDelete } from '../../../application/users/usecases/UserDelete';
+import { UserRead } from '../../../application/users/usecases/UserRead';
 
 const router = express.Router();
 

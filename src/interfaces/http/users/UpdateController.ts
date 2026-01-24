@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { UpdateUserDTO, UpdateUserSchema } from "../../../application/User/dtos/UpdateUserDTO";
-import { UserUpdate } from "../../../application/User/usecases/UserUpdate";
+import { UpdateUserDTO, UpdateUserSchema } from "../../../application/users/dtos/UpdateUserDTO";
+import { UserUpdate } from "../../../application/users/usecases/UserUpdate";
 
 export class UpdateController {
   constructor(private useCase: UserUpdate) {};

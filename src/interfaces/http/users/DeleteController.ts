@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { DeleteUserDTO, DeleteUserSchema } from "../../../application/user/dtos/DeleteUserDTO";
-import { UserDelete } from "../../../application/user/usecases/UserDelete";
+import { DeleteUserDTO, DeleteUserSchema } from "../../../application/users/dtos/DeleteUserDTO";
+import { UserDelete } from "../../../application/users/usecases/UserDelete";
 
 export class DeleteController {
   constructor(private useCase: UserDelete) {};
