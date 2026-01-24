@@ -100,7 +100,14 @@ export class TimelineNeonDatabase implements TimelineRepository {
     }
   }
 
-  delete(id_timeline: number): Promise<any> {
-    throw new Error("")
+  async delete(id_timeline: number): Promise<any> {
+    try {
+      await this.database`
+        DELETE FROM timeline
+        WHERE id_timeline = ${id_timeline}
+      `;
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : String(Error));
+    }
   }
 }

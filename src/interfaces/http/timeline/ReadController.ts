@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { TimelineRead } from "../../../application/timeline/useCases/TimelineRead";
+import { TimelineRead } from "../../../application/timeline/usecases/TimelineRead";
 import { ReadTimelineDTO, ReadTimelineSchema } from "../../../application/timeline/dtos/ReadTimelineDTO";
 
 export class ReadController {

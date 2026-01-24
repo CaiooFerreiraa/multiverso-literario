@@ -1,5 +1,5 @@
 import express from "express";
-import UserRouter from './src/interfaces/http/user/user.route'
+import UserRouter from './src/interfaces/http/users/user.route'
 import TimelineRouter from './src/interfaces/http/timeline/timeline.route'
 const router = express.Router();
 
