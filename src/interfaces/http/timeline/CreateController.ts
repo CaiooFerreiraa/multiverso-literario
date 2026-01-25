@@ -9,7 +9,7 @@ export class CreateController {
     try {
       const useData: CreateTimelineDTO = CreateTimelineSchema.parse(req.body);
       await this.useCase.execute(useData);
-      res.status(200).json(useData);
+      res.status(201).json(useData);
     } catch (error) {
       error = error instanceof Error ? error.message : String(error);
       console.log(error);

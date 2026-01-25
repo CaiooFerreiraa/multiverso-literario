@@ -9,7 +9,7 @@ export class RegisterController {
     try {
       const useData: CreateUserDTO = CreateUserSchema.parse(req.body);
       const { password, ...user } = await this.useCase.execute(useData)
-      res.status(200).json(user);
+      res.status(201).json(user);
     } catch (error: unknown) {
       error = error instanceof Error ? error.message : String(error)
       console.log(error)
