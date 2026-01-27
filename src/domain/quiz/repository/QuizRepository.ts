@@ -1,0 +1,8 @@
+import { Quiz } from "../entities/Quiz";
+
+export interface QuizRepository {
+  create(quiz: Quiz): Promise<any>;
+  read(): Promise<any>;
+  update(id_quiz: number, quiz: Quiz): Promise<any>;
+  delete(id_quiz: number): Promise<any>;
+}
