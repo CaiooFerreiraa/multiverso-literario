@@ -3,7 +3,7 @@ import router from './routes';
 
 const app = express();
 const port: Number = 8080;
-const hostname: String = "192.168.1.5";
+const hostname: String = "192.168.1.2";
 
 app.use(express.urlencoded({extended: true}))
 app.use(express.json())

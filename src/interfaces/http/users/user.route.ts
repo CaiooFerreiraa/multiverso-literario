@@ -1,11 +1,11 @@
 import express from 'express';
-import { database } from '../../../infrastructure/database/NeonClient';
+import { database } from '../../../infrastructure/database/neon/NeonAdpter';
 import { UserNeonDatabase } from '../../../infrastructure/users/User.databaseNeon';
 
-import { UpdateController } from './UpdateController';
-import { ReadController } from './ReadController';
-import { RegisterController } from './RegisterController';
-import { DeleteController } from './DeleteController';
+import { UpdateController } from './UpdateUsersController';
+import { ReadController } from './ReadUsersController';
+import { RegisterController } from './CreateUsersController';
+import { DeleteController } from './DeleteUsersController';
 
 import { UserRegister } from '../../../application/users/usecases/UserRegister';
 import { UserUpdate } from '../../../application/users/usecases/UserUpdate';

@@ -1,8 +1,9 @@
 import { User } from "../../domain/users/entities/User";
 import type { UseRepository } from "../../domain/users/repositories/UserRepository";
+import { Database } from "../../core/database/Database";
 
 export class UserNeonDatabase implements UseRepository {
-  constructor(private database: any) {}
+  constructor(private database: Database) {}
   
   async create(user: User): Promise<User> {
     try {
@@ -16,14 +17,12 @@ export class UserNeonDatabase implements UseRepository {
 
   private async insertInUser(user: User): Promise<number> {
     try {
-      const [{ id_user }] = await this.database<
-        { id_user: number }[]
-      >`
+      const [ result ] = await this.database`
         INSERT INTO users (fullname, email, password)
         VALUES (${user.fullName}, ${user.email}, ${user.password})
         RETURNING id_user;
       `
-      return id_user;
+      return result.id_user;
     } catch (error: any) {
       throw new Error(error instanceof Error ? error.message : String(error));
     }
@@ -41,7 +40,7 @@ export class UserNeonDatabase implements UseRepository {
     }
   }
 
-  async read(email: string): Promise<User> {
+  async read(email: string): Promise<any> {
     try {
       const user = await this.database`
         SELECT a.fullname, a.email, a.password, b.birthday, b.city, b."phoneNumber" 

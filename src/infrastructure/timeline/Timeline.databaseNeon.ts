@@ -1,8 +1,9 @@
 import { Timeline } from "../../domain/timeline/entities/Timeline";
 import { TimelineRepository } from "../../domain/timeline/repository/TimelineRepository";
+import { Database } from "../../core/database/Database";
 
 export class TimelineNeonDatabase implements TimelineRepository {
-  constructor(private database: any) {}
+  constructor(private database: Database) {}
 
   async create(timeline: Timeline): Promise<any> {
     try {
@@ -14,15 +15,13 @@ export class TimelineNeonDatabase implements TimelineRepository {
 
   private async insertDatesTimeline(timeline: Timeline) {
     try {
-      const [{id_timeline}] = await this.database<{
-          id_timeline: number}[]>
-        `
+      const [ result ] = await this.database`
           INSERT INTO timeline (date_start, date_end) VALUES (
             ${timeline.dateStart}, ${timeline.dateEnd}
           ) RETURNING id_timeline
         `
 
-        await this.insertBookTimeline(id_timeline, timeline);
+        await this.insertBookTimeline(result.id_timeline, timeline);
     } catch (error: unknown) {
       throw new Error(error instanceof Error ? error.message : String(error));
     }
@@ -52,7 +51,7 @@ export class TimelineNeonDatabase implements TimelineRepository {
     }
   }
 
-  async read(id_timeline: number): Promise<Timeline> {
+  async read(id_timeline: number): Promise<any> {
     try {
       const timeline = await this.database`
         SELECT a.date_start, a.date_end, b.name, b.author
