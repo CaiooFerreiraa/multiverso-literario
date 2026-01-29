@@ -7,7 +7,7 @@ export class QuizDatabaseNeon implements QuizRepository {
 
   async create(quiz: Quiz): Promise<any> {
     try {
-      this
+      console.log(quiz);
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : String(error));
     }

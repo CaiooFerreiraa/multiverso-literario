@@ -1,12 +1,17 @@
 import express from "express";
 const router = express.Router();
 
-router.post('/create', (req, res) => {
-  console.log("testando rota");
-  const useData = req.body;
+import { database } from "../../../infrastructure/database/neon/NeonAdpter";
+import { QuizDatabaseNeon } from "../../../infrastructure/quiz/Quiz.databaseNeon";
 
-  console.log(useData.questions[0].alternatives)
-  res.status(200).send("Tudo OK")
-})
+import { CreateQuizController } from "./CreateQuizController"; 
+
+import { CreateQuiz } from "../../../application/quiz/usecases/CreateQuiz";
+
+const repository = new QuizDatabaseNeon(database);
+const createQuiz = new CreateQuiz(repository);
+const createQuizController = new CreateQuizController(createQuiz);
+
+router.post('/create', (req, res) => createQuizController.execute(req, res));
 
 export default router;
