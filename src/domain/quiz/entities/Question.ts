@@ -2,11 +2,11 @@ import { CreateQuizQuestionsDTO } from "../../../application/quiz/dtos/CreateQui
 import { Alternative } from "./Alternative";
 
 export class Question {
-  public question: string
+  public question_tittle: string
   public alternatives: Alternative[]
 
   constructor(data: CreateQuizQuestionsDTO) {
-    this.question = data.question;
+    this.question_tittle = data.question_tittle;
     this.alternatives = data.alternatives
   }
 }

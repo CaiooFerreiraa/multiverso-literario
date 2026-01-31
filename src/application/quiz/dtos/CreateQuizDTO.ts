@@ -7,7 +7,7 @@ export const CreateQuizAlternativesSchema = z.object({
 
 
 export const CreateQuizQuestionsSchema = z.object({
-  question: z.string(),
+  question_tittle: z.string(),
   alternatives: z.array(
     CreateQuizAlternativesSchema
   )
@@ -15,7 +15,7 @@ export const CreateQuizQuestionsSchema = z.object({
 
 export const CreateQuizSchema = z.object({
   tittle: z.string(),
-  id_timeline_book: z.number(),
+  id_timeline_book: z.coerce.number(),
   statement: z.string().default("não respondido"),
   questions: z.array(
     CreateQuizQuestionsSchema
