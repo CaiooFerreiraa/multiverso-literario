@@ -1,0 +1,28 @@
+import { z } from "zod";
+
+export const UpdateQuizAlternativesSchema = z.object({
+  alternative: z.coerce.string(),
+  is_correct: z.coerce.boolean()
+})
+
+
+export const UpdateQuizQuestionsSchema = z.object({
+  question_tittle: z.string(),
+  alternatives: z.array(
+    UpdateQuizAlternativesSchema
+  )
+})
+
+export const UpdateQuizSchema = z.object({
+  id_quiz: z.coerce.number(),
+  tittle: z.string(),
+  id_timeline_book: z.coerce.number(),
+  statement: z.string().default("não respondido"),
+  questions: z.array(
+    UpdateQuizQuestionsSchema
+  ),
+});
+
+export type UpdateQuizDTO = z.infer<typeof UpdateQuizSchema>;
+export type UpdateQuizAlternativeDTO = z.infer<typeof UpdateQuizAlternativesSchema>;
+export type UpdateQuizQuestionsDTO = z.infer<typeof UpdateQuizQuestionsSchema>;

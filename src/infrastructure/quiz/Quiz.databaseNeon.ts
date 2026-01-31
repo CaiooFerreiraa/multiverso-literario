@@ -1,50 +1,56 @@
 import { Quiz } from "../../domain/quiz/entities/Quiz";
 import { QuizRepository } from "../../domain/quiz/repository/QuizRepository";
-import { Database } from "../../core/database/Database";
 import { Question } from "../../domain/quiz/entities/Question";
 import { Alternative } from "../../domain/quiz/entities/Alternative";
 
 export class QuizDatabaseNeon implements QuizRepository {
-  constructor(private database: Database) {};
+  constructor(private database: any) { };
 
   async create(quiz: Quiz): Promise<void> {
-    try {
-      await this.insertDataQuiz(quiz);
-    } catch (error) {
-      throw new Error(error instanceof Error ? error.message : String(error));
-    }
+  try {
+    await this.database.transaction(async (tx: any) => {
+      await this.insertDataQuiz(tx, quiz);
+    }, {
+      isolationLevel: "RepeatableRead"
+    });
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : String(error));
+  }
   }
 
-  private async insertDataQuiz(quiz: Quiz) {
-    const [ result ] = await this.database`
+  private async insertDataQuiz(query: any, quiz: Quiz) {
+    const [result] = await query`
       INSERT INTO quiz (tittle, id_timeline_book, statement) VALUES (
-        ${quiz.title}, ${quiz.id_timeline_book}, ${quiz.statement}
+      ${quiz.title}, ${quiz.id_timeline_book}, ${quiz.statement}
       ) RETURNING id_quiz
-    `;
+    `
 
-    console.log(result);
     const id_quiz: number = result.id_quiz;
     const questions: Question[] = quiz.questions;
 
-    await this.insertArrayOfQuestions(id_quiz, questions)
+    await this.insertArrayOfQuestions(query, id_quiz, questions)
   }
 
-  private async insertArrayOfQuestions(id_quiz: number, questions: Question[]) {
+  private async insertArrayOfQuestions(query: any, id_quiz: number, questions: Question[]) {
     for (const element of questions) {
-      const [result] = await this.database`
+      const [result] = await query`
         INSERT INTO questions (id_quiz, question_tittle)
         VALUES (${id_quiz}, ${element.question_tittle})
         RETURNING id_question
       `;
 
       const id_question = result.id_question;
-      await this.insertArrayOfAlternatives(id_question, element.alternatives);
+      await this.insertArrayOfAlternatives(query, id_question, element.alternatives);
     }
   }
 
-  private async insertArrayOfAlternatives(id_question: number, alternatives: Alternative[]) {
+  private async insertArrayOfAlternatives(
+    query: any,
+    id_question: number,
+    alternatives: Alternative[]
+  ) {
     for (const element of alternatives) {
-      await this.database`
+      await query`
         INSERT INTO alternatives (id_question, alternative, iscorrect) VALUES (
           ${id_question}, ${element.alternative}, ${element.is_correct}
         )
@@ -90,25 +96,18 @@ export class QuizDatabaseNeon implements QuizRepository {
 
       ` ;
 
-      console.log(quiz)
-
       return quiz;
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : String(error));
     }
   }
 
-  private arrayOfQuizFormated(quiz: Record<string, any>[], id_quiz: number): Object[] {
-    const prev = quiz.map(element => {
-      
-    })
+  async update(id_quiz: number, quiz: Quiz): Promise<any> {
+    try {
 
-
-    return [{}]
-  }
-
-  update(id_quiz: number, quiz: Quiz): Promise<any> {
-    throw new Error("Method not implemented.");
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : String(error))
+    }
   }
   delete(id_quiz: number): Promise<any> {
     throw new Error("Method not implemented.");

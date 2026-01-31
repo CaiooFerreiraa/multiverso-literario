@@ -1,5 +1,5 @@
 import express from 'express';
-import { database } from '../../../infrastructure/database/neon/NeonAdpter';
+import { neonClient } from '../../../infrastructure/database/neon';
 import { TimelineNeonDatabase } from '../../../infrastructure/timeline/Timeline.databaseNeon';
 
 import { TimelineCreate } from '../../../application/timeline/usecases/TimelineCreate';
@@ -13,7 +13,7 @@ import { UpdateController } from './UpdateTimelineController';
 import { DeleteController } from './DeleteTimelineController';
 
 
-const repository = new TimelineNeonDatabase(database);
+const repository = new TimelineNeonDatabase(neonClient);
 
 const createTimeline = new TimelineCreate(repository);
 const readTimeline = new TimelineRead(repository);

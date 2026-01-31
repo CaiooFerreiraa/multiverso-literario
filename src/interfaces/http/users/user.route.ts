@@ -1,5 +1,5 @@
 import express from 'express';
-import { database } from '../../../infrastructure/database/neon/NeonAdpter';
+import { neonClient } from '../../../infrastructure/database/neon';
 import { UserNeonDatabase } from '../../../infrastructure/users/User.databaseNeon';
 
 import { UpdateController } from './UpdateUsersController';
@@ -14,7 +14,7 @@ import { UserRead } from '../../../application/users/usecases/UserRead';
 
 const router = express.Router();
 
-const useDatabase = new UserNeonDatabase(database);
+const useDatabase = new UserNeonDatabase(neonClient);
 
 const useCreate = new UserRegister(useDatabase);
 const useRead = new UserRead(useDatabase);

@@ -1,45 +1,38 @@
 import { Timeline } from "../../domain/timeline/entities/Timeline";
 import { TimelineRepository } from "../../domain/timeline/repository/TimelineRepository";
-import { Database } from "../../core/database/Database";
 
 export class TimelineNeonDatabase implements TimelineRepository {
-  constructor(private database: Database) {}
+  constructor(private database: any) { }
 
   async create(timeline: Timeline): Promise<any> {
     try {
-      await this.insertDatesTimeline(timeline)
+      await this.database.transaction(async (tx: any) => {
+        await this.insertDatesTimeline(tx, timeline)
+      }, { isolationLevel: "RepeatableRead" })
     } catch (error: unknown) {
       throw new Error(error instanceof Error ? error.message : String(error));
     }
   }
 
-  private async insertDatesTimeline(timeline: Timeline) {
-    try {
-      const [ result ] = await this.database`
-          INSERT INTO timeline (date_start, date_end) VALUES (
-            ${timeline.dateStart}, ${timeline.dateEnd}
-          ) RETURNING id_timeline
-        `
-
-        await this.insertBookTimeline(result.id_timeline, timeline);
-    } catch (error: unknown) {
-      throw new Error(error instanceof Error ? error.message : String(error));
-    }
-  }
-
-  private async insertBookTimeline(id_timeline: number, timeline: Timeline) {
-    try {
-      await this.database`
-        INSERT INTO timeline_book (id_timeline_book, author, name) VALUES (
-          ${id_timeline}, ${timeline.authorBook}, ${timeline.nameBook}
-        ) RETURNING id_timeline_book
+  private async insertDatesTimeline(tx: any, timeline: Timeline) {
+    const [result] = await tx`
+        INSERT INTO timeline (date_start, date_end) VALUES (
+          ${timeline.dateStart}, ${timeline.dateEnd}
+        ) RETURNING id_timeline
       `
-    } catch (error: unknown) {
-      throw new Error(error instanceof Error ? error.message : String(error));
-    }
+
+    await this.insertBookTimeline(tx, result.id_timeline, timeline);
   }
 
-  private async addIdTimelineAndIdBookAndIdUserInTimelineBelongs(id_timeline: number, id_timeline_book:number, id_user: number): Promise<any> {
+  private async insertBookTimeline(tx: any, id_timeline: number, timeline: Timeline) {
+    await tx`
+      INSERT INTO timeline_book (id_timeline_book, author, name) VALUES (
+        ${id_timeline}, ${timeline.authorBook}, ${timeline.nameBook}
+      ) RETURNING id_timeline_book
+    `
+  }
+
+  private async addIdTimelineAndIdBookAndIdUserInTimelineBelongs(id_timeline: number, id_timeline_book: number, id_user: number): Promise<any> {
     try {
       await this.database`
         INSERT INTO timeline_belongs (id_timeline, id_timeline_book, id_user) VALUES (

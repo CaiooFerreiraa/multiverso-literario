@@ -1,9 +1,8 @@
 import { User } from "../../domain/users/entities/User";
 import type { UseRepository } from "../../domain/users/repositories/UserRepository";
-import { Database } from "../../core/database/Database";
 
 export class UserNeonDatabase implements UseRepository {
-  constructor(private database: Database) {}
+  constructor(private database: any) {}
   
   async create(user: User): Promise<User> {
     try {
