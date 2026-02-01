@@ -1,134 +1,64 @@
 # Multiverso Literário
 
-## Instalação e Execução
+O **Multiverso Literário** é uma plataforma voltada para entusiastas de leitura, permitindo o gerenciamento de timelines de leitura, criação de quizzes personalizados e gestão de perfil de usuário.
+
+## 🏗️ Estrutura do Projeto
+
+O projeto segue os princípios da **Clean Architecture**, garantindo separação de responsabilidades e facilidade de manutenção.
+
+```text
+src/
+├── domain/           # Camada de Domínio: Entidades e interfaces de repositórios (Regras de Negócio)
+├── application/      # Camada de Aplicação: Casos de uso (Use Cases) e DTOs (Data Transfer Objects)
+├── infrastructure/   # Camada de Infraestrutura: Implementações de banco de dados, adapters e drivers
+└── interfaces/       # Camada de Interfaces: Controladores HTTP e definições de rotas
+```
+
+- **Domain**: Contém a lógica central da aplicação que não depende de frameworks externos.
+- **Application**: Orquestra o fluxo de dados entre o domínio e as interfaces externas.
+- **Infrastructure**: Onde residem os detalhes técnicos como o acesso ao banco de dados (Neon/PostgreSQL).
+- **Interfaces**: Expõe a aplicação para o mundo externo através de APIs REST.
+
+---
+
+## 🚀 Instalação e Execução
+
+### Pré-requisitos
+- [Bun](https://bun.sh/) instalado.
 
 ### Instalar dependências
-
 ```bash
 bun install
 ```
 
 ### Executar o projeto
-
 ```bash
 bun start
 ```
 
-Este projeto foi criado utilizando `bun init` na versão **v1.3.5** do Bun.
-O **Bun** é um runtime JavaScript moderno, rápido e completo.
-Mais informações: [https://bun.com](https://bun.com)
+Este projeto utiliza **Bun v1.3.5** para máxima performance.
 
 ---
 
-## Documentação da API
+## 📖 Documentação da API
 
 ### 👤 Usuários (`/api/user`)
 
-#### Criar Usuário
-`POST` **/create**
+| Método | Rota | Descrição |
+| :--- | :--- | :--- |
+| `POST` | `/create` | Cadastra um novo usuário |
+| `GET` | `/read` | Retorna dados do usuário (via e-mail no body) |
+| `PUT` | `/update` | Atualiza dados cadastrais |
+| `DELETE` | `/delete` | Remove um usuário do sistema |
 
-Cadastra um novo usuário no sistema.
-
-**Parâmetros de Entrada (Body)**
-
-| Parâmetro | Tipo | Obrigatório | Descrição |
-| :--- | :--- | :---: | :--- |
-| `fullname` | `string` | Sim | Nome completo do usuário |
-| `email` | `string` | Sim | E-mail válido |
-| `birthday` | `string` | Sim | Data de nascimento (`yyyy-MM-dd`) |
-| `password` | `string` | Sim | Senha (min. 8 caracteres, 1 maiúscula, 1 número, 1 especial) |
-| `city` | `string` | Sim | Cidade |
-| `phoneNumber` | `string` | Sim | Telefone formato internacional |
-
-**Retorno (201 Created)**
-
+#### Criar Usuário (`POST /create`)
+**Body:**
 ```json
 {
   "fullname": "Nome Usuário",
   "email": "email@exemplo.com",
   "birthday": "2000-01-01",
-  "city": "Cidade",
-  "phoneNumber": "5599999999999"
-}
-```
-
----
-
-#### Ler Usuário
-`GET` **/read**
-
-Retorna os dados detalhados de um usuário.
-
-**Parâmetros de Entrada (Body)**
-
-| Parâmetro | Tipo | Obrigatório | Descrição |
-| :--- | :--- | :---: | :--- |
-| `email` | `string` | Sim | E-mail para identificação |
-
-**Retorno (200 OK)**
-
-```json
-{
-  "fullname": "Nome Usuário",
-  "email": "email@exemplo.com",
-  "birthday": "2000-01-01",
-  "city": "Cidade",
-  "phoneNumber": "5599999999999",
-  "password": "hashed_password"
-}
-```
-
----
-
-#### Atualizar Usuário
-`PUT` **/update**
-
-Atualiza os dados de um usuário existente.
-
-**Parâmetros de Entrada (Body)**
-
-| Parâmetro | Tipo | Obrigatório | Descrição |
-| :--- | :--- | :---: | :--- |
-| `id_user` | `number` | Sim | ID do usuário |
-| `fullname` | `string` | Não | Nome completo |
-| `email` | `string` | Não | E-mail válido |
-| `birthday` | `string` | Não | Data de nascimento (`yyyy-MM-dd`) |
-| `password` | `string` | Não | Nova senha |
-| `city` | `string` | Não | Cidade |
-| `phoneNumber` | `string` | Não | Telefone |
-
-**Retorno (200 OK)**
-
-```json
-{
-  "fullname": "Nome Atualizado",
-  "email": "email@exemplo.com",
-  "birthday": "2000-01-01",
-  "city": "Nova Cidade",
-  "phoneNumber": "5599999999999"
-}
-```
-
----
-
-#### Deletar Usuário
-`DELETE` **/delete**
-
-Remove um usuário do sistema.
-
-**Parâmetros de Entrada (Body)**
-
-| Parâmetro | Tipo | Obrigatório | Descrição |
-| :--- | :--- | :---: | :--- |
-| `id_user` | `number` | Sim | ID do usuário |
-
-**Retorno (200 OK)**
-
-```json
-{
-  "fullname": "Nome Usuário",
-  "email": "email@exemplo.com",
-  "birthday": "2000-01-01",
+  "password": "SenhaSegura123!",
   "city": "Cidade",
   "phoneNumber": "5599999999999"
 }
@@ -138,102 +68,64 @@ Remove um usuário do sistema.
 
 ### 📚 Timeline (`/api/timeline`)
 
-#### Criar Timeline
-`POST` **/create**
+| Método | Rota | Descrição |
+| :--- | :--- | :--- |
+| `POST` | `/create` | Adiciona um livro à timeline |
+| `GET` | `/read/:id_timeline` | Busca uma entrada específica |
+| `PUT` | `/update` | Atualiza dados de uma leitura |
+| `DELETE` | `/delete/:id_timeline` | Remove uma entrada da timeline |
 
-Adiciona um livro à timeline do usuário.
+---
 
-**Parâmetros de Entrada (Body)**
+### 📝 Quizzes (`/api/quiz`)
 
-| Parâmetro | Tipo | Obrigatório | Descrição |
-| :--- | :--- | :---: | :--- |
-| `dateStart` | `string` | Sim | Início da leitura (`yyyy-MM-dd`) |
-| `dateEnd` | `string` | Sim | Término da leitura (`yyyy-MM-dd`) |
-| `nameBook` | `string` | Sim | Nome do livro |
-| `authorBook` | `string` | Sim | Autor do livro |
+| Método | Rota | Descrição |
+| :--- | :--- | :--- |
+| `POST` | `/create` | Cria um novo quiz vinculado a um livro |
+| `GET` | `/read/:id_quiz` | Busca detalhes de um quiz |
+| `PUT` | `/update` | Atualiza perguntas e alternativas |
+| `DELETE` | `/delete/:id_quiz` | Remove um quiz do sistema |
 
-**Retorno (201 Created)**
-
+#### Criar Quiz (`POST /create`)
+**Body:**
 ```json
 {
-  "dateStart": "2023-01-01",
-  "dateEnd": "2023-01-10",
-  "authorBook": "Autor Exemplo",
-  "nameBook": "Livro Exemplo"
+  "tittle": "Quiz sobre O Hobbit",
+  "id_timeline_book": 1,
+  "statement": "Responda as questões abaixo",
+  "questions": [
+    {
+      "question_tittle": "Quem é o protagonista?",
+      "alternatives": [
+        { "alternative": "Bilbo Bolseiro", "is_correct": true },
+        { "alternative": "Gandalf", "is_correct": false }
+      ]
+    }
+  ]
 }
 ```
 
 ---
 
-#### Ler Timeline por ID
-`GET` **/read/:id_timeline**
+## 📂 Documentação Adicional
 
-Busca uma entrada específica na timeline.
-
-**Parâmetros de Entrada (Path)**
-
-| Parâmetro | Tipo | Obrigatório | Descrição |
-| :--- | :--- | :---: | :--- |
-| `id_timeline` | `string` | Sim | ID da timeline (via URL) |
-
-**Retorno (200 OK)**
-
-Objeto contendo os dados da entrada solicitada.
+Informações detalhadas sobre o banco de dados e requisitos do projeto podem ser encontradas na pasta:
+- `documentação/Banco de Dados/`
+- `documentação/Documentação Escrita/`
 
 ---
 
-#### Atualizar Timeline
-`PUT` **/update**
+## ⚙️ Tecnologias Utilizadas
 
-Atualiza uma entrada na timeline.
-
-**Parâmetros de Entrada (Body)**
-
-| Parâmetro | Tipo | Obrigatório | Descrição |
-| :--- | :--- | :---: | :--- |
-| `id_timeline` | `number` | Sim | ID da timeline |
-| `dateStart` | `string` | Não | Início da leitura |
-| `dateEnd` | `string` | Não | Término da leitura |
-| `nameBook` | `string` | Não | Nome do livro |
-| `authorBook` | `string` | Não | Autor do livro |
-
-**Retorno (200 OK)**
-
-```json
-{
-  "id_timeline": 1,
-  "dateStart": "2023-01-05",
-  "dateEnd": "2023-01-15",
-  "nameBook": "Novo Titulo",
-  "authorBook": "Novo Autor"
-}
-```
+- **Runtime**: [Bun](https://bun.sh/)
+- **Framework**: [Express](https://expressjs.com/)
+- **Banco de Dados**: [Neon (PostgreSQL)](https://neon.tech/)
+- **Validação**: [Zod](https://zod.dev/)
+- **Linguagem**: TypeScript
 
 ---
 
-#### Deletar Timeline
-`DELETE` **/delete/:id_timeline**
-
-Remove uma entrada da timeline.
-
-**Parâmetros de Entrada (Path)**
-
-| Parâmetro | Tipo | Obrigatório | Descrição |
-| :--- | :--- | :---: | :--- |
-| `id_timeline` | `string` | Sim | ID da timeline (via URL) |
-
-**Retorno (200 OK)**
-
-```json
-{
-  "id_timeline": "1"
-}
-```
-
----
-
-### 📝 Notas Gerais
-
-* **Segurança**: Senhas são armazenadas com criptografia.
-* **Validação**: Todas as rotas possuem validação de dados via Zod.
-* **Formato**: Todas as datas seguem o padrão `yyyy-MM-dd`.
+### 🛡️ Notas de Segurança e Padrões
+* Senhas são armazenadas utilizando criptografia (hashing).
+* Todas as rotas possuem validação rigorosa com Zod.
+* O padrão de data utilizado em toda a API é `yyyy-MM-dd`.
