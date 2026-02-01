@@ -1,12 +1,13 @@
 import { Timeline } from "../../domain/timeline/entities/Timeline";
 import { TimelineRepository } from "../../domain/timeline/repository/TimelineRepository";
+import { Database } from "../database/neon";
 
 export class TimelineNeonDatabase implements TimelineRepository {
-  constructor(private database: any) { }
+  constructor(private database: Database) { }
 
   async create(timeline: Timeline): Promise<any> {
     try {
-      await this.database.transaction(async (tx: any) => {
+      await this.database.transaction(async (tx: Database) => {
         await this.insertDatesTimeline(tx, timeline)
       }, { isolationLevel: "RepeatableRead" })
     } catch (error: unknown) {
@@ -14,7 +15,7 @@ export class TimelineNeonDatabase implements TimelineRepository {
     }
   }
 
-  private async insertDatesTimeline(tx: any, timeline: Timeline) {
+  private async insertDatesTimeline(tx: Database, timeline: Timeline) {
     const [result] = await tx`
         INSERT INTO timeline (date_start, date_end) VALUES (
           ${timeline.dateStart}, ${timeline.dateEnd}
@@ -24,7 +25,7 @@ export class TimelineNeonDatabase implements TimelineRepository {
     await this.insertBookTimeline(tx, result.id_timeline, timeline);
   }
 
-  private async insertBookTimeline(tx: any, id_timeline: number, timeline: Timeline) {
+  private async insertBookTimeline(tx: Database, id_timeline: number, timeline: Timeline) {
     await tx`
       INSERT INTO timeline_book (id_timeline_book, author, name) VALUES (
         ${id_timeline}, ${timeline.authorBook}, ${timeline.nameBook}
