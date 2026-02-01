@@ -11,7 +11,7 @@ export class TimelineNeonDatabase implements TimelineRepository {
         await this.insertDatesTimeline(tx, timeline)
       }, { isolationLevel: "RepeatableRead" })
     } catch (error: unknown) {
-      throw new Error(error instanceof Error ? error.message : String(error));
+      throw error;
     }
   }
 
@@ -41,7 +41,7 @@ export class TimelineNeonDatabase implements TimelineRepository {
         )
       `
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : String(error));
+      throw error;
     }
   }
 
@@ -55,7 +55,7 @@ export class TimelineNeonDatabase implements TimelineRepository {
       `
       return timeline;
     } catch (error: unknown) {
-      throw new Error(error instanceof Error ? error.message : String(error));
+      throw error;
     }
   }
 
@@ -63,7 +63,7 @@ export class TimelineNeonDatabase implements TimelineRepository {
     try {
       await this.updateDatesTimeline(id_timeline, timeline);
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : String(error));
+      throw error;
     }
   }
 
@@ -77,7 +77,7 @@ export class TimelineNeonDatabase implements TimelineRepository {
 
       await this.updateBookTimeline(id_timeline, timeline)
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : String(error));
+      throw error;
     }
   }
 
@@ -89,7 +89,7 @@ export class TimelineNeonDatabase implements TimelineRepository {
         WHERE id_timeline_book = ${id_timeline}
       `
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : String(error));
+      throw error;
     }
   }
 
@@ -100,7 +100,7 @@ export class TimelineNeonDatabase implements TimelineRepository {
         WHERE id_timeline = ${id_timeline}
       `;
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : String(Error));
+      throw error;
     }
   }
 }
