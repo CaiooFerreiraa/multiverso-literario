@@ -155,7 +155,16 @@ export class QuizDatabaseNeon implements QuizRepository {
     }    
   }
 
-  delete(id_quiz: number): Promise<any> {
-    throw new Error("Method not implemented.");
+  async delete(id_quiz: number): Promise<any> {
+    try {
+      await this.database`
+        DELETE FROM quiz
+        WHERE id_quiz = ${id_quiz}
+      `;
+
+      return id_quiz;
+    } catch (error) {
+      throw error;
+    }
   }
 }
