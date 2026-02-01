@@ -1,104 +1,167 @@
-# Multiverso Literário
+# 🌌 Multiverso Literário - Backend
 
-O **Multiverso Literário** é uma plataforma voltada para entusiastas de leitura, permitindo o gerenciamento de timelines de leitura, criação de quizzes personalizados e gestão de perfil de usuário.
+O **Multiverso Literário** é uma API robusta e escalável desenvolvida para gerenciar jornadas de leitura, permitindo que usuários registrem seu progresso literário através de uma timeline e testem seus conhecimentos por meio de quizzes personalizados vinculados aos livros lidos.
 
-## 🏗️ Estrutura do Projeto
+---
 
-O projeto segue os princípios da **Clean Architecture**, garantindo separação de responsabilidades e facilidade de manutenção.
+## 📑 Sumário
+1. [Sobre o Projeto](#-sobre-o-projeto)
+2. [Arquitetura](#-arquitetura)
+3. [Tecnologias](#-tecnologias)
+4. [Configuração do Ambiente](#-configuração-do-ambiente)
+5. [Instalação e Execução](#-instalação-e-execução)
+6. [Documentação da API](#-documentação-da-api)
+    - [Usuários](#-usuários)
+    - [Timeline](#-timeline)
+    - [Quizzes](#-quizzes)
+7. [Estrutura de Dados](#-estrutura-de-dados)
+8. [Pasta de Documentação](#-pasta-de-documentação)
 
-```text
-src/
-├── domain/           # Camada de Domínio: Entidades e interfaces de repositórios (Regras de Negócio)
-├── application/      # Camada de Aplicação: Casos de uso (Use Cases) e DTOs (Data Transfer Objects)
-├── infrastructure/   # Camada de Infraestrutura: Implementações de banco de dados, adapters e drivers
-└── interfaces/       # Camada de Interfaces: Controladores HTTP e definições de rotas
+---
+
+## 🌟 Sobre o Projeto
+
+O coração do Multiverso Literário é a experiência do leitor. O sistema não apenas armazena nomes de livros, mas permite uma imersão completa:
+- **Timeline dinâmica**: Acompanhe data de início e término de cada obra.
+- **Interatividade**: Crie quizzes para desafiar outros leitores ou consolidar seu conhecimento.
+- **Segurança**: Gestão de perfil com validação rigorosa de dados.
+
+---
+
+## 🏛️ Arquitetura
+
+O projeto adota a **Clean Architecture (Arquitetura Limpa)**, o que garante que as regras de negócio sejam independentes de detalhes técnicos como bancos de dados ou frameworks web.
+
+### Fluxo de Dependência
+```mermaid
+graph TD
+    A[Interfaces / Rotas] --> B[Application / Use Cases]
+    B --> C[Domain / Entities]
+    D[Infrastructure / DB] --> B
+    D --> E[External Services]
 ```
 
-- **Domain**: Contém a lógica central da aplicação que não depende de frameworks externos.
-- **Application**: Orquestra o fluxo de dados entre o domínio e as interfaces externas.
-- **Infrastructure**: Onde residem os detalhes técnicos como o acesso ao banco de dados (Neon/PostgreSQL).
-- **Interfaces**: Expõe a aplicação para o mundo externo através de APIs REST.
+- **Entities (Domain)**: Objetos de negócio (User, Timeline, Quiz).
+- **Use Cases (Application)**: Lógica específica da aplicação (RegisterUser, CreateQuiz).
+- **Controllers/Routes (Interfaces)**: Adaptadores que recebem requisições HTTP e as convertem para comandos da aplicação.
+- **Repositories (Infrastructure)**: Implementações reais de persistência no Neon (PostgreSQL).
+
+---
+
+## 🛠️ Tecnologias
+
+- **Runtime**: [Bun v1.3.5+](https://bun.sh/)
+- **Linguagem**: [TypeScript](https://www.typescriptlang.org/)
+- **Framework Web**: [Express (v5.0.0-beta)](https://expressjs.com/)
+- **Banco de Dados**: [PostgreSQL (Neon Serverless)](https://neon.tech/)
+- **Validação**: [Zod](https://zod.dev/)
+- **Logger**: Console log estruturado.
+
+---
+
+## ⚙️ Configuração do Ambiente
+
+Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
+
+```env
+DATABASE_URL="postgresql://usuario:senha@host:porta/database?sslmode=require"
+```
 
 ---
 
 ## 🚀 Instalação e Execução
 
-### Pré-requisitos
-- [Bun](https://bun.sh/) instalado.
+### 1. Clonar o repositório
+```bash
+git clone https://github.com/CaiooFerreiraa/multiverso-literario.git
+cd multiverso-literario
+```
 
-### Instalar dependências
+### 2. Instalar dependências
 ```bash
 bun install
 ```
 
-### Executar o projeto
+### 3. Executar em modo desenvolvimento
 ```bash
 bun start
 ```
-
-Este projeto utiliza **Bun v1.3.5** para máxima performance.
+*O servidor iniciará em `http://192.168.1.2:8080` (conforme configurado em `server.ts`).*
 
 ---
 
 ## 📖 Documentação da API
 
+Todas as rotas retornam JSON. Falhas de validação retornam Status **400**.
+
 ### 👤 Usuários (`/api/user`)
 
-| Método | Rota | Descrição |
+| Endpoint | Método | Descrição |
 | :--- | :--- | :--- |
-| `POST` | `/create` | Cadastra um novo usuário |
-| `GET` | `/read` | Retorna dados do usuário (via e-mail no body) |
-| `PUT` | `/update` | Atualiza dados cadastrais |
-| `DELETE` | `/delete` | Remove um usuário do sistema |
+| `/create` | `POST` | Cadastro de novo usuário |
+| `/read` | `GET` | Recupera dados (necessário enviar e-mail no body) |
+| `/update` | `PUT` | Atualiza todos os campos do usuário |
+| `/delete` | `DELETE` | Remove o usuário pelo ID |
 
-#### Criar Usuário (`POST /create`)
-**Body:**
+#### Detalhes do Payload (Exemplo Create/Update):
 ```json
 {
-  "fullname": "Nome Usuário",
-  "email": "email@exemplo.com",
-  "birthday": "2000-01-01",
-  "password": "SenhaSegura123!",
-  "city": "Cidade",
-  "phoneNumber": "5599999999999"
+  "fullname": "Seu Nome Completo",
+  "email": "exemplo@email.com",
+  "birthday": "1995-05-20",
+  "city": "Sua Cidade",
+  "phoneNumber": "5511999998888",
+  "password": "Senha@Forte123" 
 }
 ```
+*Regra de Senha: Mínimo 8 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial.*
 
 ---
 
 ### 📚 Timeline (`/api/timeline`)
 
-| Método | Rota | Descrição |
+| Endpoint | Método | Descrição |
 | :--- | :--- | :--- |
-| `POST` | `/create` | Adiciona um livro à timeline |
-| `GET` | `/read/:id_timeline` | Busca uma entrada específica |
-| `PUT` | `/update` | Atualiza dados de uma leitura |
-| `DELETE` | `/delete/:id_timeline` | Remove uma entrada da timeline |
+| `/create` | `POST` | Adicionar nova leitura |
+| `/read/:id_timeline` | `GET` | Detalhes de uma entrada específica |
+| `/update` | `PUT` | Editar dados da leitura |
+| `/delete/:id_timeline` | `DELETE` | Deletar leitura da timeline |
+
+**Exemplo de Objeto Timeline:**
+```json
+{
+  "dateStart": "2023-10-01",
+  "dateEnd": "2023-10-15",
+  "authorBook": "J.R.R. Tolkien",
+  "nameBook": "O Senhor dos Anéis"
+}
+```
 
 ---
 
 ### 📝 Quizzes (`/api/quiz`)
 
-| Método | Rota | Descrição |
-| :--- | :--- | :--- |
-| `POST` | `/create` | Cria um novo quiz vinculado a um livro |
-| `GET` | `/read/:id_quiz` | Busca detalhes de um quiz |
-| `PUT` | `/update` | Atualiza perguntas e alternativas |
-| `DELETE` | `/delete/:id_quiz` | Remove um quiz do sistema |
+A joia da Interatividade. Cada quiz deve estar obrigatoriamente vinculado a um registro na Timeline.
 
-#### Criar Quiz (`POST /create`)
-**Body:**
+| Endpoint | Método | Descrição |
+| :--- | :--- | :--- |
+| `/create` | `POST` | Criação de quiz com múltiplas perguntas |
+| `/read/:id_quiz` | `GET` | Busca quiz completo com alternativas |
+| `/update` | `PUT` | Atualiza título, enunciado e questões |
+| `/delete/:id_quiz` | `DELETE` | Remove quiz e suas relações |
+
+**Payload de Criação (Complexo):**
 ```json
 {
-  "tittle": "Quiz sobre O Hobbit",
+  "tittle": "Desafio Tolkien",
   "id_timeline_book": 1,
-  "statement": "Responda as questões abaixo",
+  "statement": "Nível Difícil",
   "questions": [
     {
-      "question_tittle": "Quem é o protagonista?",
+      "question_tittle": "Qual o nome da montanha onde o Um Anel foi forjado?",
       "alternatives": [
-        { "alternative": "Bilbo Bolseiro", "is_correct": true },
-        { "alternative": "Gandalf", "is_correct": false }
+        { "alternative": "Montanha da Perdição", "is_correct": true },
+        { "alternative": "Erebor", "is_correct": false }
       ]
     }
   ]
@@ -107,25 +170,28 @@ Este projeto utiliza **Bun v1.3.5** para máxima performance.
 
 ---
 
-## 📂 Documentação Adicional
+## �️ Estrutura de Dados
 
-Informações detalhadas sobre o banco de dados e requisitos do projeto podem ser encontradas na pasta:
-- `documentação/Banco de Dados/`
-- `documentação/Documentação Escrita/`
-
----
-
-## ⚙️ Tecnologias Utilizadas
-
-- **Runtime**: [Bun](https://bun.sh/)
-- **Framework**: [Express](https://expressjs.com/)
-- **Banco de Dados**: [Neon (PostgreSQL)](https://neon.tech/)
-- **Validação**: [Zod](https://zod.dev/)
-- **Linguagem**: TypeScript
+O banco de dados é composto pelas seguintes entidades principais:
+1. **Users**: Dados cadastrais e autenticação.
+2. **Timeline_Book**: Registros de leitura vinculados ao usuário.
+3. **Quizzes**: Cabeçalho do quiz vinculado ao livro.
+4. **Questions**: Perguntas vinculadas a um quiz.
+5. **Alternatives**: Opções para cada pergunta.
 
 ---
 
-### 🛡️ Notas de Segurança e Padrões
-* Senhas são armazenadas utilizando criptografia (hashing).
-* Todas as rotas possuem validação rigorosa com Zod.
-* O padrão de data utilizado em toda a API é `yyyy-MM-dd`.
+## � Pasta de Documentação
+
+Para informações ainda mais técnicas e diagramas originais, consulte a pasta raiz `documentação/`:
+- `/Banco de Dados`: Scripts SQL e Esquemas Lógicos (`.brM`).
+- `/Documentação Escrita`: Requisitos e especificações funcionais.
+
+---
+
+## 👨‍💻 Desenvolvedores
+
+- **Caio Ferreira** - *Desenvolvedor Principal*
+
+---
+*Este projeto é parte integrante do ecossistema Multiverso Literário.*
