@@ -2,7 +2,8 @@ import { z } from "zod";
 
 export const UpdateQuizAlternativesSchema = z.object({
   alternative: z.coerce.string(),
-  is_correct: z.coerce.boolean()
+  is_correct: z.coerce.boolean(),
+  id_alternative: z.coerce.number().positive()
 })
 
 
@@ -17,7 +18,7 @@ export const UpdateQuizSchema = z.object({
   id_quiz: z.coerce.number(),
   tittle: z.string(),
   id_timeline_book: z.coerce.number(),
-  statement: z.string().default("não respondido"),
+  statement: z.string(),
   questions: z.array(
     UpdateQuizQuestionsSchema
   ),

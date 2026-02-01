@@ -15,7 +15,7 @@ export class QuizDatabaseNeon implements QuizRepository {
         isolationLevel: "RepeatableRead"
       });
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : String(error));
+      throw error;
     }
   }
 
@@ -75,7 +75,8 @@ export class QuizDatabaseNeon implements QuizRepository {
                     json_agg(
                       json_build_object(
                         'alternative', c.alternative,
-                        'is_correct', c.iscorrect
+                        'is_correct', c.iscorrect,
+                        'id_alternative', c.id_alternative
                       )
                     ),
                     '[]'::json
@@ -99,17 +100,61 @@ export class QuizDatabaseNeon implements QuizRepository {
 
       return quiz;
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : String(error));
+      throw error;
     }
   }
 
-  async update(id_quiz: number, quiz: Quiz): Promise<any> {
+  async update(quiz: Quiz): Promise<any> {
     try {
-
+      await this.database.transaction(async (context) => {
+        await this.updateDataQuiz(context, quiz)
+      }, {isolationLevel: "RepeatableRead"});
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : String(error))
+      throw error;
     }
   }
+
+  private async updateDataQuiz(query: Database, quiz: Quiz) {
+    const id_quiz: number | undefined = quiz.id_quiz;
+
+    await query`
+      UPDATE quiz
+      SET tittle = ${quiz.title},
+          id_timeline_book = ${quiz.id_timeline_book},
+          statement = ${quiz.statement}
+      WHERE id_quiz = ${id_quiz}
+    `
+    const questions: Question[] = quiz.questions;
+    await this.updateArrayOfQuestions(query, questions, id_quiz)
+  }
+
+  private async updateArrayOfQuestions(query: Database, questions: Question[], id_quiz: number | undefined) {
+      for (const element of questions) {
+        const [result] = await query`
+          UPDATE questions
+          SET question_tittle = ${element.question_tittle}
+          WHERE id_quiz = ${id_quiz}
+          RETURNING id_question
+        `;
+
+        const id_question = result.id_question;
+        const alternatives: Alternative[] = element.alternatives;
+
+        await this.updateArrayOfAlternatives(query, id_question, alternatives);
+    }
+  }
+
+  private async updateArrayOfAlternatives(query: Database, id_question: number, alternatives: Alternative[]) {
+    for (const element of alternatives) {
+      await query`
+        UPDATE alternatives
+        SET alternative = ${element.alternative},
+            iscorrect = ${element.is_correct}
+        WHERE id_alternative = ${element.id_alternative}
+      `
+    }    
+  }
+
   delete(id_quiz: number): Promise<any> {
     throw new Error("Method not implemented.");
   }
