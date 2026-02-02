@@ -167,4 +167,8 @@ export class QuizDatabaseNeon implements QuizRepository {
       throw error;
     }
   }
+
+  async userResponseQuiz() {
+    
+  }
 }
