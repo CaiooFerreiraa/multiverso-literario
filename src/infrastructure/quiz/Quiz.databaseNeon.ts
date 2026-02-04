@@ -3,6 +3,7 @@ import { QuizRepository } from "../../domain/quiz/repository/QuizRepository";
 import { Question } from "../../domain/quiz/entities/Question";
 import { Alternative } from "../../domain/quiz/entities/Alternative";
 import { Database } from "../database/neon";
+import { QuizResponse } from "../../domain/quiz/entities/QuizResponse";
 
 export class QuizDatabaseNeon implements QuizRepository {
   constructor(private database: Database) { };
@@ -63,6 +64,7 @@ export class QuizDatabaseNeon implements QuizRepository {
     try {
       const quiz = await this.database`
         SELECT
+          a.id_quiz,
           a.tittle,
           a.statement,
           a.id_timeline_book,
@@ -94,7 +96,8 @@ export class QuizDatabaseNeon implements QuizRepository {
         GROUP BY
           a.tittle,
           a.statement,
-          a.id_timeline_book;
+          a.id_timeline_book,
+          a.id_quiz;
 
       ` ;
 
@@ -168,7 +171,15 @@ export class QuizDatabaseNeon implements QuizRepository {
     }
   }
 
-  async userResponseQuiz() {
-    
+  async registerResponseQuiz(responseOfUser: QuizResponse) {
+    try {
+      await this.database.transaction(async (context) => {
+
+      })
+    } catch (error) {
+      throw error;
+    }
   }
+
+
 }
