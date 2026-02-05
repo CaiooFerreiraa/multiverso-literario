@@ -71,6 +71,7 @@ export class QuizDatabaseNeon implements QuizRepository {
           COALESCE(
             json_agg(
               json_build_object(
+                'id_question', b.id_question,
                 'question_tittle', b.question_tittle,
                 'alternatives', (
                   SELECT COALESCE(
@@ -133,6 +134,8 @@ export class QuizDatabaseNeon implements QuizRepository {
 
   private async updateArrayOfQuestions(query: Database, questions: Question[], id_quiz: number | undefined) {
       for (const element of questions) {
+        console.log(element.id_question)
+
         const [result] = await query`
           UPDATE questions
           SET question_tittle = ${element.question_tittle}
@@ -140,10 +143,31 @@ export class QuizDatabaseNeon implements QuizRepository {
           RETURNING id_question
         `;
 
-        const id_question = result.id_question;
-        const alternatives: Alternative[] = element.alternatives;
+        let id_question: number;
 
+        console.log('Result:' +  result)
+
+        if (typeof result == 'undefined') {
+          id_question = await this.insertObjectQuestion(element, id_quiz, query);
+        } else {
+          id_question = result.id_question;
+        }
+
+        const alternatives: Alternative[] = element.alternatives;
         await this.updateArrayOfAlternatives(query, id_question, alternatives);
+    }
+  }
+
+  private async insertObjectQuestion(question: Question, id_quiz: number | undefined, query: Database) {
+    try {
+      const [result ] = await query`
+        INSERT INTO questions (question_tittle, id_quiz) VALUES (
+         ${question.question_tittle}, ${id_quiz}
+        ) RETURNING id_question
+      `
+      return result.id_question;
+    } catch (error) {
+      throw error;
     }
   }
 
