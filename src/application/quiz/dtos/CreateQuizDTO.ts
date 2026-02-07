@@ -7,7 +7,6 @@ export const CreateQuizAlternativesSchema = z.object({
 
 
 export const CreateQuizQuestionsSchema = z.object({
-  id_question: z.coerce.number().positive(),
   question_tittle: z.string(),
   alternatives: z.array(
     CreateQuizAlternativesSchema

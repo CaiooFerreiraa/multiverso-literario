@@ -134,18 +134,15 @@ export class QuizDatabaseNeon implements QuizRepository {
 
   private async updateArrayOfQuestions(query: Database, questions: Question[], id_quiz: number | undefined) {
       for (const element of questions) {
-        console.log(element.id_question)
 
         const [result] = await query`
           UPDATE questions
           SET question_tittle = ${element.question_tittle}
-          WHERE id_quiz = ${id_quiz}
+          WHERE id_quiz = ${id_quiz} and id_question = ${element.id_question}
           RETURNING id_question
         `;
 
         let id_question: number;
-
-        console.log('Result:' +  result)
 
         if (typeof result == 'undefined') {
           id_question = await this.insertObjectQuestion(element, id_quiz, query);
@@ -160,7 +157,7 @@ export class QuizDatabaseNeon implements QuizRepository {
 
   private async insertObjectQuestion(question: Question, id_quiz: number | undefined, query: Database) {
     try {
-      const [result ] = await query`
+      const [result] = await query`
         INSERT INTO questions (question_tittle, id_quiz) VALUES (
          ${question.question_tittle}, ${id_quiz}
         ) RETURNING id_question
@@ -173,13 +170,30 @@ export class QuizDatabaseNeon implements QuizRepository {
 
   private async updateArrayOfAlternatives(query: Database, id_question: number, alternatives: Alternative[]) {
     for (const element of alternatives) {
-      await query`
+      const [ result ] = await query`
         UPDATE alternatives
         SET alternative = ${element.alternative},
             iscorrect = ${element.is_correct}
-        WHERE id_alternative = ${element.id_alternative}
+        WHERE id_alternative = ${element.id_alternative} 
+        RETURNING id_alternative
       `
+
+      if (typeof result == 'undefined') {
+        await this.insertObjectOfAlternative(query, id_question, element)
+      } 
     }    
+  }
+
+  private async insertObjectOfAlternative(query: Database, id_question: number, alternative: Alternative) {
+    try {
+      await query`
+        INSERT INTO alternatives (id_alternative, alternative, iscorrect, id_question) VALUES (
+          ${alternative.id_alternative}, ${alternative.alternative}, ${alternative.is_correct}, ${id_question}
+        ) 
+      `
+    } catch (error) {
+      throw error;
+    }
   }
 
   async delete(id_quiz: number): Promise<any> {
@@ -197,13 +211,49 @@ export class QuizDatabaseNeon implements QuizRepository {
 
   async registerResponseQuiz(responseOfUser: QuizResponse) {
     try {
-      await this.database.transaction(async (context) => {
-
+      await this.database.transaction(async (query) => {
+        if (typeof responseOfUser.id_alternative != 'undefined') {
+          await this.insertResponseMarkQuiz(query, responseOfUser);
+        } else {
+          await this.insertResponseTextQuiz(query, responseOfUser);
+        }
       })
     } catch (error) {
       throw error;
     }
   }
 
+  private async insertResponseMarkQuiz(query: Database, responseOfUser: QuizResponse) {
+    const date = new Date()
 
+    const [result] = await query`
+      INSERT INTO responses (date, id_question, id_alternative) VALUES (
+        ${date.toISOString()}, ${responseOfUser.id_question}, ${responseOfUser.id_alternative}
+      ) RETURNING id_response
+    `
+
+    const id_response: number = result.id_response
+    await this.registerResponseQuizUser(query, responseOfUser, id_response);
+  }
+
+  private async insertResponseTextQuiz(query: Database, responseOfUser: QuizResponse) {
+    const date = new Date()
+
+    const [result] = await query`
+      INSERT INTO responses (date, id_question, response_text) VALUES (
+        ${date.toISOString()}, ${responseOfUser.id_question}, ${responseOfUser.response_text}
+      ) RETURNING id_response
+    `
+
+    const id_response: number = result.id_response
+    await this.registerResponseQuizUser(query, responseOfUser, id_response);
+  }
+
+  private async registerResponseQuizUser(query: Database, responseOfUser: QuizResponse, id_response: number) {
+    await query`
+      INSERT INTO response_quiz_user (id_quiz, id_user, id_response) VALUES (
+        ${responseOfUser.id_quiz}, ${responseOfUser.id_user}, ${id_response}
+      )
+    `
+  }
 }
