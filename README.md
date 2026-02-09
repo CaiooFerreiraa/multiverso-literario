@@ -48,14 +48,18 @@ graph TD
 
 ---
 
+---
+
 ## 🛠️ Tecnologias
 
-- **Runtime**: [Bun v1.3.5+](https://bun.sh/)
-- **Linguagem**: [TypeScript](https://www.typescriptlang.org/)
-- **Framework Web**: [Express (v5.0.0-beta)](https://expressjs.com/)
-- **Banco de Dados**: [PostgreSQL (Neon Serverless)](https://neon.tech/)
-- **Validação**: [Zod](https://zod.dev/)
-- **Logger**: Console log estruturado.
+O projeto utiliza o que há de mais moderno no ecossistema JavaScript/TypeScript:
+
+- **Runtime**: [Bun v1.3.5+](https://bun.sh/) - Performance extrema para o engine.
+- **Linguagem**: [TypeScript](https://www.typescriptlang.org/) - Tipagem estática para maior segurança.
+- **Framework Web**: [Express (v5.0.0-beta)](https://expressjs.com/) - A próxima geração do Express.
+- **Banco de Dados**: [PostgreSQL (Neon Serverless)](https://neon.tech/) - Escalonamento automático e performance.
+- **Transações**: Suporte nativo a transações interativas com isolamento `RepeatableRead`.
+- **Validação**: [Zod](https://zod.dev/) - Esquemas de dados rigorosos e seguros.
 
 ---
 
@@ -86,7 +90,7 @@ bun install
 ```bash
 bun start
 ```
-*O servidor iniciará em `http://192.168.1.2:8080` (conforme configurado em `server.ts`).*
+*O servidor iniciará em `http://localhost:8080` (ou IP local configurado em `server.ts`).*
 
 ---
 
@@ -149,6 +153,7 @@ A joia da Interatividade. Cada quiz deve estar obrigatoriamente vinculado a um r
 | `/read/:id_quiz` | `GET` | Busca quiz completo com alternativas |
 | `/update` | `PUT` | Atualiza título, enunciado e questões |
 | `/delete/:id_quiz` | `DELETE` | Remove quiz e suas relações |
+| `/response` | `POST` | Registra a resposta de um usuário para uma pergunta |
 
 **Payload de Criação (Complexo):**
 ```json
@@ -168,9 +173,20 @@ A joia da Interatividade. Cada quiz deve estar obrigatoriamente vinculado a um r
 }
 ```
 
+**Payload de Resposta:**
+```json
+{
+  "id_user": 1,
+  "id_quiz": 1,
+  "id_question": 1,
+  "id_alternative": 1, // Opcional se for resposta de múltipla escolha
+  "response_text": "" // Opcional se for resposta dissertativa
+}
+```
+
 ---
 
-## �️ Estrutura de Dados
+## 🗄️ Estrutura de Dados
 
 O banco de dados é composto pelas seguintes entidades principais:
 1. **Users**: Dados cadastrais e autenticação.
@@ -178,10 +194,12 @@ O banco de dados é composto pelas seguintes entidades principais:
 3. **Quizzes**: Cabeçalho do quiz vinculado ao livro.
 4. **Questions**: Perguntas vinculadas a um quiz.
 5. **Alternatives**: Opções para cada pergunta.
+6. **Responses**: Respostas individuais (texto ou alternativa selecionada).
+7. **Response_Quiz_User**: Vínculo entre usuário, quiz e suas respostas.
 
 ---
 
-## � Pasta de Documentação
+## 📂 Pasta de Documentação
 
 Para informações ainda mais técnicas e diagramas originais, consulte a pasta raiz `documentação/`:
 - `/Banco de Dados`: Scripts SQL e Esquemas Lógicos (`.brM`).
