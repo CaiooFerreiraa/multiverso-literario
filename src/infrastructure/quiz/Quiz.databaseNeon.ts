@@ -256,4 +256,19 @@ export class QuizDatabaseNeon implements QuizRepository {
       )
     `
   }
+
+  async readResponseQuiz(id_user: number): Promise<any> {
+    try {
+      const [result] = await this.database`
+        SELECT * 
+        FROM quiz a
+        JOIN response_quiz_user b ON a.id_quiz = b.id_quiz
+        WHERE b.id_user = ${id_user}
+      `
+
+      return result
+    } catch (error) {
+      throw error;
+    }
+  }
 }

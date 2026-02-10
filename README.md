@@ -154,6 +154,7 @@ A joia da Interatividade. Cada quiz deve estar obrigatoriamente vinculado a um r
 | `/update` | `PUT` | Atualiza título, enunciado e questões |
 | `/delete/:id_quiz` | `DELETE` | Remove quiz e suas relações |
 | `/response` | `POST` | Registra a resposta de um usuário para uma pergunta |
+| `/response/:id_user` | `GET` | Busca todas as respostas de um usuário |
 
 **Payload de Criação (Complexo):**
 ```json

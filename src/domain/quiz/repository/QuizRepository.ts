@@ -7,4 +7,5 @@ export interface QuizRepository {
   update(quiz: Quiz): Promise<any>;
   delete(id_quiz: number): Promise<any>;
   registerResponseQuiz(response: QuizResponse): Promise<any>;
+  readResponseQuiz(id_user: number): Promise<any>;
 }
