@@ -17,28 +17,84 @@ export class PlanDatabaseNeon implements PlanRepository {
         }
     }
 
-    read(id_plan: number): Promise<any> {
-
+    async read(id_plan: number): Promise<any> {
+        try {
+           return await this.database.query(
+                `SELECT * FROM plan_expanded WHERE id_plan = $1`,
+                [id_plan]
+            )
+        } catch (error) {
+            throw error;
+        }
     }
 
-    readAll(): Promise<any> {
-
+    async readAll(): Promise<any> {
+        try {
+            return await this.database.query(
+                'SELECT * plan_expanded'
+            )
+        } catch (error) {
+            throw error;
+        }
     }
 
-    update(id_plan: number): Promise<any> {
-
+    async update(id_plan: number, plan: Plan): Promise<any> {
+        try {
+            await this.database.query(`
+                UPDATE plan_expanded
+                SET value = $1, duraction = $2
+                WHERE id_plan = $3    
+            `, [plan.value, plan.duraction, id_plan]
+            )
+        } catch (error) {
+            throw error;
+        }
     }
 
-    delete(id_plan: number): Promise<any> {
-
+    async delete(id_plan: number): Promise<any> {
+        try {
+            await this.database.query(`
+                DELETE FROM plan_expanded
+                WHERE id_plan = $1
+            `, [id_plan])
+        } catch (error) {
+            throw error;
+        }
     }
 
 
-    contract(planUser: PlanUser): Promise<any> {
-
+    async contract(planUser: PlanUser): Promise<any> {
+        try {
+            await this.database.query(`
+                INSERT INTO buy (id_plan, id_user, price_paid, status, method_payment) VALUES (
+                    $1, $2, $3, $4, $5 
+                )
+            `, [planUser.id_plan, planUser.id_user, planUser.price_paid, planUser.status, planUser.method_payment])
+        } catch (error) {
+            throw error;
+        }
     }
 
-    cancel(id_planUser: number): Promise<any> {
+    async cancel(id_planUser: number): Promise<any> {
+        try {
+            await this.database.query(`
+                DELETE FROM buy
+                WHERE id_planUser = $1    
+            `, [id_planUser])
+        } catch (error) {
+            throw error; 
+        }
+    }
 
+    async readPlanUser(id_user: number): Promise<any> {
+        try {
+            await this.database.query(`
+                SELECT *
+                FROM buy
+                WHERE id_user = $1;    
+            `, [id_user])
+        } catch (error) {
+            
+        }
     }
 }
