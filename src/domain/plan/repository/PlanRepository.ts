@@ -5,8 +5,9 @@ export interface PlanRepository {
   create(plan: Plan): Promise<any>
   read(id_plan: number): Promise<any>
   readAll(): Promise<any>
-  update(id_plan: number): Promise<any>
+  update(id_plan: number, plan: Plan): Promise<any>
   delete(id_plan: number): Promise<any>
   contract(planUser: PlanUser): Promise<any>
   cancel(id_planUser: number): Promise<any>
+  readPlanUser(id_user: number): Promise<any>
 }
