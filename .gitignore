@@ -2,6 +2,7 @@
 node_modules
 
 # output
+.next
 out
 dist
 *.tgz
@@ -25,6 +26,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .env.production.local
 .env.local
 documentação
+bun.lock
 
 # caches
 .eslintcache
@@ -38,4 +40,6 @@ documentação
 # Finder (MacOS) folder config
 .DS_Store
 
-.agent
+# test outputs
+test_output.txt
+test_output_fail.txt
