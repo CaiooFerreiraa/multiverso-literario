@@ -8,9 +8,10 @@ const getQuizRepository = () => new QuizDatabaseNeon(neonClient);
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const idValue = parseInt(params.id, 10);
+  const { id } = await params;
+  const idValue = parseInt(id, 10);
 
   if (isNaN(idValue)) {
     return NextResponse.json({ error: "Invalid ID type" }, { status: 400 });
@@ -28,9 +29,10 @@ export async function GET(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const idValue = parseInt(params.id, 10);
+  const { id } = await params;
+  const idValue = parseInt(id, 10);
 
   if (isNaN(idValue)) {
     return NextResponse.json({ error: "Invalid ID type" }, { status: 400 });

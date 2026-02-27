@@ -7,9 +7,10 @@ const getQuizRepository = () => new QuizDatabaseNeon(neonClient);
 
 export async function GET(
   request: Request,
-  { params }: { params: { id_user: string } }
+  { params }: { params: Promise<{ id_user: string }> }
 ) {
-  const idValue = parseInt(params.id_user, 10);
+  const { id_user } = await params;
+  const idValue = parseInt(id_user, 10);
 
   if (isNaN(idValue)) {
     return NextResponse.json({ error: "Invalid ID type" }, { status: 400 });
