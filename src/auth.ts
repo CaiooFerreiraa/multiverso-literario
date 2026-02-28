@@ -19,8 +19,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const repo = new UserNeonDatabase(neonClient);
         const userArray = await repo.read(credentials.email as string);
-
         const user = userArray && userArray.length > 0 ? userArray[0] : null;
+
+        // Suporte para login via master admin (definido no .env)
+        if (credentials.email === process.env.ADMIN_EMAIL && credentials.password === process.env.ADMIN_PASSWORD) {
+          return {
+            id: user?.id_user || 9999, // Virtual admin ID if not in DB
+            name: user?.fullname || "Administrador",
+            email: credentials.email as string,
+            image: user?.image || null,
+          };
+        }
 
         if (!user) return null;
 
@@ -34,6 +43,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             id: user.id_user,
             name: user.fullname,
             email: user.email,
+            image: user.image || null,
           };
         }
 
@@ -43,15 +53,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
+        token.image = user.image;
+      }
+      if (trigger === "update" && session?.image) {
+        token.image = session.image;
       }
       return token;
     },
     session({ session, token }) {
       if (token && session.user) {
         (session.user as any).id = token.id;
+        session.user.image = token.image as string;
       }
       return session;
     },

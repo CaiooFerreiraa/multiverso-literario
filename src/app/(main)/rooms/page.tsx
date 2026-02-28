@@ -1,12 +1,23 @@
 "use client";
 
+import React from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/glass-card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Mail, Calendar, Bell, Plus, Users, MessageSquare, LogOut } from "lucide-react";
+import * as LucideIcons from "lucide-react";
+
+// Casting icons to any to resolve React 19 / JSX element type incompatibilities
+const Search = LucideIcons.Search as any;
+const Mail = LucideIcons.Mail as any;
+const Calendar = LucideIcons.Calendar as any;
+const Bell = LucideIcons.Bell as any;
+const Plus = LucideIcons.Plus as any;
+const Users = LucideIcons.Users as any;
+const MessageSquare = LucideIcons.MessageSquare as any;
+const LogOut = LucideIcons.LogOut as any;
 import Link from "next/link";
 
 const UPCOMING_EVENTS = [
@@ -78,7 +89,7 @@ export default function RoomsPage() {
         <div className="mt-auto space-y-4">
           <GlassCard className="p-4 rounded-2xl bg-primary/20 border-primary/20">
             <p className="text-xs font-medium text-white/90 mb-3 italic">
-              "A leitura traz para nós amigos desconhecidos."
+              &quot;A leitura traz para nós amigos desconhecidos.&quot;
             </p>
             <p className="text-[10px] text-white/40">— Honoré de Balzac</p>
           </GlassCard>

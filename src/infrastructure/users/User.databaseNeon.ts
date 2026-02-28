@@ -45,7 +45,7 @@ export class UserNeonDatabase implements UseRepository {
   async read(email: string): Promise<any> {
     try {
       const user = await this.database.query(
-        `SELECT a.fullname, a.email, a.password, b.birthday, b.city, b."phoneNumber" 
+        `SELECT a.fullname, a.email, a.password, a.image, b.birthday, b.city, b."phoneNumber" 
          FROM users a
          JOIN member b ON a.id_user = b.id_user
          WHERE a.email = $1`,
@@ -70,9 +70,9 @@ export class UserNeonDatabase implements UseRepository {
     try {
       await this.database.query(
         `UPDATE users
-         SET fullname = $1, email = $2, password = $3
-         WHERE id_user = $4;`,
-        [user.fullName, user.email, user.password, idOldUser]
+         SET fullname = $1, email = $2, password = $3, image = $4
+         WHERE id_user = $5;`,
+        [user.fullName, user.email, user.password, user.image, idOldUser]
       );
       await this.updateInMember(idOldUser, user);
     } catch (error: unknown) {

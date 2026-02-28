@@ -62,7 +62,7 @@ export async function registerUserAction(prevState: any, formData: FormData) {
     await signIn("credentials", {
       email: userEmail,
       password: userPassword,
-      redirectTo: "/rooms",
+      redirectTo: "/dashboard",
     });
   } catch (error) {
     // No Next.js, o redirect() joga um erro especial que o router captura. 
