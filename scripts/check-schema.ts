@@ -1,4 +1,4 @@
-import { neonClient } from "./src/infrastructure/database/neon/index";
+import { neonClient } from "../src/infrastructure/database/neon/index";
 
 async function checkSchema() {
   const result = await neonClient.query(`
