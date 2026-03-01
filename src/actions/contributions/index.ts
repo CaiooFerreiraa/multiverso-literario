@@ -7,6 +7,8 @@ import { ReadContributionsByBook } from "@/application/contribution/usecases/Rea
 import { CreateContributionSchema } from "@/application/contribution/dtos/CreateContributionDTO";
 import { z } from "zod";
 
+import { revalidatePath } from "next/cache";
+
 const getContributionRepo = () => new ContributionDatabaseNeon(neonClient);
 
 export async function createContributionAction(data: {
@@ -18,6 +20,8 @@ export async function createContributionAction(data: {
     const validData = CreateContributionSchema.parse(data);
     const useCase = new CreateContribution(getContributionRepo());
     const result = await useCase.execute(validData);
+    revalidatePath("/dashboard");
+    revalidatePath(`/dashboard/livro/${data.id_timeline_book}`);
     return { success: true, data: result };
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {

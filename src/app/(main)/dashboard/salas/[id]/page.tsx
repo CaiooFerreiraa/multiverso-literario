@@ -1,25 +1,23 @@
 import React from "react";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { listScheduledRoomsAction } from "@/actions/rooms";
-import SalasClient from "./salas-client";
+import RoomClient from "./room-client";
 
-export default async function SalasPage() {
+export default async function RoomPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const roomsResult = await listScheduledRoomsAction();
-  const scheduledRooms = roomsResult.success ? (roomsResult.data as any[]) : [];
+  const { id } = await params;
 
   return (
-    <SalasClient
+    <RoomClient
+      roomId={id}
       user={{
         id: (session.user as any).id,
         name: session.user.name || "Explorador",
         email: session.user.email || "",
         image: (session.user as any).image || null,
       }}
-      scheduledRooms={scheduledRooms}
     />
   );
 }

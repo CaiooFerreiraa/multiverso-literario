@@ -7,7 +7,7 @@ export const UpdateUserSchema = z.object({
   birthday: z.coerce.date(),
   city: z.string(),
   phoneNumber: z.string().min(12, "Formato de telefone errado"),
-  image: z.string().url("URL de imagem inválida").optional().or(z.literal("")),
+  image: z.string().optional().or(z.literal("")),
   password: z.string().regex(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     "Senha inválida"

@@ -6,11 +6,11 @@ import { Database } from "../database/neon";
 export class PlanDatabaseNeon implements PlanRepository {
     constructor(private database: Database) { };
 
-    async create(plan: Plan): Promise<any> {
+    async create(plan: any): Promise<any> {
         try {
             await this.database.query(
-                `INSERT INTO plan_expanded (value, duraction) VALUES ($1, $2)`,
-                [plan.value, plan.duraction]
+                `INSERT INTO plan_expanded (value, duraction, title, benefits) VALUES ($1, $2, $3, $4)`,
+                [plan.value, plan.duraction, plan.title, plan.benefits]
             );
         } catch (error) {
             throw error;
@@ -19,7 +19,7 @@ export class PlanDatabaseNeon implements PlanRepository {
 
     async read(id_plan: number): Promise<any> {
         try {
-           return await this.database.query(
+            return await this.database.query(
                 `SELECT * FROM plan_expanded WHERE id_plan = $1`,
                 [id_plan]
             )
@@ -31,20 +31,20 @@ export class PlanDatabaseNeon implements PlanRepository {
     async readAll(): Promise<any> {
         try {
             return await this.database.query(
-                'SELECT * plan_expanded'
+                'SELECT * FROM plan_expanded WHERE is_active = true ORDER BY value ASC'
             )
         } catch (error) {
             throw error;
         }
     }
 
-    async update(id_plan: number, plan: Plan): Promise<any> {
+    async update(id_plan: number, plan: any): Promise<any> {
         try {
             await this.database.query(`
                 UPDATE plan_expanded
-                SET value = $1, duraction = $2
-                WHERE id_plan = $3    
-            `, [plan.value, plan.duraction, id_plan]
+                SET value = $1, duraction = $2, title = $3, benefits = $4
+                WHERE id_plan = $5    
+            `, [plan.value, plan.duraction, plan.title, plan.benefits, id_plan]
             )
         } catch (error) {
             throw error;
@@ -53,8 +53,9 @@ export class PlanDatabaseNeon implements PlanRepository {
 
     async delete(id_plan: number): Promise<any> {
         try {
+            // Soft delete
             await this.database.query(`
-                DELETE FROM plan_expanded
+                UPDATE plan_expanded SET is_active = false
                 WHERE id_plan = $1
             `, [id_plan])
         } catch (error) {
@@ -82,7 +83,7 @@ export class PlanDatabaseNeon implements PlanRepository {
                 WHERE id_planUser = $1    
             `, [id_planUser])
         } catch (error) {
-            throw error; 
+            throw error;
         }
     }
 
@@ -94,7 +95,7 @@ export class PlanDatabaseNeon implements PlanRepository {
                 WHERE id_user = $1;    
             `, [id_user])
         } catch (error) {
-            
+
         }
     }
 }

@@ -66,10 +66,10 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
       <motion.div key={challenge.id_challenge || index} variants={item}>
         <GlassCard
           className={`p-6 rounded-2xl transition-all ${isCompleted
-              ? "bg-green-500/5 border-green-500/10"
-              : isLocked
-                ? "opacity-40"
-                : "hover:bg-white/5"
+            ? "bg-green-500/5 border-green-500/10"
+            : isLocked
+              ? "opacity-40"
+              : "hover:bg-white/5"
             }`}
         >
           <div className="flex items-start justify-between gap-4">
@@ -228,8 +228,10 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
                     Assine o Multiverso Expandido para acessar todos os desafios
                   </p>
                 </div>
-                <Button className="bg-amber-500 hover:bg-amber-600 text-black rounded-xl h-9 px-4 text-xs font-bold cursor-pointer">
-                  Assinar
+                <Button className="bg-amber-500 hover:bg-amber-600 text-black rounded-xl h-9 px-4 text-xs font-bold cursor-pointer" asChild>
+                  <Link href="/dashboard/planos">
+                    Assinar
+                  </Link>
                 </Button>
               </div>
             </GlassCard>

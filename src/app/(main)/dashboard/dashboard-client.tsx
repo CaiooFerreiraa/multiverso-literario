@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/glass-card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,8 @@ const SearchIcon = LucideIcons.Search as any;
 const Crown = LucideIcons.Crown as any;
 const Zap = LucideIcons.Zap as any;
 const MessageCircle = LucideIcons.MessageCircle as any;
+const Video = LucideIcons.Video as any;
+const Ticket = LucideIcons.Ticket as any;
 const LogOut = LucideIcons.LogOut as any;
 const Target = LucideIcons.Target as any;
 const Award = LucideIcons.Award as any;
@@ -30,6 +33,8 @@ const ShieldAlert = LucideIcons.ShieldAlert as any;
 import Link from "next/link";
 import { createPhraseAction } from "@/actions/phrases";
 import { signOut } from "next-auth/react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface DashboardProps {
   user: { id: number; name: string; email: string; isAdmin?: boolean; image?: string };
@@ -38,6 +43,7 @@ interface DashboardProps {
   seals: any[];
   userPoints: { total_points: number; challenges_completed: number };
   phrases: any[];
+  ranking: { id_user: number; name: string; image: string | null; total_points: number }[];
 }
 
 const sealIcons: Record<string, any> = {
@@ -65,12 +71,32 @@ export default function DashboardClient({
   userPlan,
   seals,
   userPoints,
+  ranking,
   phrases: initialPhrases,
 }: DashboardProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [phrases, setPhrases] = useState(initialPhrases || []);
   const [newPhrase, setNewPhrase] = useState("");
   const [isPending, startTransition] = useTransition();
   const isPremium = !!userPlan;
+
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Calculando progresso do cronograma atual para a premiaçao
+  // Usamos useEffect ou estado montado para evitar hydration mismatch (data muda entre server e client)
+  const now = isMounted ? new Date() : new Date(0); // No server usamos data zero ou fixa
+  const start = currentTimeline ? new Date(currentTimeline.date_start) : now;
+  const end = currentTimeline ? new Date(currentTimeline.date_end) : now;
+  const total = end.getTime() - start.getTime();
+  const elapsed = now.getTime() - start.getTime();
+  const progressPercent = isMounted && total > 0 ? Math.min(100, Math.max(0, (elapsed / total) * 100)) : 0;
+  const daysRemaining = isMounted ? Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : 0;
+
 
   const handleAddPhrase = () => {
     if (!newPhrase.trim()) return;
@@ -111,27 +137,32 @@ export default function DashboardClient({
           <div className="space-y-1">
             <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-4 mb-3">Menu</p>
             {[
-              { icon: BookOpen, label: "Dashboard", href: "/dashboard", active: true },
-              { icon: MessageCircle, label: "Salas (Discord)", href: "/dashboard/salas" },
-              { icon: Calendar, label: "Cronograma", href: "#cronograma" },
-              { icon: Trophy, label: "Desafios", href: "#desafios" },
-              { icon: Quote, label: "Frases", href: "#frases" },
-              { icon: Star, label: "Planos", href: "#planos" },
+              { label: "Dashboard", icon: LucideIcons.LayoutDashboard, href: "/dashboard" },
+              { label: "Salas", icon: LucideIcons.Video, href: "/dashboard/salas" },
+              { label: "Plano", icon: LucideIcons.Star, href: "/dashboard/planos" },
+              { label: "Cronograma", icon: LucideIcons.Calendar, href: "/dashboard#cronograma" },
+              { label: "Desafios", icon: LucideIcons.Gamepad2, href: "/dashboard/desafios" },
+              { label: "Quizzes", icon: LucideIcons.Ticket, href: "/dashboard/quizzes" },
+              { label: "Biblioteca", icon: LucideIcons.Library, href: "/dashboard/biblioteca" },
+              { label: "Ranking", icon: LucideIcons.Trophy, href: "/dashboard/ranking" },
               ...(user.isAdmin ? [{ icon: ShieldAlert, label: "Admin", href: "/dashboard/admin" }] : []),
-            ].map((navItem, i) => (
-              <Link key={i} href={navItem.href}>
-                <Button
-                  variant="ghost"
-                  className={`w-full justify-start gap-4 h-11 rounded-xl px-4 transition-all duration-200 cursor-pointer ${navItem.active
-                    ? "bg-primary/15 text-primary font-bold"
-                    : "text-white/50 hover:bg-white/5 hover:text-white"
-                    }`}
-                >
-                  <navItem.icon className="w-[18px] h-[18px]" />
-                  <span className="text-sm">{navItem.label}</span>
-                </Button>
-              </Link>
-            ))}
+            ].map((navItem, i) => {
+              const isActive = pathname === navItem.href || (navItem.href !== "/dashboard" && pathname.startsWith(navItem.href));
+              return (
+                <Link key={i} href={navItem.href}>
+                  <Button
+                    variant="ghost"
+                    className={`w-full justify-start gap-4 h-11 rounded-xl px-4 transition-all duration-200 cursor-pointer ${isActive
+                      ? "bg-primary/15 text-primary font-bold"
+                      : "text-white/50 hover:bg-white/5 hover:text-white"
+                      }`}
+                  >
+                    <navItem.icon className="w-[18px] h-[18px]" />
+                    <span className="text-sm">{navItem.label}</span>
+                  </Button>
+                </Link>
+              );
+            })}
           </div>
 
           <div className="space-y-4 pt-6 border-t border-white/5">
@@ -260,12 +291,12 @@ export default function DashboardClient({
                       <div className="flex items-center gap-6 text-xs text-white/40">
                         <span className="flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5" />
-                          {new Date(currentTimeline.date_start).toLocaleDateString("pt-BR")}
+                          {isMounted ? new Date(currentTimeline.date_start).toLocaleDateString("pt-BR") : "Loading..."}
                         </span>
                         <span className="text-white/20">→</span>
                         <span className="flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5" />
-                          {new Date(currentTimeline.date_end).toLocaleDateString("pt-BR")}
+                          {isMounted ? new Date(currentTimeline.date_end).toLocaleDateString("pt-BR") : "Loading..."}
                         </span>
                       </div>
                     </div>
@@ -277,7 +308,7 @@ export default function DashboardClient({
                         </Link>
                       </Button>
                       <Button variant="outline" className="rounded-xl border-white/10 h-10 px-5 cursor-pointer" asChild>
-                        <Link href={`/dashboard/quiz`}>
+                        <Link href={`/dashboard/quizzes`}>
                           <Zap className="w-4 h-4 mr-1" /> Quiz
                         </Link>
                       </Button>
@@ -377,6 +408,78 @@ export default function DashboardClient({
             </div>
           </motion.section>
 
+          {/* RANKING GLOBAL */}
+          <motion.section variants={item} id="ranking" className="mb-12">
+            <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-amber-500" /> Ranking Global
+            </h3>
+
+            <div className="grid lg:grid-cols-[1fr_350px] gap-8">
+              <div className="space-y-3">
+                {ranking?.slice(0, 5).map((player, i) => (
+                  <div
+                    key={player.id_user}
+                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${player.id_user === user.id
+                      ? "bg-primary/10 border-primary/20 ring-1 ring-primary/30"
+                      : "bg-white/5 border-white/5 hover:bg-white/10"
+                      }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center w-8 h-8 font-black text-sm italic">
+                        {i === 0 ? <span className="text-2xl">🥇</span> :
+                          i === 1 ? <span className="text-2xl">🥈</span> :
+                            i === 2 ? <span className="text-2xl">🥉</span> :
+                              <span className="text-white/20">#{i + 1}</span>}
+                      </div>
+                      <Avatar className="w-10 h-10 border border-white/10 shrink-0">
+                        <AvatarImage src={player.image || ""} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold uppercase">
+                          {player.name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className={`text-sm font-bold ${player.id_user === user.id ? "text-primary" : "text-white/80"}`}>
+                          {player.name}
+                          {player.id_user === user.id && <span className="ml-2 text-[10px] text-primary/60 font-medium">(Você)</span>}
+                        </span>
+                        <span className="text-[10px] text-white/40 uppercase tracking-widest">Membro Prime</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center gap-1.5 text-amber-400 font-bold">
+                        <Zap className="w-3.5 h-3.5" />
+                        <span className="text-sm">{player.total_points}</span>
+                      </div>
+                      <span className="text-[9px] text-white/20 uppercase tracking-tighter">pontos totais</span>
+                    </div>
+                  </div>
+                ))}
+
+                {(!ranking || ranking.length === 0) && (
+                  <div className="text-center py-12 bg-white/5 rounded-2xl border border-dashed border-white/10">
+                    <p className="text-sm text-white/40">O ranking começará em breve. Participe dos desafios!</p>
+                  </div>
+                )}
+              </div>
+
+              <GlassCard className="p-6 rounded-2xl bg-amber-500/5 border-amber-500/10 flex flex-col justify-center items-center text-center">
+                <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mb-4 border border-amber-500/20">
+                  <Award className="w-8 h-8 text-amber-500" />
+                </div>
+                <h4 className="text-lg font-bold text-amber-400 mb-2">Premiação do Mês</h4>
+                <p className="text-sm text-white/60 mb-6 px-4">
+                  O primeiro colocado no ranking ao final do cronograma receberá um <strong>Box de Livros Exclusivo</strong> do Multiverso Literário.
+                </p>
+                <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-4">
+                  <div className="h-full bg-amber-500 transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
+                </div>
+                <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold font-mono">
+                  {currentTimeline ? `Finaliza em ${daysRemaining} dias` : "Sem cronograma ativo"}
+                </p>
+              </GlassCard>
+            </div>
+          </motion.section>
+
           {/* FRASES DO MULTIVERSO */}
           <motion.section variants={item} id="frases">
             <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-6 flex items-center gap-2">
@@ -427,114 +530,27 @@ export default function DashboardClient({
             </div>
           </motion.section>
 
-          {/* PLANOS */}
-          <motion.section variants={item} id="planos">
-            <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <Star className="w-4 h-4" /> Planos
-            </h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Essencial */}
-              <GlassCard className={`p-8 rounded-3xl ${!isPremium ? "ring-2 ring-primary/30" : ""}`}>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-white/60" />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-bold">Essencial</h4>
-                    <p className="text-[10px] text-white/30 uppercase tracking-widest">Gratuito</p>
-                  </div>
-                </div>
-
-                <ul className="space-y-3 mb-6">
-                  {[
-                    "Cronograma e livro do mês",
-                    "Frases do Multiverso",
-                    "Quiz",
-                    "2 desafios de interpretação",
-                    "Contribuições sobre o livro",
-                    "Caixinha de perguntas",
-                  ].map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-white/60">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                {!isPremium && (
-                  <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px]">
-                    Seu plano atual
-                  </Badge>
-                )}
-              </GlassCard>
-
-              {/* Expandido */}
-              <GlassCard
-                className={`p-8 rounded-3xl relative overflow-hidden ${isPremium ? "ring-2 ring-amber-500/30" : ""
-                  }`}
-              >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-[80px] pointer-events-none" />
-
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center">
-                      <Crown className="w-6 h-6 text-amber-400" />
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-bold">Expandido</h4>
-                      <p className="text-amber-400 font-bold">R$ 14,99<span className="text-[10px] text-white/30">/mês</span></p>
-                    </div>
-                  </div>
-
-                  <ul className="space-y-3 mb-6">
-                    {[
-                      "Tudo do plano Essencial",
-                      "Desafios ilimitados",
-                      "Códigos Literários",
-                      "Sala do Autor",
-                      "Biblioteca Expandida (PDFs & planners)",
-                      "Selos Literários",
-                      "Certificação Multiverso",
-                      "2 encontros mensais exclusivos",
-                    ].map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-white/60">
-                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400/60" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  {isPremium ? (
-                    <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">
-                      <Crown className="w-3 h-3 mr-1" /> Seu plano atual
-                    </Badge>
-                  ) : (
-                    <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-xl h-12 font-bold cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.2)]">
-                      <Crown className="w-4 h-4 mr-2" /> Assinar Expandido
-                    </Button>
-                  )}
-                </div>
-              </GlassCard>
-            </div>
-          </motion.section>
         </motion.div>
 
         {/* Mobile Bottom Tabs */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/5 z-50">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/5 z-50 safe-area-bottom">
           <div className="flex justify-around py-2">
             {[
               { icon: BookOpen, label: "Home", href: "/dashboard" },
-              { icon: MessageCircle, label: "Salas", href: "/dashboard/salas" },
-              { icon: Trophy, label: "Desafios", href: "/dashboard/desafios" },
-              { icon: Star, label: "Planos", href: "#planos" },
-            ].map((tab, i) => (
-              <Link key={i} href={tab.href}>
-                <button className="flex flex-col items-center gap-0.5 px-4 py-2 text-white/40 hover:text-primary transition-colors cursor-pointer">
-                  <tab.icon className="w-5 h-5" />
-                  <span className="text-[9px] font-bold uppercase tracking-wider">{tab.label}</span>
-                </button>
-              </Link>
-            ))}
+              { icon: Video, label: "Salas", href: "/dashboard/salas" },
+              { icon: LucideIcons.Star, label: "Planos", href: "/dashboard/planos" },
+              { icon: Ticket, label: "Quizzes", href: "/dashboard/quizzes" },
+            ].map((tab, i) => {
+              const isActive = pathname === tab.href || (tab.href !== "/dashboard" && pathname.startsWith(tab.href));
+              return (
+                <Link key={i} href={tab.href}>
+                  <button className={`flex flex-col items-center gap-0.5 px-4 py-2 transition-colors cursor-pointer ${isActive ? "text-primary" : "text-white/40 hover:text-primary"}`}>
+                    <tab.icon className="w-5 h-5" />
+                    <span className="text-[9px] font-bold uppercase tracking-wider">{tab.label}</span>
+                  </button>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </main>

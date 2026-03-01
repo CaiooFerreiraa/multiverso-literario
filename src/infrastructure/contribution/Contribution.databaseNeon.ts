@@ -25,8 +25,7 @@ export class ContributionDatabaseNeon implements ContributionRepository {
         `SELECT c.id_contribution, c.content, c.created_at, 
                 u.fullname, u.email
          FROM contributions c
-         JOIN member m ON c.id_user = m.id_user
-         JOIN users u ON m.id_user = u.id_user
+         JOIN users u ON c.id_user = u.id_user
          WHERE c.id_timeline_book = $1
          ORDER BY c.created_at DESC`,
         [id_timeline_book]

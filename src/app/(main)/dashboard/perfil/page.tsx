@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { readUserAction } from "@/actions/users/profile";
+import { readUserSealsAction } from "@/actions/dashboard";
 import { ProfileForm } from "./profile-form";
-import { motion } from "framer-motion";
+import { AchievementsClient } from "./achievements";
 import { ArrowLeft, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -11,14 +12,19 @@ export default async function ProfilePage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
 
-  const userRes = await readUserAction(session.user.email);
+  const userId = Number((session.user as any).id);
+
+  const [userRes, sealsRes] = await Promise.all([
+    readUserAction(session.user.email),
+    readUserSealsAction(userId)
+  ]);
+
   if (!userRes.success || !userRes.data) {
     redirect("/dashboard");
   }
 
-  // userRes.data is array from query, get first element
   const userData = Array.isArray(userRes.data) ? userRes.data[0] : userRes.data;
-  const userId = (session.user as any).id;
+  const achievements = (sealsRes.success ? sealsRes.data : []) as any[];
 
   return (
     <div className="min-h-screen">
@@ -53,8 +59,11 @@ export default async function ProfilePage() {
           email: userData.email,
           birthday: userData.birthday,
           city: userData.city,
-          phoneNumber: userData.phoneNumber
+          phoneNumber: userData.phoneNumber,
+          image: userData.image
         }} />
+
+        <AchievementsClient achievements={achievements} />
       </div>
     </div>
   );

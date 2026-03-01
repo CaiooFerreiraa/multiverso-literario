@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { readCurrentTimelineAction, readUserPlanStatusAction, readUserSealsAction } from "@/actions/dashboard";
+import { readCurrentTimelineAction, readUserPlanStatusAction, readUserSealsAction, readGlobalRankingAction } from "@/actions/dashboard";
 import { readUserPointsAction } from "@/actions/challenges";
 import { readAllPhrasesAction } from "@/actions/phrases";
 import DashboardClient from "@/app/(main)/dashboard/dashboard-client";
@@ -14,12 +14,13 @@ export default async function DashboardPage() {
 
   const userId = (session.user as any).id;
 
-  const [timelineRes, planRes, sealsRes, pointsRes, phrasesRes] = await Promise.all([
+  const [timelineRes, planRes, sealsRes, pointsRes, phrasesRes, rankingRes] = await Promise.all([
     readCurrentTimelineAction(),
     readUserPlanStatusAction(userId),
     readUserSealsAction(userId),
     readUserPointsAction(userId),
     readAllPhrasesAction(),
+    readGlobalRankingAction(),
   ]);
 
   return (
@@ -35,6 +36,7 @@ export default async function DashboardPage() {
       seals={(sealsRes as any).success ? (sealsRes as any).data : []}
       userPoints={(pointsRes as any).success ? (pointsRes as any).data : { total_points: 0, challenges_completed: 0 }}
       phrases={(phrasesRes as any).success ? (phrasesRes as any).data : []}
+      ranking={(rankingRes as any).success ? (rankingRes as any).data : []}
     />
   );
 }

@@ -8,9 +8,11 @@ export const CreateQuizAlternativesSchema = z.object({
 
 export const CreateQuizQuestionsSchema = z.object({
   question_tittle: z.string(),
+  points: z.coerce.number().min(1).default(10),
+  type: z.enum(["choice", "open"]).default("choice"),
   alternatives: z.array(
     CreateQuizAlternativesSchema
-  )
+  ).optional().default([])
 })
 
 export const CreateQuizSchema = z.object({

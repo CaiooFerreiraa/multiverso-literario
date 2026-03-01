@@ -37,14 +37,16 @@ export class QuizDatabaseNeon implements QuizRepository {
   private async insertArrayOfQuestions(query: Database, id_quiz: number, questions: Question[]) {
     for (const element of questions) {
       const [result] = await query.query(
-        `INSERT INTO questions (id_quiz, question_tittle)
-         VALUES ($1, $2)
+        `INSERT INTO questions (id_quiz, question_tittle, points, type)
+         VALUES ($1, $2, $3, $4)
          RETURNING id_question`,
-        [id_quiz, element.question_tittle]
+        [id_quiz, element.question_tittle, element.points, element.type]
       );
 
       const id_question = result.id_question;
-      await this.insertArrayOfAlternatives(query, id_question, element.alternatives);
+      if (element.type === 'choice' && element.alternatives) {
+        await this.insertArrayOfAlternatives(query, id_question, element.alternatives);
+      }
     }
   }
 
@@ -76,6 +78,8 @@ export class QuizDatabaseNeon implements QuizRepository {
               json_build_object(
                 'id_question', b.id_question,
                 'question_tittle', b.question_tittle,
+                'points', b.points,
+                'type', b.type,
                 'alternatives', (
                   SELECT COALESCE(
                     json_agg(

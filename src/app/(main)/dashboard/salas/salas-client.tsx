@@ -1,359 +1,483 @@
 "use client";
-// Triggering IDE feedback
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/glass-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import * as LucideIcons from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-// Casting icons to any to resolve React 19 / JSX element type incompatibilities
-const MessageSquare = LucideIcons.MessageSquare as any;
-const Hash = LucideIcons.Hash as any;
-const Settings = LucideIcons.Settings as any;
 const Plus = LucideIcons.Plus as any;
-const Send = LucideIcons.Send as any;
-const Smile = LucideIcons.Smile as any;
-const Users = LucideIcons.Users as any;
 const Search = LucideIcons.Search as any;
-const Volume2 = LucideIcons.Volume2 as any;
-const Mic = LucideIcons.Mic as any;
-const Headphones = LucideIcons.Headphones as any;
-const ShieldCheck = LucideIcons.ShieldCheck as any;
-const Crown = LucideIcons.Crown as any;
-const Flame = LucideIcons.Flame as any;
-const Zap = LucideIcons.Zap as any;
-const Award = LucideIcons.Award as any;
+const Users = LucideIcons.Users as any;
+const Video = LucideIcons.Video as any;
+const ArrowLeft = LucideIcons.ArrowLeft as any;
+const Clock = LucideIcons.Clock as any;
+const BookOpen = LucideIcons.BookOpen as any;
+const Sparkles = LucideIcons.Sparkles as any;
+const Radio = LucideIcons.Radio as any;
+const X = LucideIcons.X as any;
 
-export default function SalasClient({ user }: { user: any }) {
-  const [activeRoom, setActiveRoom] = useState("geral");
-  const [activeServer, setActiveServer] = useState("multiverso");
-  const [newMessage, setNewMessage] = useState("");
-  const scrollRef = useRef<HTMLDivElement>(null);
+interface SalasClientProps {
+  user: {
+    id: string | number;
+    name: string;
+    email: string;
+    image: string | null;
+  };
+  scheduledRooms: any[];
+}
 
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      user: "Caio",
-      text: "E aí pessoal! Já começaram a leitura deste mês? Dom Casmurro é um clássico que sempre gera debates épicos.",
-      time: "18:42",
-      avatar: "https://github.com/shadcn.png",
-      isPremium: true,
-      role: "admin"
-    },
-    {
-      id: 2,
-      user: "Ana Clara",
-      text: "Eu comecei hoje! O Bentinho é muito ciumento, me dá uma agonia kkkkk",
-      time: "18:45",
-      avatar: null
-    },
-    {
-      id: 3,
-      user: "Roberto Magno",
-      text: "A questão não é o ciúme, é se a Capitu traiu ou não. Eu tenho uma teoria sobre o Escobar...",
-      time: "18:50",
-      avatar: null,
-      isPremium: true,
-      role: "senior"
-    },
-    {
-      id: 4,
-      user: "Juliana Silva",
-      text: "Gente, alguém viu a nova insígnia de 'Leitor Voraz'? Ficou linda demais!",
-      time: "19:02",
-      avatar: null
-    },
-  ]);
+interface Room {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  host: {
+    name: string;
+    avatar: string | null;
+  };
+  participants: {
+    name: string;
+    avatar: string | null;
+  }[];
+  isLive: boolean;
+  startedAt: string;
+}
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+const CATEGORIES = ["Todas", "Literatura Brasileira", "Ficção Científica", "Clássicos", "Fantasia", "Filosofia", "Poesia"];
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
-    setMessages([...messages, {
-      id: messages.length + 1,
-      user: user.name || "Você",
-      text: newMessage,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      avatar: user.image || null,
-      isPremium: false,
-      role: "membro"
-    }]);
-    setNewMessage("");
+export default function SalasClient({ user, scheduledRooms: dbRooms }: SalasClientProps) {
+  const router = useRouter();
+
+  const GLOBAL_CHAT_ROOM: Room = {
+    id: "chat-global",
+    title: "💬 Chat Global — Multiverso",
+    description: "O ponto de encontro oficial de todos os leitores. Entre para conversar sobre qualquer livro!",
+    category: "Comunidade",
+    host: { name: "Multiverso", avatar: null },
+    participants: [],
+    isLive: true,
+    startedAt: "24/7",
+  };
+
+  const [isMounted, setIsMounted] = useState(false);
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Combine Global Chat + Database Rooms
+  const allRoomsFormatted: Room[] = [
+    GLOBAL_CHAT_ROOM,
+    ...dbRooms.map(dr => ({
+      id: dr.slug || String(dr.id_room),
+      title: dr.title,
+      description: dr.description,
+      category: dr.category,
+      host: { name: dr.creator_name || "Admin", avatar: null },
+      participants: [],
+      isLive: new Date(dr.scheduled_at) <= (isMounted ? new Date() : new Date(0)),
+      startedAt: isMounted ? new Date(dr.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "...",
+    }))
+  ];
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Todas");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newRoom, setNewRoom] = useState({ title: "", description: "", category: "Literatura Brasileira" });
+
+  const filteredRooms = allRoomsFormatted.filter((room) => {
+    const matchesSearch = room.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      room.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "Todas" || room.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const liveRooms = filteredRooms.filter((r) => r.isLive);
+  const upcomingRooms = filteredRooms.filter((r) => !r.isLive);
+
+  const handleCreateRoom = () => {
+    if (!newRoom.title.trim()) return;
+    const slug = newRoom.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    setShowCreateModal(false);
+    setNewRoom({ title: "", description: "", category: "Literatura Brasileira" });
+    router.push(`/dashboard/salas/${slug}`);
   };
 
   return (
-    <div className="flex h-[calc(100vh-140px)] rounded-[32px] overflow-hidden glass-border bg-black/40 backdrop-blur-3xl m-6 border border-white/10 shadow-2xl relative">
-
-      {/* 1. Server Sidebar (Far Left) - Discord Style */}
-      <aside className="w-[72px] bg-black/20 flex flex-col items-center py-4 gap-3 border-r border-white/5 scrollbar-hide overflow-y-auto">
-        <div
-          onClick={() => setActiveServer("multiverso")}
-          className={`w-12 h-12 rounded-[16px] flex items-center justify-center transition-all cursor-pointer group relative ${activeServer === "multiverso" ? "bg-primary rounded-xl" : "bg-white/5 hover:bg-primary-hover hover:rounded-xl"}`}
-        >
-          <Crown className={`w-6 h-6 ${activeServer === "multiverso" ? "text-white" : "text-white/40 group-hover:text-white"}`} />
-          {activeServer === "multiverso" && <div className="absolute -left-1 w-1 h-8 bg-white rounded-r-lg" />}
-        </div>
-
-        <div className="w-8 h-[2px] bg-white/5 rounded-full" />
-
-        {["C", "D", "P"].map((server) => (
-          <div
-            key={server}
-            className="w-12 h-12 rounded-[24px] bg-white/5 flex items-center justify-center transition-all cursor-pointer hover:bg-primary hover:rounded-xl group"
+    <div className="flex flex-col min-h-screen">
+      {/* Header */}
+      <header className="px-6 lg:px-12 py-6 flex items-center justify-between border-b border-white/5 backdrop-blur-xl bg-black/20 sticky top-0 z-30">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/dashboard"
+            className="p-2 hover:bg-white/5 rounded-xl transition-colors text-white/50 hover:text-white"
           >
-            <span className="text-white/40 group-hover:text-white font-bold">{server}</span>
-          </div>
-        ))}
-
-        <div className="w-12 h-12 rounded-[24px] bg-white/5 flex items-center justify-center border border-dashed border-white/20 text-white/20 hover:text-green-400 hover:border-green-400/50 hover:bg-green-400/5 transition-all cursor-pointer group">
-          <Plus className="w-6 h-6" />
-        </div>
-      </aside>
-
-      {/* 2. Channel Sidebar (Left) */}
-      <aside className="w-60 flex flex-col bg-white/3 border-r border-white/5">
-        <header className="h-12 border-b border-white/5 flex items-center px-4 justify-between bg-white/2 backdrop-blur-md">
-          <h2 className="font-bold text-sm tracking-tight truncate">Multiverso Literário</h2>
-          <Plus className="w-4 h-4 text-white/30 cursor-pointer hover:text-white transition-colors" />
-        </header>
-
-        <div className="flex-1 overflow-y-auto p-3 space-y-4">
-          <div>
-            <p className="px-2 text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1 select-none">Canais de Texto</p>
-            <div className="space-y-0.5">
-              {[
-                { id: "geral", label: "Geral", type: "text" },
-                { id: "leitura", label: "Leitura Mensal", type: "text" },
-                { id: "teorias", label: "Teorias e Plots", type: "text" },
-                { id: "ajuda", label: "Suporte", type: "text" },
-              ].map((channel) => (
-                <div
-                  key={channel.id}
-                  onClick={() => setActiveRoom(channel.id)}
-                  className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg cursor-pointer transition-all group ${activeRoom === channel.id ? "bg-white/10 text-white" : "text-white/40 hover:bg-white/5 hover:text-white/80"}`}
-                >
-                  <Hash className={`w-4 h-4 ${activeRoom === channel.id ? "text-primary" : "text-white/20 group-hover:text-white/40"}`} />
-                  <span className="text-sm font-medium">{channel.label}</span>
-                </div>
-              ))}
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
+              <Video className="text-primary w-5 h-5" />
             </div>
-          </div>
-
-          <div>
-            <p className="px-2 text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1 select-none">Canais de Voz</p>
-            <div className="space-y-0.5">
-              {[
-                { id: "v-main", label: "Cantinho do Café", type: "voice" },
-                { id: "v-debate", label: "Debate Semanal", type: "voice" },
-              ].map((channel) => (
-                <div
-                  key={channel.id}
-                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg cursor-pointer text-white/40 hover:bg-white/5 hover:text-white/80 transition-all group"
-                >
-                  <Volume2 className="w-4 h-4 text-white/20 group-hover:text-white/40" />
-                  <span className="text-sm font-medium">{channel.label}</span>
-                </div>
-              ))}
+            <div>
+              <h1 className="text-lg font-bold tracking-tight">Salas</h1>
+              <p className="text-[9px] text-white/30 uppercase tracking-[0.2em]">Multiverso Community</p>
             </div>
           </div>
         </div>
 
-        {/* User Status Bar */}
-        <div className="p-3 bg-black/40 border-t border-white/5 flex items-center gap-2">
-          <div className="relative">
-            <Avatar className="w-8 h-8 border border-white/10">
-              <AvatarImage src={user.image || ""} />
-              <AvatarFallback className="text-[10px] bg-primary/20 text-primary font-bold">
-                {user.name.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[#1a1a1a]" />
+        <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center bg-white/5 rounded-xl px-4 h-10 border border-white/5 focus-within:border-primary/30 transition-colors w-72">
+            <Search className="w-4 h-4 text-white/30 mr-3 shrink-0" />
+            <input
+              type="text"
+              placeholder="Buscar salas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent border-none text-sm w-full focus:outline-none placeholder:text-white/20 cursor-text"
+            />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold truncate leading-none">{user.name}</p>
-            <p className="text-[9px] text-white/30 truncate mt-1">#disponível</p>
-          </div>
-          <div className="flex items-center gap-0.5">
-            <div className="p-1.5 hover:bg-white/10 rounded-lg cursor-pointer transition-colors text-white/40 hover:text-white">
-              <Mic className="w-3.5 h-3.5" />
-            </div>
-            <div className="p-1.5 hover:bg-white/10 rounded-lg cursor-pointer transition-colors text-white/40 hover:text-white">
-              <Headphones className="w-3.5 h-3.5" />
-            </div>
-          </div>
+
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="rounded-xl bg-primary hover:bg-primary/90 font-bold gap-2 h-10 px-5 shadow-[0_0_20px_rgba(109,40,217,0.3)] transition-all hover:shadow-[0_0_30px_rgba(109,40,217,0.5)] cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Criar Sala</span>
+          </Button>
         </div>
-      </aside>
+      </header>
 
-      {/* 3. Chat Main Content */}
-      <main className="flex-1 flex flex-col bg-white/2">
-        <header className="h-12 border-b border-white/5 flex items-center px-4 justify-between bg-white/1 backdrop-blur-md">
-          <div className="flex items-center gap-2">
-            <Hash className="w-5 h-5 text-white/30" />
-            <h2 className="font-bold text-sm tracking-tight">{activeRoom.toUpperCase()}</h2>
-            <div className="w-[1px] h-4 bg-white/10 mx-1" />
-            <span className="text-xs text-white/30 font-medium">Bem-vindo à sala #{activeRoom}!</span>
-          </div>
-          <div className="flex items-center gap-4 text-white/30">
-            <Users className="w-4 h-4 cursor-pointer hover:text-white transition-colors" />
-            <div className="flex items-center bg-black/40 rounded-lg px-2 h-7 border border-white/5 group-focus-within:border-primary/50">
-              <Search className="w-3.5 h-3.5 mr-2" />
-              <input type="text" placeholder="Buscar" className="bg-transparent border-none text-[10px] w-24 focus:ring-0 placeholder:text-white/20" />
-            </div>
-            <Settings className="w-4 h-4 cursor-pointer hover:text-white transition-colors" />
-          </div>
-        </header>
+      {/* Mobile Search */}
+      <div className="md:hidden px-6 pt-4">
+        <div className="flex items-center bg-white/5 rounded-xl px-4 h-10 border border-white/5 focus-within:border-primary/30 transition-colors">
+          <Search className="w-4 h-4 text-white/30 mr-3 shrink-0" />
+          <input
+            type="text"
+            placeholder="Buscar salas..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-transparent border-none text-sm w-full focus:outline-none placeholder:text-white/20 cursor-text"
+          />
+        </div>
+      </div>
 
-        {/* Messages List */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-          <div className="pb-4">
-            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
-              <Hash className="w-10 h-10 text-primary" />
-            </div>
-            <h1 className="text-2xl font-bold mb-1">Bem-vindo(a) ao #{activeRoom}!</h1>
-            <p className="text-white/40 text-sm">Este é o início do canal #{activeRoom}.</p>
-            <div className="h-[1px] w-full bg-divider-gradient mt-6" />
-          </div>
-
-          {messages.map((msg) => (
-            <div key={msg.id} className="flex gap-4 group hover:bg-white/3 -mx-2 px-2 py-1.5 rounded-xl transition-colors relative">
-              <Avatar className="w-10 h-10 mt-1 cursor-pointer hover:scale-105 transition-transform duration-200 shadow-lg ring-2 ring-white/5">
-                <AvatarImage src={msg.avatar || ""} />
-                <AvatarFallback className={`bg-white/5 text-xs font-bold ${msg.isPremium ? 'text-amber-400 border border-amber-500/30' : 'text-primary/60'}`}>
-                  {msg.user.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2 mb-0.5">
-                  <span className={`text-sm font-bold cursor-pointer hover:underline ${msg.isPremium ? 'text-amber-400' : 'text-white'}`}>
-                    {msg.user}
-                  </span>
-                  {msg.role === 'admin' && (
-                    <span className="bg-primary/20 text-primary text-[8px] font-bold px-1.5 rounded flex items-center gap-0.5 h-4">
-                      <ShieldCheck className="w-2 h-2" /> ADMIN
-                    </span>
-                  )}
-                  <span className="text-[10px] text-white/20 font-medium">{msg.time}</span>
-                </div>
-                <p className="text-sm text-white/80 leading-relaxed break-words">{msg.text}</p>
-              </div>
-
-              <div className="absolute right-4 top-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 border border-white/10 rounded-lg p-1 flex gap-1 shadow-2xl backdrop-blur-md">
-                <div className="p-1 hover:bg-white/10 rounded cursor-pointer"><Smile className="w-3.5 h-3.5 text-white/40" /></div>
-                <div className="p-1 hover:bg-white/10 rounded cursor-pointer"><Plus className="w-3.5 h-3.5 text-white/40" /></div>
-              </div>
-            </div>
+      {/* Categories */}
+      <div className="px-6 lg:px-12 py-4 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 min-w-max">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${selectedCategory === cat
+                ? "bg-primary text-white shadow-[0_0_15px_rgba(109,40,217,0.3)]"
+                : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/80 border border-white/5"
+                }`}
+            >
+              {cat}
+            </button>
           ))}
         </div>
+      </div>
 
-        {/* Input Area */}
-        <div className="px-6 pb-6 pt-2">
-          <div className="relative group">
-            <div className="absolute inset-x-0 bottom-full h-8 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-            <div className="relative bg-white/5 border border-white/10 rounded-2xl flex flex-col shadow-2xl focus-within:border-primary/50 transition-all duration-300 backdrop-blur-2xl">
-
-              {/* Toolbar */}
-              <div className="flex items-center gap-1 p-1 border-b border-white/5">
-                <div className="p-1.5 hover:bg-white/10 rounded-lg cursor-pointer transition-colors text-white/30 hover:text-primary">
-                  <Plus className="w-4 h-4" />
-                </div>
-                <div className="p-1.5 hover:bg-white/10 rounded-lg cursor-pointer transition-colors text-white/30 hover:text-white">
-                  <Award className="w-4 h-4" />
-                </div>
+      {/* Content */}
+      <div className="flex-1 px-6 lg:px-12 pb-12">
+        {/* Ao Vivo Section */}
+        {liveRooms.length > 0 && (
+          <section className="mb-10">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                <h2 className="text-sm font-bold text-white/60 uppercase tracking-widest">Ao Vivo</h2>
               </div>
+              <Badge variant="outline" className="text-[9px] border-red-500/30 text-red-400 bg-red-500/10">
+                {liveRooms.length} {liveRooms.length === 1 ? "sala" : "salas"}
+              </Badge>
+            </div>
 
-              <div className="flex items-center gap-3 p-2">
-                <Input
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder={`Conversar em #${activeRoom}...`}
-                  className="flex-1 bg-transparent border-none focus:ring-0 text-sm h-10 p-0 shadow-none text-white placeholder:text-white/20"
-                />
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {liveRooms.map((room, idx) => (
+                <motion.div
+                  key={room.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05, duration: 0.4 }}
+                >
+                  <Link href={`/dashboard/salas/${room.id}`}>
+                    <GlassCard className="p-0 overflow-hidden group hover:border-primary/30 hover:shadow-[0_0_40px_rgba(109,40,217,0.1)] transition-all duration-500 cursor-pointer">
+                      <div className="px-5 pt-4 pb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5 bg-red-500/20 text-red-400 px-2.5 py-1 rounded-full">
+                            <Radio className="w-3 h-3 animate-pulse" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Ao Vivo</span>
+                          </div>
+                          <Badge variant="outline" className="text-[9px] border-white/10 text-white/40 bg-white/5">
+                            {room.category}
+                          </Badge>
+                        </div>
+                        <span className="text-[10px] text-white/20 font-medium flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          Desde {room.startedAt}
+                        </span>
+                      </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="p-2 hover:bg-white/10 rounded-xl cursor-pointer transition-colors text-white/30 hover:text-amber-400">
-                    <Smile className="w-5 h-5" />
+                      <div className="px-5 pb-3">
+                        <h3 className="text-base font-bold leading-snug line-clamp-2 mb-2 group-hover:text-primary transition-colors duration-300">
+                          {room.title}
+                        </h3>
+                        <p className="text-xs text-white/30 line-clamp-2 leading-relaxed">
+                          {room.description}
+                        </p>
+                      </div>
+
+                      <div className="px-5 pb-4 pt-2 flex items-center justify-between border-t border-white/5 mt-1">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="w-6 h-6 border border-primary/30">
+                              <AvatarImage src={room.host.avatar || ""} />
+                              <AvatarFallback className="bg-primary/20 text-primary text-[8px] font-bold">
+                                {room.host.name.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs text-white/60 font-medium">{room.host.name}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-white/30 font-medium flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {room.participants.length + 1}
+                          </span>
+                        </div>
+                      </div>
+                    </GlassCard>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Scheduled / Upcoming */}
+        {upcomingRooms.length > 0 && (
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <h2 className="text-sm font-bold text-white/60 uppercase tracking-widest">Agendadas</h2>
+              <Badge variant="outline" className="text-[9px] border-white/10 text-white/40">
+                {upcomingRooms.length} {upcomingRooms.length === 1 ? "sala" : "salas"}
+              </Badge>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {upcomingRooms.map((room, idx) => (
+                <motion.div
+                  key={room.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 + 0.2, duration: 0.4 }}
+                >
+                  <Link href={`/dashboard/salas/${room.id}`}>
+                    <GlassCard className="p-0 overflow-hidden group hover:border-white/20 transition-all duration-500 opacity-70 hover:opacity-100 cursor-pointer">
+                      <div className="px-5 pt-4 pb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5 bg-white/5 text-white/40 px-2.5 py-1 rounded-full border border-white/5">
+                            <Clock className="w-3 h-3" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Começa às {room.startedAt}</span>
+                          </div>
+                          <Badge variant="outline" className="text-[9px] border-white/10 text-white/40 bg-white/5">
+                            {room.category}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div className="px-5 pb-3">
+                        <h3 className="text-base font-bold leading-snug line-clamp-2 mb-2 group-hover:text-white transition-colors duration-300">
+                          {room.title}
+                        </h3>
+                        <p className="text-xs text-white/30 line-clamp-2 leading-relaxed">
+                          {room.description}
+                        </p>
+                      </div>
+
+                      <div className="px-5 pb-4 pt-2 flex items-center justify-between border-t border-white/5 mt-1">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="w-6 h-6 border border-white/10">
+                            <AvatarImage src={room.host.avatar || ""} />
+                            <AvatarFallback className="bg-white/5 text-white/40 text-[8px] font-bold">
+                              {room.host.name.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs text-white/40 font-medium">{room.host.name}</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            import("sonner").then(({ toast }) => {
+                              toast.success("Lembrete ativado!", {
+                                description: `Você receberá uma notificação quando a sala "${room.title}" começar.`
+                              });
+                            });
+                          }}
+                          className="h-7 text-[10px] rounded-lg border-white/10 bg-white/5 hover:bg-white/10 text-white/50 hover:text-white cursor-pointer"
+                        >
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          Lembrar-me
+                        </Button>
+                      </div>
+                    </GlassCard>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Empty State */}
+        {filteredRooms.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center py-24"
+          >
+            <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mb-6 border border-white/10">
+              <BookOpen className="w-10 h-10 text-white/20" />
+            </div>
+            <h3 className="text-lg font-bold text-white/60 mb-2">Nenhuma sala encontrada</h3>
+            <p className="text-sm text-white/30 mb-6 text-center max-w-xs">
+              Que tal criar uma sala e iniciar uma conversa literária?
+            </p>
+            <Button
+              onClick={() => setShowCreateModal(true)}
+              className="rounded-xl bg-primary hover:bg-primary/90 font-bold gap-2 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Criar Sala
+            </Button>
+          </motion.div>
+        )}
+      </div>
+
+      <AnimatePresence>
+        {showCreateModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-md"
+            onClick={() => setShowCreateModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md"
+            >
+              <GlassCard className="p-0 overflow-hidden border-white/10">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                      <Video className="w-4 h-4 text-primary" />
+                    </div>
+                    <h2 className="text-base font-bold">Criar Nova Sala</h2>
                   </div>
-                  <Button
-                    size="icon"
-                    onClick={handleSendMessage}
-                    disabled={!newMessage.trim()}
-                    className={`w-10 h-10 rounded-xl transition-all duration-300 ${newMessage.trim() ? 'bg-primary scale-100 shadow-lg shadow-primary/30' : 'bg-white/5 scale-95 opacity-50 cursor-not-allowed'}`}
+                  <button
+                    onClick={() => setShowCreateModal(false)}
+                    className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-white cursor-pointer"
                   >
-                    <Send className="w-4 h-4" />
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                      Nome da Sala
+                    </label>
+                    <Input
+                      value={newRoom.title}
+                      onChange={(e) => setNewRoom({ ...newRoom, title: e.target.value })}
+                      placeholder="Ex: Dom Casmurro — Debate Livre"
+                      className="bg-white/5 border-white/10 rounded-xl h-11 text-sm focus-visible:ring-primary/50 placeholder:text-white/20 cursor-text"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                      Descrição
+                    </label>
+                    <textarea
+                      value={newRoom.description}
+                      onChange={(e) => setNewRoom({ ...newRoom, description: e.target.value })}
+                      placeholder="Descreva o tema da discussão..."
+                      rows={3}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-white/20 resize-none cursor-text"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                      Categoria
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {CATEGORIES.filter((c) => c !== "Todas").map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => setNewRoom({ ...newRoom, category: cat })}
+                          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${newRoom.category === cat
+                            ? "bg-primary text-white"
+                            : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/70 border border-white/5"
+                            }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-6 pb-6 flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowCreateModal(false)}
+                    className="flex-1 h-11 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white/50 hover:text-white cursor-pointer"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleCreateRoom}
+                    disabled={!newRoom.title.trim()}
+                    className={`flex-1 h-11 rounded-xl font-bold gap-2 transition-all cursor-pointer ${newRoom.title.trim()
+                      ? "bg-primary hover:bg-primary/90 shadow-[0_0_20px_rgba(109,40,217,0.3)]"
+                      : "bg-white/5 text-white/30 cursor-not-allowed"
+                      }`}
+                  >
+                    <Video className="w-4 h-4 transition-all" />
+                    Criar e Entrar
                   </Button>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+              </GlassCard>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* 4. User List Sidebar (Right) */}
-      <aside className="w-60 bg-white/3 border-l border-white/5 hidden xl:flex flex-col">
-        <header className="h-12 border-b border-white/5 flex items-center px-4 bg-white/1 backdrop-blur-md">
-          <h3 className="font-bold text-[10px] tracking-widest uppercase text-white/30">Membros — 12</h3>
-        </header>
-
-        <div className="flex-1 overflow-y-auto p-3 space-y-4">
-          <div>
-            <p className="px-2 text-[9px] font-bold text-white/20 uppercase tracking-widest mb-2">Administração — 1</p>
-            <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer group">
-              <div className="relative">
-                <Avatar className="w-8 h-8 border border-primary/30 ring-2 ring-primary/10">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback className="bg-primary/20 text-primary text-[10px] font-bold">CA</AvatarFallback>
-                </Avatar>
-                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#1a1a1a]" />
-              </div>
-              <span className="text-sm font-bold text-primary truncate group-hover:text-primary-hover">Caio</span>
-              <Crown className="w-3 h-3 text-amber-500 ml-auto" />
-            </div>
-          </div>
-
-          <div>
-            <p className="px-2 text-[9px] font-bold text-white/20 uppercase tracking-widest mb-2">Sênior — 2</p>
-            {[
-              { name: "Roberto Magno", icon: <Flame className="w-3 h-3 text-orange-500" /> },
-              { name: "Mariana Santos", icon: <Zap className="w-3 h-3 text-blue-400" /> },
-            ].map((user) => (
-              <div key={user.name} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer group">
-                <div className="relative">
-                  <Avatar className="w-8 h-8 border border-amber-500/20">
-                    <AvatarFallback className="bg-white/5 text-[10px] text-amber-500 font-bold">{user.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#1a1a1a]" />
-                </div>
-                <span className="text-sm font-bold text-white/70 truncate group-hover:text-white transition-colors">{user.name}</span>
-                <span className="ml-auto">{user.icon}</span>
-              </div>
-            ))}
-          </div>
-
-          <div>
-            <p className="px-2 text-[9px] font-bold text-white/20 uppercase tracking-widest mb-2">Exploradores — 9</p>
-            {["Ana Clara", "Juliana", "Pedro", "Lucas", "Bia"].map((name) => (
-              <div key={name} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer group opacity-60 hover:opacity-100 transition-opacity">
-                <Avatar className="w-8 h-8 border border-white/5">
-                  <AvatarFallback className="bg-white/5 text-[10px] text-white/30 font-bold">{name[0]}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium text-white/50 truncate group-hover:text-white/80 transition-colors">{name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </aside>
+      <div className="lg:hidden fixed bottom-8 right-6 z-40">
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          className="w-14 h-14 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(109,40,217,0.4)] p-0 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+        >
+          <Plus className="w-6 h-6" />
+        </Button>
+      </div>
 
       <style jsx global>{`
-        .bg-divider-gradient {
-          background: linear-gradient(to right, transparent, rgba(255,255,255,0.05) 50%, transparent);
-        }
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }

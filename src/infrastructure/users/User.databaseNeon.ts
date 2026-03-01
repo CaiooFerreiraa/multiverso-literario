@@ -45,7 +45,7 @@ export class UserNeonDatabase implements UseRepository {
   async read(email: string): Promise<any> {
     try {
       const user = await this.database.query(
-        `SELECT a.fullname, a.email, a.password, a.image, b.birthday, b.city, b."phoneNumber" 
+        `SELECT a.id_user, a.fullname, a.email, a.password, a.image, b.birthday, b.city, b."phoneNumber" 
          FROM users a
          JOIN member b ON a.id_user = b.id_user
          WHERE a.email = $1`,
