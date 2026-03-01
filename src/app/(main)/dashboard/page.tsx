@@ -23,6 +23,9 @@ export default async function DashboardPage() {
     readGlobalRankingAction(),
   ]);
 
+  const userPlan = (planRes as any).success ? (planRes as any).data : null;
+  const viewType: 'student' | 'adult' | 'free' = userPlan?.view_type === 'student' ? 'student' : userPlan ? 'adult' : 'free';
+
   return (
     <DashboardClient
       user={{
@@ -31,8 +34,9 @@ export default async function DashboardPage() {
         email: session.user.email || "",
         isAdmin: session.user.email === process.env.ADMIN_EMAIL,
       }}
+      viewType={viewType}
       currentTimeline={(timelineRes as any).success ? (timelineRes as any).data : null}
-      userPlan={(planRes as any).success ? (planRes as any).data : null}
+      userPlan={userPlan}
       seals={(sealsRes as any).success ? (sealsRes as any).data : []}
       userPoints={(pointsRes as any).success ? (pointsRes as any).data : { total_points: 0, challenges_completed: 0 }}
       phrases={(phrasesRes as any).success ? (phrasesRes as any).data : []}

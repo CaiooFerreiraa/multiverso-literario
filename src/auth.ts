@@ -17,19 +17,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
+        // Suporte para login via master admin (definido no .env)
+        if (credentials.email === process.env.ADMIN_EMAIL && credentials.password === process.env.ADMIN_PASSWORD) {
+          // Buscar admin na tabela users SEM exigir member
+          let adminUser: any = null;
+          try {
+            const result = await neonClient.query(
+              `SELECT id_user, fullname, email, image FROM users WHERE email = $1`,
+              [credentials.email]
+            );
+            adminUser = result && result.length > 0 ? result[0] : null;
+          } catch (e) {
+            // Se não encontrar na tabela, usa ID virtual
+          }
+
+          return {
+            id: adminUser?.id_user || 9999,
+            name: adminUser?.fullname || "Administrador",
+            email: credentials.email as string,
+            image: adminUser?.image || null,
+          };
+        }
+
         const repo = new UserNeonDatabase(neonClient);
         const userArray = await repo.read(credentials.email as string);
         const user = userArray && userArray.length > 0 ? userArray[0] : null;
-
-        // Suporte para login via master admin (definido no .env)
-        if (credentials.email === process.env.ADMIN_EMAIL && credentials.password === process.env.ADMIN_PASSWORD) {
-          return {
-            id: user?.id_user || 9999, // Virtual admin ID if not in DB
-            name: user?.fullname || "Administrador",
-            email: credentials.email as string,
-            image: user?.image || null,
-          };
-        }
 
         if (!user) return null;
 

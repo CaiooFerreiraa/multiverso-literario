@@ -133,15 +133,30 @@ export default function RoomClient({ roomId, user }: RoomClientProps) {
             prejoinPageEnabled: false,
             disableDeepLinking: true,
             disableThirdPartyRequests: true,
+            toolbarButtons: [],
+            hideConferenceSubject: true,
+            hideConferenceTimer: true,
+            hideParticipantsStats: true,
+            disableReactions: true,
+            notifications: [],
+            disablePolls: true,
+            disableProfile: true,
+            hideDisplayName: false,
           },
           interfaceConfigOverwrite: {
-            TOOLBAR_BUTTONS: [], // Let our UI handle controls
+            TOOLBAR_BUTTONS: [],
             SHOW_JITSI_WATERMARK: false,
             SHOW_WATERMARK_FOR_GUESTS: false,
             SHOW_BRAND_WATERMARK: false,
             SHOW_POWERED_BY: false,
             JITSI_WATERMARK_LINK: '',
             SHOW_CHROME_EXTENSION_BANNER: false,
+            DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
+            HIDE_INVITE_MORE_HEADER: true,
+            DISABLE_FOCUS_INDICATOR: true,
+            MOBILE_APP_PROMO: false,
+            FILM_STRIP_MAX_HEIGHT: 100,
+            VIDEO_LAYOUT_FIT: 'both',
           },
         };
         const api = new (window as any).JitsiMeetExternalAPI(domain, options);
@@ -292,32 +307,54 @@ export default function RoomClient({ roomId, user }: RoomClientProps) {
 
   return (
     <div className="flex flex-col h-screen bg-[#0a0a14] overflow-hidden">
-      {/* Top Bar */}
-      <header className="h-14 flex items-center justify-between px-4 lg:px-6 border-b border-white/5 bg-black/40 backdrop-blur-xl z-20 shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-red-500/15 px-2.5 py-1 rounded-full">
-              <Radio className="w-3 h-3 text-red-400 animate-pulse" />
-              <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider hidden sm:inline">Ao Vivo</span>
+      {/* CSS para esconder TODA a UI nativa do Jitsi */}
+      <style jsx global>{`
+        /* Esconder toolbar nativa do Jitsi */
+        .new-toolbox, .toolbox-content-items,
+        #new-toolbox, .subject, .meeting-info-container,
+        .subject-info-container, .conference-timer,
+        .watermark, .leftwatermark, .rightwatermark,
+        .powered-by, .oJlr0 { display: none !important; }
+        /* Esconder header da conferência */
+        .oJlr0, .oTusO { display: none !important; }
+        /* Esconder notificações */
+        .oJlr0, .oTusO, .oJlr0 { display: none !important; }
+        /* Esconder filmstrip labels e outros overlays */
+        .oAVFo, .oW0CQ { display: none !important; }
+        /* Container do iframe Jitsi - garantir que só o vídeo apareça */
+        iframe[id^="jitsiConference"] {
+          border: none !important;
+        }
+        /* Esconder qualquer borda ou padding do container */
+        .oJlr0 { display: none !important; }
+      `}</style>
+
+      {/* Top Bar - compacto no mobile */}
+      <header className="h-11 sm:h-14 flex items-center justify-between px-3 sm:px-4 lg:px-6 border-b border-white/5 bg-black/40 backdrop-blur-xl z-20 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1 bg-red-500/15 px-2 py-0.5 sm:py-1 rounded-full">
+              <Radio className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400 animate-pulse" />
+              <span className="text-[8px] sm:text-[10px] font-bold text-red-400 uppercase tracking-wider hidden sm:inline">Ao Vivo</span>
             </div>
-            <div className="w-[1px] h-4 bg-white/10 hidden sm:block" />
-            <span className="text-xs font-medium text-white/40 flex items-center gap-1.5">
-              <Clock className="w-3 h-3" />
+            <div className="w-[1px] h-3 sm:h-4 bg-white/10 hidden sm:block" />
+            <span className="text-[10px] sm:text-xs font-medium text-white/40 flex items-center gap-1">
+              <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               {formatTime(elapsed)}
             </span>
           </div>
         </div>
 
-        <h1 className="text-sm font-bold text-white/70 truncate max-w-[200px] md:max-w-[400px] absolute left-1/2 -translate-x-1/2">
+        <h1 className="text-xs sm:text-sm font-bold text-white/70 truncate max-w-[120px] sm:max-w-[200px] md:max-w-[400px] absolute left-1/2 -translate-x-1/2">
           {roomTitle}
         </h1>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={toggleInfo}
-            className={`p-2 rounded-lg transition-all cursor-pointer ${showInfo ? "bg-primary/20 text-primary" : "text-white/40 hover:bg-white/5 hover:text-white"}`}
+            className={`p-1.5 sm:p-2 rounded-lg transition-all cursor-pointer ${showInfo ? "bg-primary/20 text-primary" : "text-white/40 hover:bg-white/5 hover:text-white"}`}
           >
-            <Info className="w-4 h-4" />
+            <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
           <div className="hidden sm:flex items-center gap-1 bg-white/5 rounded-lg px-3 py-1.5 border border-white/5">
             <Users className="w-3.5 h-3.5 text-white/40" />
@@ -350,43 +387,43 @@ export default function RoomClient({ roomId, user }: RoomClientProps) {
             </AnimatePresence>
           </div>
 
-          {/* Control Bar (Fixed over video) */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center justify-center px-6 py-3 bg-black/60 backdrop-blur-xl rounded-3xl border border-white/10 shrink-0 z-20 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-            <div className="flex items-center gap-2 lg:gap-3">
+          {/* Control Bar - responsivo: compacto no mobile */}
+          <div className="absolute bottom-4 sm:bottom-10 left-1/2 -translate-x-1/2 flex items-center justify-center px-3 sm:px-6 py-2 sm:py-3 bg-black/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/10 shrink-0 z-20 shadow-[0_0_50px_rgba(0,0,0,0.5)] max-w-[calc(100vw-2rem)]">
+            <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
               <button
                 onClick={() => setIsMicOn(!isMicOn)}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${isMicOn ? "bg-white/10 text-white hover:bg-white/15" : "bg-red-500/20 text-red-400 hover:bg-red-500/30"}`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all cursor-pointer ${isMicOn ? "bg-white/10 text-white hover:bg-white/15" : "bg-red-500/20 text-red-400 hover:bg-red-500/30"}`}
               >
-                {isMicOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+                {isMicOn ? <Mic className="w-4 h-4 sm:w-5 sm:h-5" /> : <MicOff className="w-4 h-4 sm:w-5 sm:h-5" />}
               </button>
 
               <button
                 onClick={() => setIsCameraOn(!isCameraOn)}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${isCameraOn ? "bg-white/10 text-white hover:bg-white/15" : "bg-red-500/20 text-red-400 hover:bg-red-500/30"}`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all cursor-pointer ${isCameraOn ? "bg-white/10 text-white hover:bg-white/15" : "bg-red-500/20 text-red-400 hover:bg-red-500/30"}`}
               >
-                {isCameraOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+                {isCameraOn ? <Video className="w-4 h-4 sm:w-5 sm:h-5" /> : <VideoOff className="w-4 h-4 sm:w-5 sm:h-5" />}
               </button>
 
               <button
                 onClick={() => setIsScreenSharing(!isScreenSharing)}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all cursor-pointer hidden md:flex ${isScreenSharing ? "bg-primary/20 text-primary hover:bg-primary/30" : "bg-white/10 text-white hover:bg-white/15"}`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl items-center justify-center transition-all cursor-pointer hidden md:flex ${isScreenSharing ? "bg-primary/20 text-primary hover:bg-primary/30" : "bg-white/10 text-white hover:bg-white/15"}`}
               >
-                <MonitorUp className="w-5 h-5" />
+                <MonitorUp className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               <button
                 onClick={() => setIsHandRaised(!isHandRaised)}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${isHandRaised ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30" : "bg-white/10 text-white hover:bg-white/15"}`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all cursor-pointer ${isHandRaised ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30" : "bg-white/10 text-white hover:bg-white/15"}`}
               >
-                <Hand className="w-5 h-5" />
+                <Hand className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               <div className="relative">
                 <button
                   onClick={() => setShowReactionPicker(!showReactionPicker)}
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${showReactionPicker ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30" : "bg-white/10 text-white hover:bg-white/15"}`}
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all cursor-pointer hidden sm:flex ${showReactionPicker ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30" : "bg-white/10 text-white hover:bg-white/15"}`}
                 >
-                  <Smile className="w-5 h-5" />
+                  <Smile className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <AnimatePresence>
                   {showReactionPicker && (
@@ -394,10 +431,10 @@ export default function RoomClient({ roomId, user }: RoomClientProps) {
                       initial={{ opacity: 0, y: 10, scale: 0.9 }}
                       animate={{ opacity: 1, y: -60, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                      className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/80 backdrop-blur-xl border border-white/10 p-2 rounded-2xl shadow-2xl z-[100]"
+                      className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2 bg-black/80 backdrop-blur-xl border border-white/10 p-1.5 sm:p-2 rounded-xl sm:rounded-2xl shadow-2xl z-[100]"
                     >
                       {["💖", "👍", "🎉", "😂", "😮", "😢"].map((emoji) => (
-                        <button key={emoji} onClick={() => handleSendReaction(emoji)} className="w-10 h-10 flex items-center justify-center text-xl hover:bg-white/10 rounded-xl transition-all hover:scale-125 cursor-pointer">
+                        <button key={emoji} onClick={() => handleSendReaction(emoji)} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-lg sm:text-xl hover:bg-white/10 rounded-lg sm:rounded-xl transition-all hover:scale-125 cursor-pointer">
                           {emoji}
                         </button>
                       ))}
@@ -406,34 +443,34 @@ export default function RoomClient({ roomId, user }: RoomClientProps) {
                 </AnimatePresence>
               </div>
 
-              <div className="w-[1px] h-8 bg-white/10 mx-1 hidden sm:block" />
+              <div className="w-[1px] h-6 sm:h-8 bg-white/10 mx-0.5 sm:mx-1 hidden sm:block" />
 
               <button
                 onClick={toggleChat}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all cursor-pointer relative ${showChat ? "bg-primary/20 text-primary hover:bg-primary/30" : "bg-white/10 text-white hover:bg-white/15"}`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all cursor-pointer relative ${showChat ? "bg-primary/20 text-primary hover:bg-primary/30" : "bg-white/10 text-white hover:bg-white/15"}`}
               >
-                <MessageSquare className="w-5 h-5" />
+                <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
                 {unreadCount > 0 && !showChat && (
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                    <span className="text-[9px] font-bold text-white">{unreadCount}</span>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-primary rounded-full flex items-center justify-center">
+                    <span className="text-[8px] sm:text-[9px] font-bold text-white">{unreadCount}</span>
                   </div>
                 )}
               </button>
 
               <button
                 onClick={toggleParticipants}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${showParticipants ? "bg-primary/20 text-primary hover:bg-primary/30" : "bg-white/10 text-white hover:bg-white/15"}`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl items-center justify-center transition-all cursor-pointer hidden sm:flex ${showParticipants ? "bg-primary/20 text-primary hover:bg-primary/30" : "bg-white/10 text-white hover:bg-white/15"}`}
               >
-                <Users className="w-5 h-5" />
+                <Users className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
-              <div className="w-[1px] h-8 bg-white/10 mx-1 hidden sm:block" />
+              <div className="w-[1px] h-6 sm:h-8 bg-white/10 mx-0.5 sm:mx-1 hidden sm:block" />
 
               <button
                 onClick={handleLeave}
-                className="h-12 px-5 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold flex items-center gap-2 transition-all hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] cursor-pointer"
+                className="h-10 sm:h-12 px-3 sm:px-5 rounded-xl sm:rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold flex items-center gap-1.5 sm:gap-2 transition-all hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] cursor-pointer"
               >
-                <Phone className="w-5 h-5 rotate-[135deg]" />
+                <Phone className="w-4 h-4 sm:w-5 sm:h-5 rotate-[135deg]" />
                 <span className="hidden sm:inline text-sm">Sair</span>
               </button>
             </div>
@@ -445,10 +482,10 @@ export default function RoomClient({ roomId, user }: RoomClientProps) {
           {hasSidepanel && (
             <motion.aside
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 360, opacity: 1 }}
+              animate={{ width: typeof window !== 'undefined' && window.innerWidth < 640 ? window.innerWidth : 360, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="h-full border-l border-white/5 bg-black/40 backdrop-blur-xl flex flex-col overflow-hidden shrink-0"
+              className="h-full border-l border-white/5 bg-black/80 sm:bg-black/40 backdrop-blur-xl flex flex-col overflow-hidden shrink-0 absolute sm:relative right-0 z-30 w-full sm:w-auto"
             >
               {showChat && (
                 <div className="flex flex-col h-full">

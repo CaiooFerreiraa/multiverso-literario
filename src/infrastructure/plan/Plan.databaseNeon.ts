@@ -9,8 +9,8 @@ export class PlanDatabaseNeon implements PlanRepository {
     async create(plan: any): Promise<any> {
         try {
             await this.database.query(
-                `INSERT INTO plan_expanded (value, duraction, title, benefits) VALUES ($1, $2, $3, $4)`,
-                [plan.value, plan.duraction, plan.title, plan.benefits]
+                `INSERT INTO plan_expanded (value, duraction, title, benefits, view_type) VALUES ($1, $2, $3, $4, $5)`,
+                [plan.value, plan.duraction, plan.title, plan.benefits, plan.view_type || 'adult']
             );
         } catch (error) {
             throw error;
@@ -42,9 +42,9 @@ export class PlanDatabaseNeon implements PlanRepository {
         try {
             await this.database.query(`
                 UPDATE plan_expanded
-                SET value = $1, duraction = $2, title = $3, benefits = $4
-                WHERE id_plan = $5    
-            `, [plan.value, plan.duraction, plan.title, plan.benefits, id_plan]
+                SET value = $1, duraction = $2, title = $3, benefits = $4, view_type = $5
+                WHERE id_plan = $6    
+            `, [plan.value, plan.duraction, plan.title, plan.benefits, plan.view_type || 'adult', id_plan]
             )
         } catch (error) {
             throw error;

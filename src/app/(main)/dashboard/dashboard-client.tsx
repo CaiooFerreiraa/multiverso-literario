@@ -38,6 +38,7 @@ import { useRouter } from "next/navigation";
 
 interface DashboardProps {
   user: { id: number; name: string; email: string; isAdmin?: boolean; image?: string };
+  viewType: 'student' | 'adult' | 'free';
   currentTimeline: any;
   userPlan: any;
   seals: any[];
@@ -67,6 +68,7 @@ const item = {
 
 export default function DashboardClient({
   user,
+  viewType,
   currentTimeline,
   userPlan,
   seals,
@@ -80,6 +82,7 @@ export default function DashboardClient({
   const [newPhrase, setNewPhrase] = useState("");
   const [isPending, startTransition] = useTransition();
   const isPremium = !!userPlan;
+  const isStudent = viewType === 'student';
 
   const [isMounted, setIsMounted] = React.useState(false);
 
@@ -137,15 +140,15 @@ export default function DashboardClient({
           <div className="space-y-1">
             <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-4 mb-3">Menu</p>
             {[
-              { label: "Dashboard", icon: LucideIcons.LayoutDashboard, href: "/dashboard" },
+              { label: "Home", icon: LucideIcons.LayoutDashboard, href: "/dashboard" },
               { label: "Salas", icon: LucideIcons.Video, href: "/dashboard/salas" },
-              { label: "Plano", icon: LucideIcons.Star, href: "/dashboard/planos" },
+              ...(!isStudent ? [{ label: "Plano", icon: LucideIcons.Star, href: "/dashboard/planos" }] : []),
               { label: "Cronograma", icon: LucideIcons.Calendar, href: "/dashboard#cronograma" },
               { label: "Desafios", icon: LucideIcons.Gamepad2, href: "/dashboard/desafios" },
               { label: "Quizzes", icon: LucideIcons.Ticket, href: "/dashboard/quizzes" },
               { label: "Biblioteca", icon: LucideIcons.Library, href: "/dashboard/biblioteca" },
               { label: "Ranking", icon: LucideIcons.Trophy, href: "/dashboard/ranking" },
-              ...(user.isAdmin ? [{ icon: ShieldAlert, label: "Admin", href: "/dashboard/admin" }] : []),
+              ...(user.isAdmin && !isStudent ? [{ icon: ShieldAlert, label: "Admin", href: "/dashboard/admin" }] : []),
             ].map((navItem, i) => {
               const isActive = pathname === navItem.href || (navItem.href !== "/dashboard" && pathname.startsWith(navItem.href));
               return (
@@ -222,7 +225,7 @@ export default function DashboardClient({
       {/* MAIN CONTENT */}
       <main className="flex-1 lg:ml-72 flex flex-col min-h-screen">
         {/* Mobile Header */}
-        <header className="lg:hidden flex items-center justify-between px-6 py-6">
+        <header className="lg:hidden flex items-center justify-between px-6 py-4">
           <h1 className="text-xl font-bold">Multiverso</h1>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-white/5 rounded-full px-3 py-1.5">
@@ -538,7 +541,7 @@ export default function DashboardClient({
             {[
               { icon: BookOpen, label: "Home", href: "/dashboard" },
               { icon: Video, label: "Salas", href: "/dashboard/salas" },
-              { icon: LucideIcons.Star, label: "Planos", href: "/dashboard/planos" },
+              ...(!isStudent ? [{ icon: LucideIcons.Star, label: "Planos", href: "/dashboard/planos" }] : []),
               { icon: Ticket, label: "Quizzes", href: "/dashboard/quizzes" },
             ].map((tab, i) => {
               const isActive = pathname === tab.href || (tab.href !== "/dashboard" && pathname.startsWith(tab.href));

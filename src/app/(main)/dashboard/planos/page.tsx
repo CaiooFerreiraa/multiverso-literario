@@ -17,6 +17,13 @@ export default async function PlansPage() {
     readAllPlansAction()
   ]);
 
+  const userPlan = (planRes as any).success ? (planRes as any).data : null;
+
+  // Estudantes não podem acessar a página de planos
+  if (userPlan?.view_type === 'student') {
+    redirect("/dashboard");
+  }
+
   return (
     <PlansClient
       user={{
@@ -24,7 +31,7 @@ export default async function PlansPage() {
         name: session.user.name || "Leitor",
         email: session.user.email || "",
       }}
-      userPlan={(planRes as any).success ? (planRes as any).data : null}
+      userPlan={userPlan}
       availablePlans={(allPlansRes as any).success ? (allPlansRes as any).data : []}
     />
   );

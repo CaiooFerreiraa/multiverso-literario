@@ -29,6 +29,7 @@ interface SalasClientProps {
     email: string;
     image: string | null;
   };
+  viewType: 'student' | 'adult' | 'free';
   scheduledRooms: any[];
 }
 
@@ -51,8 +52,9 @@ interface Room {
 
 const CATEGORIES = ["Todas", "Literatura Brasileira", "Ficção Científica", "Clássicos", "Fantasia", "Filosofia", "Poesia"];
 
-export default function SalasClient({ user, scheduledRooms: dbRooms }: SalasClientProps) {
+export default function SalasClient({ user, viewType, scheduledRooms: dbRooms }: SalasClientProps) {
   const router = useRouter();
+  const isStudent = viewType === 'student';
 
   const GLOBAL_CHAT_ROOM: Room = {
     id: "chat-global",
@@ -142,13 +144,15 @@ export default function SalasClient({ user, scheduledRooms: dbRooms }: SalasClie
             />
           </div>
 
-          <Button
-            onClick={() => setShowCreateModal(true)}
-            className="rounded-xl bg-primary hover:bg-primary/90 font-bold gap-2 h-10 px-5 shadow-[0_0_20px_rgba(109,40,217,0.3)] transition-all hover:shadow-[0_0_30px_rgba(109,40,217,0.5)] cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Criar Sala</span>
-          </Button>
+          {!isStudent && (
+            <Button
+              onClick={() => setShowCreateModal(true)}
+              className="rounded-xl bg-primary hover:bg-primary/90 font-bold gap-2 h-10 px-5 shadow-[0_0_20px_rgba(109,40,217,0.3)] transition-all hover:shadow-[0_0_30px_rgba(109,40,217,0.5)] cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Criar Sala</span>
+            </Button>
+          )}
         </div>
       </header>
 
@@ -349,15 +353,17 @@ export default function SalasClient({ user, scheduledRooms: dbRooms }: SalasClie
             </div>
             <h3 className="text-lg font-bold text-white/60 mb-2">Nenhuma sala encontrada</h3>
             <p className="text-sm text-white/30 mb-6 text-center max-w-xs">
-              Que tal criar uma sala e iniciar uma conversa literária?
+              {isStudent ? "Aguarde o administrador criar novas salas." : "Que tal criar uma sala e iniciar uma conversa literária?"}
             </p>
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="rounded-xl bg-primary hover:bg-primary/90 font-bold gap-2 cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              Criar Sala
-            </Button>
+            {!isStudent && (
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="rounded-xl bg-primary hover:bg-primary/90 font-bold gap-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                Criar Sala
+              </Button>
+            )}
           </motion.div>
         )}
       </div>
@@ -468,14 +474,16 @@ export default function SalasClient({ user, scheduledRooms: dbRooms }: SalasClie
         )}
       </AnimatePresence>
 
-      <div className="lg:hidden fixed bottom-8 right-6 z-40">
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          className="w-14 h-14 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(109,40,217,0.4)] p-0 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
-      </div>
+      {!isStudent && (
+        <div className="lg:hidden fixed bottom-8 right-6 z-40">
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="w-14 h-14 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(109,40,217,0.4)] p-0 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <Plus className="w-6 h-6" />
+          </Button>
+        </div>
+      )}
 
       <style jsx global>{`
         .scrollbar-hide::-webkit-scrollbar {

@@ -52,7 +52,7 @@ export async function readUserSealsAction(id_user: number) {
 export async function readUserPlanStatusAction(id_user: number) {
   try {
     const result = await neonClient.query(
-      `SELECT b.*, pe.value, pe.duraction
+      `SELECT b.*, pe.value, pe.duraction, pe.view_type
        FROM buy b
        JOIN plan_expanded pe ON b.id_plan = pe.id_plan
        WHERE b.id_user = $1 AND b.status = 'concluido'

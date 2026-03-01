@@ -15,7 +15,9 @@ import {
   Edit2,
   PlusCircle,
   MinusCircle,
-  Zap
+  Zap,
+  GraduationCap,
+  UserCircle
 } from "lucide-react";
 
 export function AdminPlanForm() {
@@ -29,6 +31,7 @@ export function AdminPlanForm() {
     value: "",
     duraction: "30",
     benefits: [""] as string[],
+    view_type: "adult" as "student" | "adult",
   });
 
   useEffect(() => {
@@ -49,6 +52,7 @@ export function AdminPlanForm() {
       value: "",
       duraction: "30",
       benefits: [""],
+      view_type: "adult",
     });
     setIsEditing(false);
   };
@@ -60,6 +64,7 @@ export function AdminPlanForm() {
       value: plan.value.toString(),
       duraction: plan.duraction.toString(),
       benefits: plan.benefits && plan.benefits.length > 0 ? plan.benefits : [""],
+      view_type: plan.view_type || "adult",
     });
     setIsEditing(true);
     // Scroll to form
@@ -97,6 +102,7 @@ export function AdminPlanForm() {
         value: Number(form.value),
         duraction: Number(form.duraction),
         benefits: form.benefits.filter(b => b.trim() !== ""),
+        view_type: form.view_type,
       };
 
       try {
@@ -230,6 +236,48 @@ export function AdminPlanForm() {
             </div>
           </div>
 
+          {/* TIPO DE VISÃO */}
+          <div className="space-y-3">
+            <label className="text-xs font-bold text-white/40 uppercase tracking-wider flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-primary" /> Tipo de Visão do Plano
+            </label>
+            <p className="text-[10px] text-white/20">Define o que o usuário pode ver/fazer na plataforma</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, view_type: "student" })}
+                className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-3 cursor-pointer ${form.view_type === "student"
+                  ? "border-blue-500/50 bg-blue-500/10 text-blue-400"
+                  : "border-white/5 bg-white/[0.02] text-white/40 hover:border-white/10 hover:bg-white/5"
+                  }`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${form.view_type === "student" ? "bg-blue-500/20" : "bg-white/5"}`}>
+                  <GraduationCap className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold">Estudante</p>
+                  <p className="text-[10px] opacity-60">Restrito (sem criar sala, sem upgrade)</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, view_type: "adult" })}
+                className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-3 cursor-pointer ${form.view_type === "adult"
+                  ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
+                  : "border-white/5 bg-white/[0.02] text-white/40 hover:border-white/10 hover:bg-white/5"
+                  }`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${form.view_type === "adult" ? "bg-emerald-500/20" : "bg-white/5"}`}>
+                  <UserCircle className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold">Adulto</p>
+                  <p className="text-[10px] opacity-60">Acesso completo a tudo</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-white/40 uppercase flex items-center gap-2 tracking-widest">
@@ -309,9 +357,16 @@ export function AdminPlanForm() {
 
                 <div>
                   <h5 className="font-bold text-xl mb-1 truncate">{plan.title || "Plano s/ título"}</h5>
-                  <div className="flex items-baseline gap-1.5">
+                  <div className="flex items-baseline gap-1.5 mb-2">
                     <span className="text-2xl font-black text-emerald-400">R$ {Number(plan.value).toFixed(2)}</span>
                     <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest">/ {plan.duraction}d</span>
+                  </div>
+                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest ${plan.view_type === 'student'
+                      ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                    }`}>
+                    {plan.view_type === 'student' ? <GraduationCap className="w-3 h-3" /> : <UserCircle className="w-3 h-3" />}
+                    {plan.view_type === 'student' ? 'Estudante' : 'Adulto'}
                   </div>
                 </div>
 

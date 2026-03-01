@@ -59,7 +59,7 @@ export default async function QuizzesPage() {
             </p>
             <Link href="/dashboard">
               <Button variant="outline" className="rounded-xl border-white/10 hover:bg-white/5 gap-2 cursor-pointer">
-                Voltar ao Dashboard
+                Voltar para Home
               </Button>
             </Link>
           </GlassCard>
