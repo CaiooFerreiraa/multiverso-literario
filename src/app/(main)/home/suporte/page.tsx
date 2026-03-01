@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { readChatMessagesAction, readAdminChatUsersAction } from "@/actions/chat";
+import { readUserPlanStatusAction } from "@/actions/dashboard";
 import SuporteClient from "./suporte-client";
 
 export default async function SuportePage() {
@@ -8,17 +9,24 @@ export default async function SuportePage() {
   if (!session?.user) redirect("/login");
 
   const user = session.user as any;
+  const planRes = await readUserPlanStatusAction(Number(user.id));
+  const userPlan = (planRes as any).success ? (planRes as any).data : null;
   const isAdmin = user.email === process.env.ADMIN_EMAIL;
 
-  let chatData = null;
-  let adminUsers = null;
+  // Plan-based access restriction
+  if (!isAdmin && !userPlan) {
+    redirect("/home/planos");
+  }
+
+  let chatData: any[] = [];
+  let adminUsers: any[] = [];
 
   if (isAdmin) {
     const res = await readAdminChatUsersAction();
-    adminUsers = res.success ? res.data : [];
+    adminUsers = (res.success ? res.data : []) as any[];
   } else {
     const res = await readChatMessagesAction(user.id);
-    chatData = res.success ? res.data : [];
+    chatData = (res.success ? res.data : []) as any[];
   }
 
   return (

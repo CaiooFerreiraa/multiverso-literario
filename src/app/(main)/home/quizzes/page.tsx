@@ -57,7 +57,7 @@ export default async function QuizzesPage() {
               <br />
               Fique de olho no cronograma para saber quando os desafios serão liberados!
             </p>
-            <Link href="/dashboard">
+            <Link href="/home">
               <Button variant="outline" className="rounded-xl border-white/10 hover:bg-white/5 gap-2 cursor-pointer">
                 Voltar para Home
               </Button>
@@ -67,7 +67,7 @@ export default async function QuizzesPage() {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {quizzes.map((quiz) => (
-            <Link key={quiz.id_quiz} href={`/dashboard/quizzes/${quiz.id_quiz}`}>
+            <Link key={quiz.id_quiz} href={`/home/quizzes/${quiz.id_quiz}`}>
               <GlassCard className="p-6 rounded-3xl border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-primary/30 transition-all group overflow-hidden relative">
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 group-hover:scale-110 transition-transform duration-500">

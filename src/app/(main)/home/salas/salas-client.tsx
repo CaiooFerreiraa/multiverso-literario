@@ -116,7 +116,7 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
     const slug = newRoom.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
     setShowCreateModal(false);
     setNewRoom({ title: "", description: "", category: "Literatura Brasileira" });
-    router.push(`/dashboard/salas/${slug}`);
+    router.push(`/home/salas/${slug}`);
   };
 
   return (
@@ -125,7 +125,7 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
       <header className="px-6 lg:px-12 py-6 flex items-center justify-between border-b border-white/5 backdrop-blur-xl bg-black/20 sticky top-0 z-30">
         <div className="flex items-center gap-4">
           <Link
-            href="/dashboard"
+            href="/home"
             className="p-2 hover:bg-white/5 rounded-xl transition-colors text-white/50 hover:text-white"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -220,7 +220,7 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05, duration: 0.4 }}
                 >
-                  <Link href={`/dashboard/salas/${room.id}`}>
+                  <Link href={`/home/salas/${room.id}`}>
                     <GlassCard className="p-0 overflow-hidden group hover:border-primary/30 hover:shadow-[0_0_40px_rgba(109,40,217,0.1)] transition-all duration-500 cursor-pointer">
                       <div className="px-5 pt-4 pb-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -293,7 +293,7 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 + 0.2, duration: 0.4 }}
                 >
-                  <Link href={`/dashboard/salas/${room.id}`}>
+                  <Link href={`/home/salas/${room.id}`}>
                     <GlassCard className="p-0 overflow-hidden group hover:border-white/20 transition-all duration-500 opacity-70 hover:opacity-100 cursor-pointer">
                       <div className="px-5 pt-4 pb-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">

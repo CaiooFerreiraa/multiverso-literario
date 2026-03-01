@@ -56,6 +56,7 @@ export async function readUserPlanStatusAction(id_user: number) {
        FROM buy b
        JOIN plan_expanded pe ON b.id_plan = pe.id_plan
        WHERE b.id_user = $1 AND b.status = 'concluido'
+       AND (b.created_at + pe.duraction) >= CURRENT_DATE
        ORDER BY b.created_at DESC
        LIMIT 1`,
       [id_user]

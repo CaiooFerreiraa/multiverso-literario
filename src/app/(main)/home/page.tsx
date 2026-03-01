@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { readCurrentTimelineAction, readUserPlanStatusAction, readUserSealsAction, readGlobalRankingAction } from "@/actions/dashboard";
 import { readUserPointsAction } from "@/actions/challenges";
 import { readAllPhrasesAction } from "@/actions/phrases";
-import DashboardClient from "@/app/(main)/dashboard/dashboard-client";
+import HomeClient from "@/app/(main)/home/home-client";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -28,7 +28,7 @@ export default async function DashboardPage() {
   const viewType: 'student' | 'adult' | 'free' = userPlan?.view_type === 'student' ? 'student' : userPlan ? 'adult' : 'free';
 
   return (
-    <DashboardClient
+    <HomeClient
       user={{
         id: userId,
         name: session.user.name || "Explorador",

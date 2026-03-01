@@ -11,7 +11,7 @@ export async function createPhraseAction(data: { description: string; id_user: n
        RETURNING id_phrases, description, id_user, is_autoral, created_at`,
       [data.description, data.id_user, data.is_autoral || false]
     );
-    revalidatePath("/dashboard/frases");
+    revalidatePath("/home/frases");
     return { success: true, data: result };
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -94,7 +94,7 @@ export async function toggleLikePhraseAction(id_phrase: number, id_user: number)
       );
     }
 
-    revalidatePath("/dashboard/frases");
+    revalidatePath("/home/frases");
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -107,7 +107,7 @@ export async function deletePhraseAction(id_phrases: number) {
       `DELETE FROM phrases WHERE id_phrases = $1`,
       [id_phrases]
     );
-    revalidatePath("/dashboard/frases");
+    revalidatePath("/home/frases");
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };

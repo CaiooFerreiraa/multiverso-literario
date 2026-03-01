@@ -43,7 +43,7 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-6">
             <Button variant="ghost" size="icon" asChild className="rounded-xl cursor-pointer">
-              <Link href="/dashboard">
+              <Link href="/home">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
             </Button>
@@ -84,7 +84,7 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
               </p>
               {!isPremium && (
                 <Button className="bg-amber-500 hover:bg-amber-600 rounded-xl h-12 px-8 font-bold gap-2 cursor-pointer shadow-lg shadow-amber-500/20" asChild>
-                  <Link href="/dashboard/planos">
+                  <Link href="/home/planos">
                     <Crown className="w-4 h-4" />
                     Assinar para Acesso Total
                   </Link>
@@ -117,7 +117,7 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ delay: i * 0.03 }}
                 >
-                  <Link href={isLocked ? "#" : `/dashboard/biblioteca/${book.id_book}`}>
+                  <Link href={isLocked ? "#" : `/home/biblioteca/${book.id_book}`}>
                     <GlassCard className="group flex flex-col h-full rounded-2xl p-4 transition-all hover:bg-white/5 hover:-translate-y-1 cursor-pointer border-white/5 hover:border-white/15 overflow-hidden">
                       <div className="aspect-[3/4] rounded-xl bg-gradient-to-br from-white/10 to-white/[0.02] border border-white/5 mb-4 flex items-center justify-center relative overflow-hidden">
                         <BookOpen className="w-10 h-10 text-white/10 group-hover:text-primary/30 transition-colors" />

@@ -183,7 +183,7 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
       <header className="sticky top-0 z-30 px-6 lg:px-12 py-6 bg-background/50 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild className="rounded-xl cursor-pointer">
-            <Link href="/dashboard">
+            <Link href="/home">
               <ArrowLeft className="w-5 h-5" />
             </Link>
           </Button>
@@ -272,7 +272,7 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
                   </p>
                 </div>
                 <Button className="bg-amber-500 hover:bg-amber-600 text-black rounded-xl h-9 px-4 text-xs font-bold cursor-pointer" asChild>
-                  <Link href="/dashboard/planos">
+                  <Link href="/home/planos">
                     Assinar
                   </Link>
                 </Button>

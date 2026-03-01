@@ -11,7 +11,7 @@ export async function sendChatMessageAction(data: { id_user: number; id_sender: 
        RETURNING *`,
       [data.id_user, data.id_sender, data.message]
     );
-    revalidatePath("/dashboard/suporte");
+    revalidatePath("/home/suporte");
     return { success: true, data: result };
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -37,10 +37,9 @@ export async function readChatMessagesAction(id_user: number) {
 export async function readAdminChatUsersAction() {
   try {
     const result = await neonClient.query(
-      `SELECT DISTINCT u.id_user, u.fullname, u.image
-       FROM admin_chat ac
-       JOIN users u ON ac.id_user = u.id_user
-       ORDER BY u.fullname ASC`
+      `SELECT id_user, fullname, image
+       FROM users
+       ORDER BY fullname ASC`
     );
     return { success: true, data: result };
   } catch (error: unknown) {

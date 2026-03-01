@@ -17,8 +17,8 @@ export async function createAwardAction(data: {
        VALUES ($1, $2, $3, $4, $5, $6)`,
       [data.id_timeline_book, data.name, data.description, data.image_url, data.target_rank, data.deadline]
     );
-    revalidatePath("/dashboard/admin");
-    revalidatePath("/dashboard/ranking");
+    revalidatePath("/home/admin");
+    revalidatePath("/home/ranking");
     return { success: true };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -45,7 +45,7 @@ export async function toggleAwardStatusAction(id_award: number, is_active: boole
       `UPDATE awards SET is_active = $1 WHERE id_award = $2`,
       [is_active, id_award]
     );
-    revalidatePath("/dashboard/admin");
+    revalidatePath("/home/admin");
     return { success: true };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -58,7 +58,7 @@ export async function updateAwardAction(id_award: number, data: any) {
       `UPDATE awards SET name = $1, description = $2, image_url = $3, target_rank = $4, deadline = $5 WHERE id_award = $6`,
       [data.name, data.description, data.image_url, data.target_rank, data.deadline, id_award]
     );
-    revalidatePath("/dashboard/admin");
+    revalidatePath("/home/admin");
     return { success: true };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -68,7 +68,7 @@ export async function updateAwardAction(id_award: number, data: any) {
 export async function deleteAwardAction(id_award: number) {
   try {
     await neonClient.query(`DELETE FROM awards WHERE id_award = $1`, [id_award]);
-    revalidatePath("/dashboard/admin");
+    revalidatePath("/home/admin");
     return { success: true };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };

@@ -65,8 +65,8 @@ export async function createScheduledRoomAction(data: CreateScheduledRoomDTO) {
       ]
     );
 
-    revalidatePath("/dashboard/salas");
-    revalidatePath("/dashboard/admin");
+    revalidatePath("/home/salas");
+    revalidatePath("/home/admin");
     return { success: true, data: result[0] };
   } catch (error: any) {
     return { success: false, error: error.message || "Erro ao criar sala agendada" };
@@ -106,8 +106,8 @@ export async function deleteScheduledRoomAction(roomId: number) {
       [roomId]
     );
 
-    revalidatePath("/dashboard/salas");
-    revalidatePath("/dashboard/admin");
+    revalidatePath("/home/salas");
+    revalidatePath("/home/admin");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || "Erro ao remover sala" };

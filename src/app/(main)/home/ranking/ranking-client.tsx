@@ -49,7 +49,7 @@ export default function RankingClient({ ranking, currentUser }: RankingClientPro
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Button variant="ghost" size="icon" asChild className="rounded-xl cursor-pointer">
-              <Link href="/dashboard">
+              <Link href="/home">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
             </Button>

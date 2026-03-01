@@ -20,8 +20,8 @@ export async function createContributionAction(data: {
     const validData = CreateContributionSchema.parse(data);
     const useCase = new CreateContribution(getContributionRepo());
     const result = await useCase.execute(validData);
-    revalidatePath("/dashboard");
-    revalidatePath(`/dashboard/livro/${data.id_timeline_book}`);
+    revalidatePath("/home");
+    revalidatePath(`/home/livro/${data.id_timeline_book}`);
     return { success: true, data: result };
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {

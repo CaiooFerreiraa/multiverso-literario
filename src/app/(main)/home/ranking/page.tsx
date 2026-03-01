@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { readGlobalRankingAction } from "@/actions/dashboard";
-import RankingClient from "@/app/(main)/dashboard/ranking/ranking-client";
+import RankingClient from "@/app/(main)/home/ranking/ranking-client";
 
 export default async function RankingPage() {
   const session = await auth();

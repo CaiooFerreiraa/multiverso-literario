@@ -21,7 +21,7 @@ export default async function PlansPage() {
 
   // Estudantes não podem acessar a página de planos
   if (userPlan?.view_type === 'student') {
-    redirect("/dashboard");
+    redirect("/home");
   }
 
   return (

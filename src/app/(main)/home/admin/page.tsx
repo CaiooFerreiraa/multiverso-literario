@@ -13,7 +13,7 @@ export default async function AdminDashboardPage() {
   if (!session?.user) redirect("/login");
 
   const isAdmin = session.user.email === process.env.ADMIN_EMAIL;
-  if (!isAdmin) redirect("/dashboard");
+  if (!isAdmin) redirect("/home");
 
   const [timelinesRes, rankingRes, quizzesRes] = await Promise.all([
     readAllTimelinesAction(),

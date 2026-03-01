@@ -41,7 +41,7 @@ export async function subscribeToPlanAction(userId: any, planId: number, price: 
       method_payment: 'pix'
     } as any);
 
-    revalidatePath("/dashboard");
+    revalidatePath("/home");
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -52,8 +52,8 @@ export async function updatePlanAction(id_plan: number, data: any) {
   try {
     const repo = getPlanRepository();
     await repo.update(id_plan, data);
-    revalidatePath("/dashboard/planos");
-    revalidatePath("/dashboard/admin");
+    revalidatePath("/home/planos");
+    revalidatePath("/home/admin");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || "Erro ao atualizar plano" };

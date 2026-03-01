@@ -64,7 +64,7 @@ export default function PlansClient({ user, userPlan, availablePlans }: Props) {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild className="rounded-xl cursor-pointer lg:hidden">
-              <Link href="/dashboard">
+              <Link href="/home">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
             </Button>
@@ -187,7 +187,7 @@ export default function PlansClient({ user, userPlan, availablePlans }: Props) {
                       </Button>
                     ) : (
                       <Button className="w-full h-14 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-black transition-all active:scale-[0.98] shadow-[0_10px_30px_rgba(245,158,11,0.2)] cursor-pointer" asChild>
-                        <Link href="/dashboard/planos#checkout">Selecionar Plano</Link>
+                        <Link href="/home/planos#checkout">Selecionar Plano</Link>
                       </Button>
                     )}
                   </GlassCard>

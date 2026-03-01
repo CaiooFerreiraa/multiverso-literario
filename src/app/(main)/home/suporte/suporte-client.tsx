@@ -11,7 +11,8 @@ import {
   ArrowLeft,
   Headset,
   PhoneCall,
-  Clock
+  Clock,
+  Lock
 } from "lucide-react"
 import { GlassCard } from "@/components/glass-card"
 import { Button } from "@/components/ui/button"
@@ -60,6 +61,8 @@ export default function SuporteClient({ initialMessages, adminUsers, user }: Sup
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
+
+  const canInteract = user.isAdmin || messages.length > 0;
 
   // Polling for new messages (simple real-time for now)
   useEffect(() => {
@@ -113,11 +116,11 @@ export default function SuporteClient({ initialMessages, adminUsers, user }: Sup
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black uppercase tracking-tighter text-white flex items-center gap-3">
-            <Headset className="w-10 h-10 text-primary" />
-            <span>Centro de <span className="text-primary">Suporte</span></span>
+            <MessageCircle className="w-10 h-10 text-primary" />
+            <span>Chat com <span className="text-primary">Admin</span></span>
           </h1>
           <p className="text-white/40 text-xs font-bold uppercase tracking-[0.3em] mt-2">
-            {user.isAdmin ? "Área de Gerenciamento de Atendimento" : "Fale diretamente com nossa equipe Literária."}
+            {user.isAdmin ? "Área de Gerenciamento de Conversas" : "Tire suas dúvidas diretamente com quem manda."}
           </p>
         </div>
       </div>
@@ -193,11 +196,11 @@ export default function SuporteClient({ initialMessages, adminUsers, user }: Sup
                 </Avatar>
                 <div>
                   <h3 className="text-sm font-black text-white uppercase tracking-tight">
-                    {user.isAdmin ? activeChatUser?.fullname : "Atendimento Multiverso"}
+                    {user.isAdmin ? activeChatUser?.fullname : "Administrador Multiverso"}
                   </h3>
                   <div className="flex items-center gap-2 mt-0.5">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[9px] text-white/40 uppercase font-bold tracking-[0.2em]">{user.isAdmin ? "Online" : "Tempo médio: 2 min"}</span>
+                    <span className="text-[9px] text-white/40 uppercase font-bold tracking-[0.2em]">{user.isAdmin ? "Online" : "Direto ao ponto"}</span>
                   </div>
                 </div>
               </div>
@@ -205,11 +208,11 @@ export default function SuporteClient({ initialMessages, adminUsers, user }: Sup
               {!user.isAdmin && (
                 <div className="hidden sm:flex items-center gap-3">
                   <div className="flex flex-col items-end">
-                    <span className="text-[9px] text-white/20 uppercase font-bold">Respostas rápidos</span>
-                    <span className="text-[10px] text-white/50 font-bold uppercase tracking-widest">Suporte literário</span>
+                    <span className="text-[9px] text-white/20 uppercase font-bold">Acesso Premium</span>
+                    <span className="text-[10px] text-white/50 font-bold uppercase tracking-widest">Conversa Direta</span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-primary/20 border border-primary/30">
-                    <Headset className="w-5 h-5 text-primary" />
+                    <User className="w-5 h-5 text-primary" />
                   </div>
                 </div>
               )}
@@ -245,15 +248,29 @@ export default function SuporteClient({ initialMessages, adminUsers, user }: Sup
                     </motion.div>
                   )
                 }) : (
-                  <div className="h-full flex flex-col items-center justify-center gap-6 opacity-20">
-                    <div className="p-8 rounded-full bg-white/5 border border-white/5 scale-110">
-                      <MessageCircle className="w-16 h-16" />
+                  canInteract ? (
+                    <div className="h-full flex flex-col items-center justify-center gap-6 opacity-20">
+                      <div className="p-8 rounded-full bg-white/5 border border-white/5 scale-110">
+                        <MessageCircle className="w-16 h-16" />
+                      </div>
+                      <div className="text-center space-y-2">
+                        <p className="font-black uppercase tracking-[0.4em] text-sm">Pronto para conversar</p>
+                        <p className="text-xs font-bold uppercase tracking-widest leading-none">Envie uma mensagem para iniciar o atendimento</p>
+                      </div>
                     </div>
-                    <div className="text-center space-y-2">
-                      <p className="font-black uppercase tracking-[0.4em] text-sm">Pronto para conversar</p>
-                      <p className="text-xs font-bold uppercase tracking-widest leading-none">Envie uma mensagem para iniciar o atendimento</p>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center gap-6 text-amber-500/50">
+                      <div className="p-8 rounded-full bg-amber-500/5 border border-amber-500/10 scale-110">
+                        <Lock className="w-16 h-16" />
+                      </div>
+                      <div className="text-center space-y-2 max-w-sm">
+                        <p className="font-black uppercase tracking-[0.4em] text-sm">Chat Fechado</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                          O bate-papo exclusivo será ativado apenas quando um administrador iniciar a conversa com você. Aguarde o contato.
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )
                 )}
               </AnimatePresence>
             </div>
@@ -262,16 +279,17 @@ export default function SuporteClient({ initialMessages, adminUsers, user }: Sup
             <div className="p-5 bg-white/[0.02] border-t border-white/5 z-10 relative">
               <div className="relative flex items-center gap-3">
                 <Input
-                  placeholder="Escreva sua mensagem aqui..."
+                  disabled={!canInteract}
+                  placeholder={canInteract ? "Escreva sua mensagem aqui..." : "Chat não autorizado. Aguarde o administrador."}
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleSendMessage() }}
-                  className="flex-1 h-14 bg-white/5 border-white/10 focus:ring-primary focus:border-primary rounded-2xl px-6 text-sm placeholder:text-white/20 placeholder:uppercase placeholder:font-bold placeholder:tracking-widest"
+                  className="flex-1 h-14 bg-white/5 border-white/10 focus:ring-primary focus:border-primary disabled:opacity-30 rounded-2xl px-6 text-sm placeholder:text-white/20 placeholder:uppercase placeholder:font-bold placeholder:tracking-widest"
                 />
                 <Button
                   onClick={handleSendMessage}
-                  disabled={isPending || !newMessage.trim()}
-                  className="h-14 w-14 rounded-2xl bg-primary hover:bg-primary/80 text-white shadow-xl shadow-primary/20 cursor-pointer active:scale-90 transition-all shrink-0"
+                  disabled={isPending || !newMessage.trim() || !canInteract}
+                  className="h-14 w-14 rounded-2xl bg-primary hover:bg-primary/80 text-white shadow-xl shadow-primary/20 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed active:scale-90 transition-all shrink-0"
                 >
                   {isPending ? <Sparkles className="w-5 h-5 animate-spin" /> : <Send className="w-6 h-6" />}
                 </Button>
@@ -286,20 +304,20 @@ export default function SuporteClient({ initialMessages, adminUsers, user }: Sup
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <GlassCard className="p-5 flex items-center gap-4 bg-primary/5 hover:bg-primary/10 transition-all rounded-3xl border-primary/20 cursor-default group">
             <div className="p-3 rounded-2xl bg-primary/20 group-hover:bg-primary/30 transition-all">
-              <Clock className="w-5 h-5 text-primary" />
+              <User className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-[10px] font-black tracking-widest text-white/30 uppercase leading-none mb-1">Resposta rápida</p>
-              <p className="text-xs font-bold text-white uppercase tracking-tight">Até 2 horas úteis</p>
+              <p className="text-[10px] font-black tracking-widest text-white/30 uppercase leading-none mb-1">Sem robôs</p>
+              <p className="text-xs font-bold text-white uppercase tracking-tight">Conversa Real</p>
             </div>
           </GlassCard>
           <GlassCard className="p-5 flex items-center gap-4 bg-blue-500/5 hover:bg-blue-500/10 transition-all rounded-3xl border-blue-500/20 cursor-default group">
             <div className="p-3 rounded-2xl bg-blue-500/20 group-hover:bg-blue-500/30 transition-all">
-              <Send className="w-5 h-5 text-blue-500" />
+              <MessageCircle className="w-5 h-5 text-blue-500" />
             </div>
             <div>
-              <p className="text-[10px] font-black tracking-widest text-white/30 uppercase leading-none mb-1">Comunidade</p>
-              <p className="text-xs font-bold text-white uppercase tracking-tight">Suporte 24/7</p>
+              <p className="text-[10px] font-black tracking-widest text-white/30 uppercase leading-none mb-1">Feedback</p>
+              <p className="text-xs font-bold text-white uppercase tracking-tight">Voz do Leitor</p>
             </div>
           </GlassCard>
           <GlassCard className="p-5 flex items-center gap-4 bg-purple-500/5 hover:bg-purple-500/10 transition-all rounded-3xl border-purple-500/20 cursor-default group">
@@ -307,8 +325,8 @@ export default function SuporteClient({ initialMessages, adminUsers, user }: Sup
               <Sparkles className="w-5 h-5 text-purple-500" />
             </div>
             <div>
-              <p className="text-[10px] font-black tracking-widest text-white/30 uppercase leading-none mb-1">Exclusivo</p>
-              <p className="text-xs font-bold text-white uppercase tracking-tight">Atendimento VIP</p>
+              <p className="text-[10px] font-black tracking-widest text-white/30 uppercase leading-none mb-1">Premium</p>
+              <p className="text-xs font-bold text-white uppercase tracking-tight">Canal Exclusivo</p>
             </div>
           </GlassCard>
         </div>

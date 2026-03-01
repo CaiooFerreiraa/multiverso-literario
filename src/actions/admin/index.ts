@@ -17,8 +17,8 @@ export async function createTimelineAction(data: CreateTimelineDTO) {
   try {
     const useCase = new TimelineCreate(getTimelineRepository());
     const result = await useCase.execute(data);
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/cronograma");
+    revalidatePath("/home");
+    revalidatePath("/home/cronograma");
     return { success: true, data: result };
   } catch (error: any) {
     return { success: false, error: error.message || "Erro ao criar cronograma" };
@@ -29,8 +29,8 @@ export async function createQuizAction(data: CreateQuizDTO) {
   try {
     const useCase = new CreateQuiz(getQuizRepository());
     const result = await useCase.execute(data);
-    revalidatePath("/dashboard/admin");
-    revalidatePath("/dashboard/quizzes");
+    revalidatePath("/home/admin");
+    revalidatePath("/home/quizzes");
     return { success: true, data: result };
   } catch (error: any) {
     return { success: false, error: error.message || "Erro ao criar quiz" };
@@ -42,8 +42,8 @@ export async function updateQuizAction(data: CreateQuizDTO & { id_quiz: number }
     const repository = getQuizRepository();
     const quizEntity = new Quiz(data);
     await repository.update(quizEntity);
-    revalidatePath("/dashboard/admin");
-    revalidatePath("/dashboard/quizzes");
+    revalidatePath("/home/admin");
+    revalidatePath("/home/quizzes");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || "Erro ao atualizar quiz" };
@@ -54,8 +54,8 @@ export async function deleteQuizAction(id_quiz: number) {
   try {
     const repository = getQuizRepository();
     await repository.delete(id_quiz);
-    revalidatePath("/dashboard/admin");
-    revalidatePath("/dashboard/quizzes");
+    revalidatePath("/home/admin");
+    revalidatePath("/home/quizzes");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || "Erro ao deletar quiz" };
@@ -95,8 +95,8 @@ export async function deleteTimelineAction(id_timeline: number) {
     // Delete from timeline (due to CASCADE or manual delete of books/quiz if needed)
     // Assuming schema handles CASCADE, but let's be safe if not.
     await neonClient.query(`DELETE FROM timeline WHERE id_timeline = $1`, [id_timeline]);
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/admin");
+    revalidatePath("/home");
+    revalidatePath("/home/admin");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -115,8 +115,8 @@ export async function updateTimelineAction(id_timeline: number, data: CreateTime
         [data.nameBook, data.authorBook, id_timeline]
       );
     });
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/admin");
+    revalidatePath("/home");
+    revalidatePath("/home/admin");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -129,8 +129,8 @@ export async function toggleQuizStatusAction(id_quiz: number, status: 'ativo' | 
       `UPDATE quiz SET statement = $1 WHERE id_quiz = $2`,
       [status, id_quiz]
     );
-    revalidatePath("/dashboard/admin");
-    revalidatePath("/dashboard/quizzes");
+    revalidatePath("/home/admin");
+    revalidatePath("/home/quizzes");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };

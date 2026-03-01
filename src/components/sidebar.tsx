@@ -36,16 +36,16 @@ export function Sidebar({ user, viewType }: SidebarProps) {
   const isStudent = viewType === 'student';
 
   const menuItems = [
-    { label: "Home", icon: LucideIcons.LayoutDashboard, href: "/dashboard" },
-    { label: "Salas", icon: LucideIcons.Video, href: "/dashboard/salas" },
-    ...(!isStudent ? [{ label: "Plano", icon: LucideIcons.Star, href: "/dashboard/planos" }] : []),
-    { label: "Desafios", icon: LucideIcons.Gamepad2, href: "/dashboard/desafios" },
-    { label: "Quizzes", icon: LucideIcons.Ticket, href: "/dashboard/quizzes" },
-    { label: "Frases", icon: LucideIcons.Quote, href: "/dashboard/frases" },
-    { label: "Biblioteca", icon: LucideIcons.Library, href: "/dashboard/biblioteca" },
-    { label: "Ranking", icon: LucideIcons.Trophy, href: "/dashboard/ranking" },
-    { label: "Suporte", icon: LucideIcons.MessageCircle, href: "/dashboard/suporte" },
-    ...(user.isAdmin && !isStudent ? [{ label: "Admin", icon: ShieldAlert, href: "/dashboard/admin" }] : []),
+    { label: "Home", icon: LucideIcons.LayoutDashboard, href: "/home" },
+    { label: "Salas", icon: LucideIcons.Video, href: "/home/salas" },
+    ...(!isStudent ? [{ label: "Plano", icon: LucideIcons.Star, href: "/home/planos" }] : []),
+    { label: "Desafios", icon: LucideIcons.Gamepad2, href: "/home/desafios" },
+    { label: "Quizzes", icon: LucideIcons.Ticket, href: "/home/quizzes" },
+    { label: "Frases", icon: LucideIcons.Quote, href: "/home/frases" },
+    { label: "Biblioteca", icon: LucideIcons.Library, href: "/home/biblioteca" },
+    { label: "Ranking", icon: LucideIcons.Trophy, href: "/home/ranking" },
+    { label: "Chat com Admin", icon: LucideIcons.MessageCircle, href: "/home/suporte" },
+    ...(user.isAdmin && !isStudent ? [{ label: "Admin", icon: ShieldAlert, href: "/home/admin" }] : []),
   ];
 
   const handleSignOut = () => signOut({ callbackUrl: "/login" });
@@ -77,8 +77,8 @@ export function Sidebar({ user, viewType }: SidebarProps) {
         <div className="space-y-1">
           <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-4 mb-3">Menu</p>
           {menuItems.map((navItem, i) => {
-            const realActive = navItem.href === "/dashboard"
-              ? pathname === "/dashboard"
+            const realActive = navItem.href === "/home"
+              ? pathname === "/home"
               : pathname.startsWith(navItem.href);
 
             return (
@@ -103,7 +103,7 @@ export function Sidebar({ user, viewType }: SidebarProps) {
       <div className="pt-8 border-t border-white/5 space-y-6">
         <div className="flex flex-col gap-3">
           <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] px-4">Seu Perfil</p>
-          <Link href="/dashboard/perfil">
+          <Link href="/home/perfil">
             <div className="flex items-center gap-3 mx-4 p-2.5 bg-white/[0.03] rounded-xl border border-white/5 group hover:bg-white/10 transition-all cursor-pointer relative overflow-hidden group/profile shadow-lg shadow-black/20">
               <div className="absolute top-0 right-0 w-12 h-12 bg-primary/10 blur-xl rounded-full" />
               <Avatar className="w-9 h-9 border-2 border-primary/20 shrink-0">

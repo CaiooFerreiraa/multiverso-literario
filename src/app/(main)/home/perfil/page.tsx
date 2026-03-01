@@ -20,7 +20,7 @@ export default async function ProfilePage() {
   ]);
 
   if (!userRes.success || !userRes.data) {
-    redirect("/dashboard");
+    redirect("/home");
   }
 
   const userData = Array.isArray(userRes.data) ? userRes.data[0] : userRes.data;
@@ -31,7 +31,7 @@ export default async function ProfilePage() {
       <header className="sticky top-0 z-30 px-6 lg:px-12 py-6 bg-background/50 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild className="rounded-xl cursor-pointer">
-            <Link href="/dashboard">
+            <Link href="/home">
               <ArrowLeft className="w-5 h-5" />
             </Link>
           </Button>

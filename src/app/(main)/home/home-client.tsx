@@ -36,7 +36,7 @@ import { signOut } from "next-auth/react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-interface DashboardProps {
+interface HomeProps {
   user: { id: number; name: string; email: string; isAdmin?: boolean; image?: string };
   viewType: 'student' | 'adult' | 'free';
   currentTimeline: any;
@@ -66,7 +66,7 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as const } },
 };
 
-export default function DashboardClient({
+export default function HomeClient({
   user,
   viewType,
   currentTimeline,
@@ -75,7 +75,7 @@ export default function DashboardClient({
   userPoints,
   ranking,
   phrases: initialPhrases,
-}: DashboardProps) {
+}: HomeProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [phrases] = useState(initialPhrases || []);
@@ -172,12 +172,12 @@ export default function DashboardClient({
 
                 <div className="mt-6 flex gap-3 flex-wrap">
                   <Button className="bg-primary hover:bg-primary/80 rounded-xl gap-2 h-10 px-5 cursor-pointer" asChild>
-                    <Link href={`/dashboard/livro/${currentTimeline.id_timeline_book}`}>
+                    <Link href={`/home/livro/${currentTimeline.id_timeline_book}`}>
                       <MessageCircle className="w-4 h-4" /> Contribuir
                     </Link>
                   </Button>
                   <Button variant="outline" className="rounded-xl border-white/10 h-10 px-5 cursor-pointer" asChild>
-                    <Link href={`/dashboard/quizzes`}>
+                    <Link href={`/home/quizzes`}>
                       <Zap className="w-4 h-4 mr-1" /> Quiz
                     </Link>
                   </Button>
@@ -214,7 +214,7 @@ export default function DashboardClient({
             <p className="text-[10px] text-white/40 uppercase tracking-widest mt-1">Desafios Completados</p>
           </GlassCard>
 
-          <Link href="/dashboard/desafios">
+          <Link href="/home/desafios">
             <GlassCard className="p-6 rounded-2xl h-full flex flex-col justify-between hover:bg-white/5 transition-all group cursor-pointer">
               <Sparkles className="w-8 h-8 text-purple-400 mb-3" />
               <div>
@@ -348,7 +348,7 @@ export default function DashboardClient({
 
       {/* FRASES DO MULTIVERSO - CTA */}
       <motion.section variants={item} id="frases">
-        <Link href="/dashboard/frases">
+        <Link href="/home/frases">
           <GlassCard className="p-8 rounded-[2rem] bg-gradient-to-br from-primary/10 to-indigo-500/5 group hover:from-primary/20 hover:to-indigo-500/10 transition-all border-primary/20 cursor-pointer overflow-hidden relative">
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32 transition-all group-hover:bg-primary/30" />
             <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
