@@ -135,7 +135,7 @@ export function AdminClient({ timelines, quizzes, ranking }: AdminClientProps) {
                 className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 flex items-center justify-center font-black text-lg italic text-white/20">
+                  <div className="w-10 flex items-center justify-center font-black text-[10px] uppercase tracking-widest text-white/20">
                     {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
                   </div>
                   <Avatar className="w-12 h-12 border border-white/10 shadow-lg">
@@ -160,7 +160,7 @@ export function AdminClient({ timelines, quizzes, ranking }: AdminClientProps) {
             ))}
 
             {ranking.length === 0 && (
-              <div className="py-20 text-center text-white/20 font-medium italic">
+              <div className="py-20 text-center text-white/10 font-bold uppercase tracking-[0.2em] text-[10px]">
                 Nenhum ponto registrado no sistema até o momento.
               </div>
             )}

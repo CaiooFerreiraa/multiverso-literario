@@ -1,7 +1,8 @@
 import React from "react";
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import RoomClient from "./room-client";
+import { neonClient } from "@/infrastructure/database/neon";
 
 export default async function RoomPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -9,9 +10,17 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
 
   const { id } = await params;
 
+  // Encontrar a sala pelo slug no banco para obter o id_room numérico
+  const [room] = await neonClient.query(
+    "SELECT id_room FROM scheduled_rooms WHERE slug = $1 AND is_active = true",
+    [id]
+  );
+
+  if (!room) notFound();
+
   return (
     <RoomClient
-      roomId={id}
+      roomData={{ id_room: room.id_room, slug: id }}
       user={{
         id: (session.user as any).id,
         name: session.user.name || "Explorador",

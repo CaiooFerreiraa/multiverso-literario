@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Trophy, Flame, Lock, CheckCircle2,
-  Sparkles, Crown, Target, Zap,
+  Sparkles, Crown, Target, Zap, FileUp,
 } from "lucide-react";
 import Link from "next/link";
 import { completeChallengeAction } from "@/actions/challenges";
+import { toast } from "sonner";
 
 interface Props {
   userId: number;
@@ -32,6 +33,7 @@ const item = {
 export default function DesafiosClient({ userId, challenges: initialChallenges, userPoints, isPremium }: Props) {
   const [challenges, setChallenges] = useState(initialChallenges || []);
   const [isPending, startTransition] = useTransition();
+  const [selectedFiles, setSelectedFiles] = useState<Record<number, File | null>>({});
 
   const freeChallenges = challenges.filter((c: any) => !c.is_premium);
   const premiumChallenges = challenges.filter((c: any) => c.is_premium);
@@ -39,14 +41,26 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
   const completedFreeCount = freeChallenges.filter((c: any) => c.completed_at).length;
   const freeLimit = 2;
 
+  const handleFileChange = (challengeId: number, file: File | null) => {
+    setSelectedFiles(prev => ({ ...prev, [challengeId]: file }));
+  };
+
   const handleComplete = (challenge: any) => {
     if (!isPremium && challenge.is_premium) return;
     if (!isPremium && completedFreeCount >= freeLimit && !challenge.completed_at) return;
     if (challenge.completed_at) return;
 
+    // Check for PDF attachment requirement
+    const needsPDF = challenge.challenge_type === "escrita" || challenge.challenge_type === "time";
+    if (needsPDF && !selectedFiles[challenge.id_challenge]) {
+      toast.error("Este desafio requer anexo de material em PDF");
+      return;
+    }
+
     startTransition(async () => {
       const result = await completeChallengeAction(userId, challenge.id_challenge, challenge.points);
       if (result.success) {
+        toast.success("Desafio concluído!");
         setChallenges(
           challenges.map((c: any) =>
             c.id_challenge === challenge.id_challenge
@@ -61,6 +75,7 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
   const renderChallengeCard = (challenge: any, index: number, locked: boolean) => {
     const isCompleted = !!challenge.completed_at;
     const isLocked = locked && !isCompleted;
+    const needsPDF = challenge.challenge_type === "escrita" || challenge.challenge_type === "time";
 
     return (
       <motion.div key={challenge.id_challenge || index} variants={item}>
@@ -72,7 +87,7 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
               : "hover:bg-white/5"
             }`}
         >
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 {isCompleted ? (
@@ -86,9 +101,28 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
                   {challenge.title}
                 </h4>
               </div>
-              <p className="text-xs text-white/40 leading-relaxed ml-7">
+              <p className="text-xs text-white/40 leading-relaxed ml-7 mb-4">
                 {challenge.description || "Complete este desafio para ganhar pontos"}
               </p>
+
+              {needsPDF && !isCompleted && !isLocked && (
+                <div className="ml-7 mb-4">
+                  <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/10 rounded-xl hover:bg-white/5 transition-all cursor-pointer group/upload">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <FileUp className={`w-6 h-6 mb-2 ${selectedFiles[challenge.id_challenge] ? "text-primary" : "text-white/20"}`} />
+                      <p className="text-[10px] text-white/30 uppercase tracking-widest font-black">
+                        {selectedFiles[challenge.id_challenge]?.name || "ANEXAR PDF DO MATERIAL"}
+                      </p>
+                    </div>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(challenge.id_challenge, e.target.files?.[0] || null)}
+                    />
+                  </label>
+                </div>
+              )}
 
               <div className="flex items-center gap-3 mt-3 ml-7">
                 <Badge
@@ -106,7 +140,11 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
                     ? "Diário"
                     : challenge.challenge_type === "weekly"
                       ? "Semanal"
-                      : "Interpretação"}
+                      : challenge.challenge_type === "escrita"
+                        ? "Escrita"
+                        : challenge.challenge_type === "time"
+                          ? "Time"
+                          : "Interpretação"}
                 </Badge>
                 {challenge.is_premium && (
                   <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[9px] px-2 py-0.5 gap-1">
@@ -116,21 +154,24 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
               </div>
             </div>
 
-            {!isCompleted && !isLocked && (
-              <Button
-                onClick={() => handleComplete(challenge)}
-                disabled={isPending}
-                size="sm"
-                className="bg-primary/20 hover:bg-primary/30 text-primary rounded-xl text-xs cursor-pointer disabled:cursor-not-allowed shrink-0"
-              >
-                Completar
-              </Button>
-            )}
-            {isCompleted && (
-              <span className="text-[10px] text-green-400 font-bold uppercase tracking-wider shrink-0">
-                +{challenge.points_earned || challenge.points} pts
-              </span>
-            )}
+            <div className="shrink-0 flex sm:flex-col items-center gap-3">
+              {!isCompleted && !isLocked && (
+                <Button
+                  onClick={() => handleComplete(challenge)}
+                  disabled={isPending}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/80 text-white rounded-xl text-xs font-bold px-6 cursor-pointer disabled:cursor-not-allowed group/btn overflow-hidden relative"
+                >
+                  <span className="relative z-10">CONCLUÍR</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
+                </Button>
+              )}
+              {isCompleted && (
+                <div className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
+                  +{challenge.points_earned || challenge.points} pts
+                </div>
+              )}
+            </div>
           </div>
         </GlassCard>
       </motion.div>
@@ -166,21 +207,23 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
         className="max-w-4xl mx-auto px-6 lg:px-12 py-8 space-y-8"
       >
         {/* Stats */}
-        <motion.div variants={item} className="grid grid-cols-3 gap-4">
-          <GlassCard className="p-5 rounded-2xl text-center">
-            <Trophy className="w-6 h-6 text-primary mx-auto mb-2" />
-            <p className="text-2xl font-bold">{userPoints.challenges_completed}</p>
-            <p className="text-[9px] text-white/30 uppercase tracking-widest">Completados</p>
+        <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <GlassCard className="p-5 rounded-2xl text-center flex flex-col items-center justify-center min-h-[120px] transition-transform hover:scale-[1.02]">
+            <Trophy className="w-6 h-6 text-primary mb-2" />
+            <p className="text-2xl font-black tracking-tight">{userPoints.challenges_completed}</p>
+            <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-bold">Completados</p>
           </GlassCard>
-          <GlassCard className="p-5 rounded-2xl text-center bg-amber-500/5">
-            <Flame className="w-6 h-6 text-amber-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-amber-300">{userPoints.total_points}</p>
-            <p className="text-[9px] text-white/30 uppercase tracking-widest">Pontos</p>
+
+          <GlassCard className="p-5 rounded-2xl text-center flex flex-col items-center justify-center min-h-[120px] bg-amber-500/5 transition-transform hover:scale-[1.02] border-amber-500/10">
+            <Flame className="w-6 h-6 text-amber-400 mb-2" />
+            <p className="text-2xl font-black text-amber-300 tracking-tight">{userPoints.total_points}</p>
+            <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-bold">Pontos</p>
           </GlassCard>
-          <GlassCard className="p-5 rounded-2xl text-center">
-            <Sparkles className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold">{challenges.length}</p>
-            <p className="text-[9px] text-white/30 uppercase tracking-widest">Total</p>
+
+          <GlassCard className="p-5 rounded-2xl text-center flex flex-col items-center justify-center min-h-[120px] transition-transform hover:scale-[1.02]">
+            <Sparkles className="w-6 h-6 text-purple-400 mb-2" />
+            <p className="text-2xl font-black tracking-tight">{challenges.length}</p>
+            <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-bold">Total</p>
           </GlassCard>
         </motion.div>
 

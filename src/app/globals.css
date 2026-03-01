@@ -51,76 +51,84 @@
 
 :root {
   --radius: 1rem;
-  --background: oklch(0.1 0.02 260);
-  --foreground: oklch(0.95 0.02 260);
-  --card: oklch(1 0 0 / 5%);
-  --card-foreground: oklch(0.95 0.02 260);
-  --popover: oklch(0.15 0.05 260);
-  --popover-foreground: oklch(0.95 0.02 260);
-  --primary: oklch(0.55 0.2 275);
-  --primary-foreground: oklch(0.98 0.01 275);
-  --secondary: oklch(0.25 0.08 275);
-  --secondary-foreground: oklch(0.95 0.02 275);
-  --muted: oklch(0.2 0.05 260);
-  --muted-foreground: oklch(0.7 0.05 260);
-  --accent: oklch(0.55 0.2 275 / 20%);
-  --accent-foreground: oklch(0.95 0.02 275);
-  --destructive: oklch(0.6 0.2 25);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.55 0.2 275);
-  --chart-1: oklch(0.6 0.2 280);
-  --chart-2: oklch(0.5 0.15 200);
-  --chart-3: oklch(0.4 0.1 150);
-  --chart-4: oklch(0.8 0.15 80);
-  --chart-5: oklch(0.75 0.15 50);
+  --background: oklch(0.12 0.03 260);
+  /* Slightly lighter base */
+  --foreground: oklch(0.98 0.01 260);
+  --card: oklch(1 0 0 / 8%);
+  --card-foreground: oklch(0.98 0.01 260);
+  --popover: oklch(0.18 0.06 260);
+  --popover-foreground: oklch(0.98 0.01 260);
+  --primary: oklch(0.6 0.22 275);
+  /* More vibrant primary */
+  --primary-foreground: oklch(0.99 0.01 275);
+  --secondary: oklch(0.3 0.1 275);
+  --secondary-foreground: oklch(0.98 0.01 275);
+  --muted: oklch(0.25 0.06 260);
+  --muted-foreground: oklch(0.75 0.05 260);
+  --accent: oklch(0.6 0.22 275 / 25%);
+  --accent-foreground: oklch(0.98 0.01 275);
+  --destructive: oklch(0.65 0.22 25);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.6 0.22 275);
+  --chart-1: oklch(0.65 0.22 280);
+  --chart-2: oklch(0.55 0.18 200);
+  --chart-3: oklch(0.45 0.12 150);
+  --chart-4: oklch(0.85 0.18 80);
+  --chart-5: oklch(0.8 0.18 50);
 }
 
 .dark {
-  /* Mantendo o mesmo tema já que a estética é inerentemente escura */
-  --background: oklch(0.1 0.02 260);
-  --foreground: oklch(0.95 0.02 260);
-  --card: oklch(1 0 0 / 5%);
-  --card-foreground: oklch(0.95 0.02 260);
-  --primary: oklch(0.55 0.2 275);
-  --primary-foreground: oklch(0.98 0.01 275);
+  --background: oklch(0.12 0.03 260);
+  --foreground: oklch(0.98 0.01 260);
+  --card: oklch(1 0 0 / 8%);
+  --card-foreground: oklch(0.98 0.01 260);
+  --primary: oklch(0.6 0.22 275);
+  --primary-foreground: oklch(0.99 0.01 275);
 }
 
 @keyframes nebula-float {
   0% {
     transform: scale(1) translate(0, 0);
+    opacity: 0.6;
   }
 
   50% {
-    transform: scale(1.2) translate(-2%, 2%);
+    transform: scale(1.15) translate(-3%, 3%);
+    opacity: 0.8;
   }
 
   100% {
     transform: scale(1) translate(0, 0);
+    opacity: 0.6;
   }
 }
 
 @keyframes stars-twinkle {
   from {
     opacity: 0.2;
+    transform: scale(0.9);
   }
 
   50% {
-    opacity: 0.5;
+    opacity: 0.6;
+    transform: scale(1.1);
   }
 
   to {
     opacity: 0.2;
+    transform: scale(0.9);
   }
 }
 
 @layer utilities {
   .cosmic-bg {
-    background-color: #030014;
+    background-color: #0d0f2b;
+    /* Even lighter indigo base */
     background-image:
-      radial-gradient(circle at 20% 30%, oklch(0.4 0.25 285 / 0.15) 0%, transparent 40%),
-      radial-gradient(circle at 80% 70%, oklch(0.5 0.2 260 / 0.1) 0%, transparent 40%),
-      radial-gradient(circle at 50% 50%, oklch(0.3 0.15 300 / 0.05) 0%, transparent 60%);
+      radial-gradient(circle at 15% 25%, oklch(0.55 0.3 285 / 0.25) 0%, transparent 60%),
+      radial-gradient(circle at 85% 75%, oklch(0.65 0.25 260 / 0.2) 0%, transparent 60%),
+      radial-gradient(circle at 50% 50%, oklch(0.45 0.25 300 / 0.15) 0%, transparent 80%);
     position: relative;
     overflow-x: hidden;
   }
@@ -130,10 +138,10 @@
     position: fixed;
     inset: -50%;
     background:
-      radial-gradient(circle at 30% 40%, oklch(0.6 0.25 310 / 0.08) 0%, transparent 30%),
-      radial-gradient(circle at 70% 60%, oklch(0.4 0.2 240 / 0.1) 0%, transparent 35%);
-    filter: blur(80px);
-    animation: nebula-float 20s ease-in-out infinite;
+      radial-gradient(circle at 20% 30%, oklch(0.65 0.3 310 / 0.12) 0%, transparent 45%),
+      radial-gradient(circle at 80% 70%, oklch(0.5 0.25 240 / 0.15) 0%, transparent 50%);
+    filter: blur(100px);
+    animation: nebula-float 15s ease-in-out infinite;
     z-index: -1;
     pointer-events: none;
   }
@@ -142,16 +150,16 @@
     position: fixed;
     inset: 0;
     background-image:
-      radial-gradient(1px 1px at 10% 20%, #fff, transparent),
-      radial-gradient(1px 1px at 30% 40%, #fff, transparent),
-      radial-gradient(1px 1px at 50% 60%, #fff, transparent),
-      radial-gradient(1.5px 1.5px at 70% 80%, #fff, transparent),
-      radial-gradient(1px 1px at 90% 10%, #fff, transparent);
-    background-size: 300px 300px;
-    opacity: 0.3;
+      radial-gradient(1.2px 1.2px at 15% 25%, #fff, transparent),
+      radial-gradient(1.2px 1.2px at 35% 45%, #fff, transparent),
+      radial-gradient(1.2px 1.2px at 55% 65%, #fff, transparent),
+      radial-gradient(2px 2px at 75% 85%, #fff, transparent),
+      radial-gradient(1.2px 1.2px at 95% 15%, #fff, transparent);
+    background-size: 350px 350px;
+    opacity: 0.4;
     pointer-events: none;
     z-index: 0;
-    animation: stars-twinkle 4s ease-in-out infinite;
+    animation: stars-twinkle 6s ease-in-out infinite;
   }
 
   .glass {

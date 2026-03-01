@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import * as LucideIcons from "lucide-react";
 import { useRouter } from "next/navigation";
+import { trackRoomAttendanceAction } from "@/actions/rooms";
 
 const Mic = LucideIcons.Mic as any;
 const MicOff = LucideIcons.MicOff as any;
@@ -28,7 +29,7 @@ const Radio = LucideIcons.Radio as any;
 const Info = LucideIcons.Info as any;
 
 interface RoomClientProps {
-  roomId: string;
+  roomData: { id_room: number; slug: string };
   user: {
     id: string | number;
     name: string;
@@ -74,7 +75,7 @@ const MOCK_MESSAGES: ChatMessage[] = [
   { id: 6, sender: "Caio", text: "Exatamente! O ponto de vista do Bentinho contamina tudo. Eles olhos de cigana oblíqua e dissimulada — é ele que projeta isso.", time: "18:36", avatar: "https://github.com/shadcn.png" },
 ];
 
-export default function RoomClient({ roomId, user }: RoomClientProps) {
+export default function RoomClient({ roomData, user }: RoomClientProps) {
   const router = useRouter();
   const chatRef = useRef<HTMLDivElement>(null);
 
@@ -106,10 +107,19 @@ export default function RoomClient({ roomId, user }: RoomClientProps) {
   const jitsiApiRef = useRef<any>(null);
 
   // Room info
-  const roomTitle = roomId.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  const roomTitle = roomData.slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+
+  // Capturar o tempo atual para o cleanup
+  const elapsedRef = useRef(0);
+  useEffect(() => { elapsedRef.current = elapsed; }, [elapsed]);
 
   useEffect(() => {
     const timer = setInterval(() => setElapsed((s) => s + 1), 1000);
+
+    // Call time tracking heartbeat (cada 60 segundos)
+    const heartbeat = setInterval(() => {
+      trackRoomAttendanceAction(roomData.id_room, 60);
+    }, 60000);
 
     // Load Jitsi Script
     const script = document.createElement("script");
@@ -117,9 +127,9 @@ export default function RoomClient({ roomId, user }: RoomClientProps) {
     script.async = true;
     script.onload = () => {
       if (jitsiContainerRef.current) {
-        const domain = "meet.ffmuc.net"; // Community server without the 5-min limit / JaaS warning
+        const domain = "meet.ffmuc.net";
         const options = {
-          roomName: `multiverso-${roomId}`,
+          roomName: `multiverso-${roomData.slug}`,
           width: "100%",
           height: "100%",
           parentNode: jitsiContainerRef.current,
@@ -164,7 +174,7 @@ export default function RoomClient({ roomId, user }: RoomClientProps) {
 
         // Listen for Jitsi Chat Messages
         api.addEventListener('chatMessageReceived', (data: any) => {
-          if (data.id !== api._myUserID) { // Avoid duplicates from self
+          if (data.id !== api._myUserID) {
             setMessages(prev => [...prev, {
               id: Date.now(),
               sender: data.nick || "Participante",
@@ -196,8 +206,17 @@ export default function RoomClient({ roomId, user }: RoomClientProps) {
 
     return () => {
       clearInterval(timer);
+      clearInterval(heartbeat);
+      // Enviar atualização final com o delta restante
+      const finalDelta = elapsedRef.current % 60;
+      if (finalDelta > 0) {
+        trackRoomAttendanceAction(roomData.id_room, finalDelta);
+      }
+
       if (jitsiApiRef.current) jitsiApiRef.current.dispose();
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, []);
 
@@ -281,6 +300,9 @@ export default function RoomClient({ roomId, user }: RoomClientProps) {
   };
 
   const handleLeave = () => {
+    // Enviar atualização final com o delta restante antes de sair
+    const finalDelta = elapsed % 60;
+    if (finalDelta > 0) trackRoomAttendanceAction(roomData.id_room, finalDelta);
     router.push("/dashboard/salas");
   };
 
@@ -542,7 +564,7 @@ export default function RoomClient({ roomId, user }: RoomClientProps) {
                     </button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-3 space-y-1">
-                    <p className="text-xs text-white/40 p-4 text-center italic">Gerenciados pela sala Jitsi</p>
+                    <p className="text-[10px] text-white/20 p-4 text-center font-bold uppercase tracking-[0.2em]">Gerenciados pela sala Jitsi</p>
                   </div>
                 </div>
               )}

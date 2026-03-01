@@ -30,6 +30,7 @@ interface SalasClientProps {
     image: string | null;
   };
   viewType: 'student' | 'adult' | 'free';
+  adminEmail: string;
   scheduledRooms: any[];
 }
 
@@ -47,44 +48,52 @@ interface Room {
     avatar: string | null;
   }[];
   isLive: boolean;
+  isUpcoming: boolean;
   startedAt: string;
 }
 
 const CATEGORIES = ["Todas", "Literatura Brasileira", "Ficção Científica", "Clássicos", "Fantasia", "Filosofia", "Poesia"];
-
-export default function SalasClient({ user, viewType, scheduledRooms: dbRooms }: SalasClientProps) {
+export default function SalasClient({ user, viewType, adminEmail, scheduledRooms: dbRooms }: SalasClientProps) {
   const router = useRouter();
   const isStudent = viewType === 'student';
-
-  const GLOBAL_CHAT_ROOM: Room = {
-    id: "chat-global",
-    title: "💬 Chat Global — Multiverso",
-    description: "O ponto de encontro oficial de todos os leitores. Entre para conversar sobre qualquer livro!",
-    category: "Comunidade",
-    host: { name: "Multiverso", avatar: null },
-    participants: [],
-    isLive: true,
-    startedAt: "24/7",
-  };
 
   const [isMounted, setIsMounted] = useState(false);
   React.useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  // Filtro: Estudantes só vêem salas do Admin. Adultos vêm tudo.
+  const filteredDbRooms = isStudent
+    ? dbRooms.filter((dr: any) => dr.creator_email === adminEmail)
+    : dbRooms;
+
   // Combine Global Chat + Database Rooms
   const allRoomsFormatted: Room[] = [
-    GLOBAL_CHAT_ROOM,
-    ...dbRooms.map(dr => ({
-      id: dr.slug || String(dr.id_room),
-      title: dr.title,
-      description: dr.description,
-      category: dr.category,
-      host: { name: dr.creator_name || "Admin", avatar: null },
-      participants: [],
-      isLive: new Date(dr.scheduled_at) <= (isMounted ? new Date() : new Date(0)),
-      startedAt: isMounted ? new Date(dr.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "...",
-    }))
+    // GLOBAL_CHAT_ROOM removido conforme solicitado
+    ...filteredDbRooms.map((dr: any) => {
+      const scheduledAt = new Date(dr.scheduled_at);
+      const now = isMounted ? new Date() : new Date(0);
+
+      // Lógica de "vale para o dia todo" se a hora for 00:00
+      const isMidnight = scheduledAt.getHours() === 0 && scheduledAt.getMinutes() === 0;
+      const isSameDay = scheduledAt.toDateString() === now.toDateString();
+      const isPast = scheduledAt <= now;
+
+      const isLive = isSameDay ? (isMidnight || isPast) : false;
+      const isUpcoming = !isPast && !isSameDay;
+
+      return {
+        id: dr.slug || String(dr.id_room),
+        title: dr.title,
+        description: dr.description,
+        category: dr.category,
+        host: { name: dr.creator_name || "Admin", avatar: null },
+        participants: [],
+        isLive,
+        isUpcoming,
+        startedAt: isMounted ? scheduledAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "...",
+      };
+    })
   ];
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,7 +109,7 @@ export default function SalasClient({ user, viewType, scheduledRooms: dbRooms }:
   });
 
   const liveRooms = filteredRooms.filter((r) => r.isLive);
-  const upcomingRooms = filteredRooms.filter((r) => !r.isLive);
+  const upcomingRooms = filteredRooms.filter((r) => r.isUpcoming);
 
   const handleCreateRoom = () => {
     if (!newRoom.title.trim()) return;

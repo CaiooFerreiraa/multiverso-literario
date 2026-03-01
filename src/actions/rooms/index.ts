@@ -79,7 +79,8 @@ export async function listScheduledRoomsAction() {
       `SELECT sr.*,
               tb.name as book_name,
               tb.author as book_author,
-              u.fullname as creator_name
+              u.fullname as creator_name,
+              u.email as creator_email
        FROM scheduled_rooms sr
        LEFT JOIN timeline_book tb ON sr.id_timeline_book = tb.id_timeline_book
        LEFT JOIN users u ON sr.created_by = u.id_user
@@ -123,6 +124,28 @@ export async function listTimelinesForSelectAction() {
        LIMIT 20`
     );
     return { success: true, data: result };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function trackRoomAttendanceAction(id_room: number, seconds: number) {
+  try {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "Não autenticado" };
+    const id_user = (session.user as any).id;
+
+    await neonClient.query(
+      `INSERT INTO user_call_attendance (id_user, id_room, total_seconds_spent, last_joined_at, updated_at)
+       VALUES ($1, $2, $3, NOW(), NOW())
+       ON CONFLICT (id_user, id_room) 
+       DO UPDATE SET 
+         total_seconds_spent = user_call_attendance.total_seconds_spent + EXCLUDED.total_seconds_spent,
+         updated_at = NOW()`,
+      [id_user, id_room, seconds]
+    );
+
+    return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
   }

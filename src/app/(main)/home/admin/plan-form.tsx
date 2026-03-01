@@ -362,8 +362,8 @@ export function AdminPlanForm() {
                     <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest">/ {plan.duraction}d</span>
                   </div>
                   <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest ${plan.view_type === 'student'
-                      ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                    : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                     }`}>
                     {plan.view_type === 'student' ? <GraduationCap className="w-3 h-3" /> : <UserCircle className="w-3 h-3" />}
                     {plan.view_type === 'student' ? 'Estudante' : 'Adulto'}
@@ -373,9 +373,9 @@ export function AdminPlanForm() {
                 {plan.benefits && plan.benefits.length > 0 ? (
                   <div className="space-y-2 mt-2 pt-4 border-t border-white/5">
                     {plan.benefits.slice(0, 4).map((b: string, i: number) => (
-                      <p key={i} className="text-[10px] text-white/40 flex items-center gap-2 truncate">
+                      <div key={i} className="text-[10px] text-white/40 flex items-center gap-2 truncate">
                         <div className="w-1 h-1 rounded-full bg-primary/40 shrink-0" /> {b}
-                      </p>
+                      </div>
                     ))}
                     {plan.benefits.length > 4 && (
                       <p className="text-[9px] text-primary/60 font-black uppercase tracking-widest ml-3">

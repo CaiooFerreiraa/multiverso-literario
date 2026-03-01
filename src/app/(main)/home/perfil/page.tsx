@@ -57,7 +57,7 @@ export default async function ProfilePage() {
           id: userId,
           fullname: userData.fullname,
           email: userData.email,
-          birthday: userData.birthday,
+          birthday: userData.birthday ? new Date(userData.birthday).toISOString() : "",
           city: userData.city,
           phoneNumber: userData.phoneNumber,
           image: userData.image

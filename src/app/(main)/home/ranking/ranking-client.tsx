@@ -54,8 +54,10 @@ export default function RankingClient({ ranking, currentUser }: RankingClientPro
               </Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-black italic tracking-tighter">Ranking Global</h1>
-              <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold">A elite do multiverso literário</p>
+              <h1 className="text-4xl font-black uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-white/50">
+                Ranking <span className="text-primary">Global</span>
+              </h1>
+              <p className="text-[10px] text-white/30 uppercase tracking-[0.3em] font-bold mt-1">A elite do multiverso literário</p>
             </div>
           </div>
           <GlassCard className="hidden md:flex items-center gap-3 px-5 py-2.5 rounded-full border-primary/20 bg-primary/5">
@@ -135,12 +137,12 @@ export default function RankingClient({ ranking, currentUser }: RankingClientPro
             >
               <GlassCard
                 className={`p-4 rounded-2xl border flex items-center justify-between transition-all hover:bg-white/5 ${player.id_user === currentUser.id
-                    ? "bg-primary/10 border-primary/20 ring-1 ring-primary/30"
-                    : "bg-white/[0.01] border-white/5"
+                  ? "bg-primary/10 border-primary/20 ring-1 ring-primary/30"
+                  : "bg-white/[0.01] border-white/5"
                   }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center font-black text-sm italic text-white/20">
+                  <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center font-black text-[10px] text-white/20 uppercase tracking-widest leading-none">
                     #{i + 4}
                   </div>
                   <Avatar className="w-10 h-10 border border-white/5">

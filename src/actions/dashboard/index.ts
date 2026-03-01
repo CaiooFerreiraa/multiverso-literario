@@ -176,3 +176,28 @@ export async function readLibraryBookAction(id_book: number) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
+
+export async function readUserTotalPointsAction(id_user: number) {
+  try {
+    const result = await neonClient.query(
+      `SELECT 
+        (
+          COALESCE((SELECT SUM(points_earned) FROM user_challenges WHERE id_user = $1), 0) +
+          COALESCE((
+            SELECT SUM(q.points)
+            FROM response_quiz_user rqu
+            JOIN responses r ON rqu.id_response = r.id_response
+            JOIN alternatives a ON r.id_alternative = a.id_alternative
+            JOIN questions q ON r.id_question = q.id_question
+            WHERE rqu.id_user = $1 AND a.iscorrect = true
+          ), 0)
+        ) as total_points,
+        (SELECT COUNT(*) FROM user_challenges WHERE id_user = $1) as challenges_completed`,
+      [id_user]
+    );
+    const data = result[0] || { total_points: 0, challenges_completed: 0 };
+    return { success: true, data };
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}

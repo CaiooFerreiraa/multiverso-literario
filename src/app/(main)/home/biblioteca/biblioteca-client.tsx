@@ -48,7 +48,7 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
               </Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-black italic tracking-tighter">Biblioteca Virtual</h1>
+              <h1 className="text-4xl font-black uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60 leading-none">Biblioteca Virtual</h1>
               <div className="flex items-center gap-2 mt-1">
                 <Library className="w-3.5 h-3.5 text-primary" />
                 <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold">Obras completas ao seu alcance</p>
@@ -77,7 +77,7 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
             <div className="absolute top-0 right-0 w-80 h-80 bg-primary/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
             <div className="relative z-10 max-w-xl">
               <Badge className="bg-primary/20 text-primary border-primary/30 mb-4 px-3 py-1">Novidade</Badge>
-              <h2 className="text-4xl font-black mb-4 italic">Multiverso Expandido</h2>
+              <h2 className="text-4xl font-black mb-4 uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60">Multiverso Expandido</h2>
               <p className="text-white/50 text-sm mb-8 leading-relaxed">
                 Acesse PDFs exclusivos, planners de leitura e obras completas dos seus autores favoritos.
                 Expanda seus horizontes no Multiverso Literário.

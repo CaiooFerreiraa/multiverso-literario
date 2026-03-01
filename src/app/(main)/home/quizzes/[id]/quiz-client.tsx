@@ -132,8 +132,12 @@ export default function QuizClient({ quiz, user }: QuizClientProps) {
             <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/30 shadow-[0_0_30px_rgba(109,40,217,0.4)]">
               <Trophy className="w-10 h-10 text-primary" />
             </div>
-            <h2 className="text-3xl font-black italic mb-2">Parabéns, {user.name}!</h2>
-            <p className="text-white/40 text-sm mb-8 italic">Você concluiu o desafio literário.</p>
+            <h2 className="text-4xl font-black uppercase tracking-tighter mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60">
+              Parabéns, {user.name}!
+            </h2>
+            <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em] mb-8">
+              Você concluiu o desafio literário.
+            </p>
 
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8">
               <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-2">Sua Pontuação</p>

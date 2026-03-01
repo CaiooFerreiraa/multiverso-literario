@@ -29,6 +29,7 @@ export default async function SalasPage() {
         image: (session.user as any).image || null,
       }}
       viewType={viewType}
+      adminEmail={process.env.ADMIN_EMAIL || ""}
       scheduledRooms={scheduledRooms}
     />
   );

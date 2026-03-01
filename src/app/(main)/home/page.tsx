@@ -19,11 +19,12 @@ export default async function DashboardPage() {
     readUserPlanStatusAction(userId),
     readUserSealsAction(userId),
     readUserPointsAction(userId),
-    readAllPhrasesAction(),
+    readAllPhrasesAction({ currentUserId: userId, limit: 12, page: 1 }),
     readGlobalRankingAction(),
   ]);
 
   const userPlan = (planRes as any).success ? (planRes as any).data : null;
+  const phrases = (phrasesRes as any).success ? (phrasesRes as any).data : [];
   const viewType: 'student' | 'adult' | 'free' = userPlan?.view_type === 'student' ? 'student' : userPlan ? 'adult' : 'free';
 
   return (
@@ -39,7 +40,7 @@ export default async function DashboardPage() {
       userPlan={userPlan}
       seals={(sealsRes as any).success ? (sealsRes as any).data : []}
       userPoints={(pointsRes as any).success ? (pointsRes as any).data : { total_points: 0, challenges_completed: 0 }}
-      phrases={(phrasesRes as any).success ? (phrasesRes as any).data : []}
+      phrases={phrases}
       ranking={(rankingRes as any).success ? (rankingRes as any).data : []}
     />
   );
