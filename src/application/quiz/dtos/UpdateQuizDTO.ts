@@ -10,9 +10,11 @@ export const UpdateQuizAlternativesSchema = z.object({
 export const UpdateQuizQuestionsSchema = z.object({
   id_question: z.coerce.number().optional(),
   question_tittle: z.string(),
+  points: z.coerce.number().min(1).default(10),
+  type: z.enum(["choice", "open"]).default("choice"),
   alternatives: z.array(
     UpdateQuizAlternativesSchema
-  )
+  ).optional().default([])
 })
 
 export const UpdateQuizSchema = z.object({
