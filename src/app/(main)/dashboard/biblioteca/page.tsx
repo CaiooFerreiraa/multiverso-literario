@@ -14,7 +14,7 @@ export default async function BibliotecaPage() {
     readUserPlanStatusAction(userId)
   ]);
 
-  const books = booksRes.success ? booksRes.data : [];
+  const books = booksRes.success ? ((booksRes.data as any[]) || []) : [];
   const isPremium = !!(planRes.success && planRes.data);
 
   return (
