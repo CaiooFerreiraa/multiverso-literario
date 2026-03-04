@@ -38,14 +38,14 @@ export function Sidebar({ user, viewType }: SidebarProps) {
   const menuItems = [
     { label: "Home", icon: LucideIcons.LayoutDashboard, href: "/home" },
     { label: "Salas", icon: LucideIcons.Video, href: "/home/salas" },
-    ...(!isStudent ? [{ label: "Plano", icon: LucideIcons.Star, href: "/home/planos" }] : []),
+    { label: "Plano", icon: LucideIcons.Star, href: "/home/planos" },
     { label: "Desafios", icon: LucideIcons.Gamepad2, href: "/home/desafios" },
     { label: "Quizzes", icon: LucideIcons.Ticket, href: "/home/quizzes" },
     { label: "Frases", icon: LucideIcons.Quote, href: "/home/frases" },
     { label: "Biblioteca", icon: LucideIcons.Library, href: "/home/biblioteca" },
     { label: "Ranking", icon: LucideIcons.Trophy, href: "/home/ranking" },
     { label: "Chat com Admin", icon: LucideIcons.MessageCircle, href: "/home/suporte" },
-    ...(user.isAdmin && !isStudent ? [{ label: "Admin", icon: ShieldAlert, href: "/home/admin" }] : []),
+    ...(user.isAdmin ? [{ label: "Admin", icon: ShieldAlert, href: "/home/admin" }] : []),
   ];
 
   const handleSignOut = () => signOut({ callbackUrl: "/login" });

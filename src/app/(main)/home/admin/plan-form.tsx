@@ -19,6 +19,17 @@ import {
   GraduationCap,
   UserCircle
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function AdminPlanForm() {
   const [isPending, startTransition] = useTransition();
@@ -124,7 +135,6 @@ export function AdminPlanForm() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Deseja realmente desativar este plano?")) return;
     startTransition(async () => {
       const res = await deletePlanAction(id);
       if (res.success) {
@@ -349,9 +359,32 @@ export function AdminPlanForm() {
                     <Button variant="ghost" size="icon" onClick={() => handleEdit(plan)} className="text-white/10 hover:text-primary h-10 w-10 rounded-xl hover:bg-primary/10 cursor-pointer">
                       <Edit2 className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(plan.id_plan)} className="text-white/10 hover:text-red-400 h-10 w-10 rounded-xl hover:bg-red-500/10 cursor-pointer">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" disabled={isPending} className="text-white/10 hover:text-red-400 h-10 w-10 rounded-xl hover:bg-red-500/10 cursor-pointer">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-[#0A0D28] border-white/5 text-white">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Desativar plano?</AlertDialogTitle>
+                          <AlertDialogDescription className="text-white/50">
+                            Deseja realmente desativar este plano? Essa ação pode impactar usuários associados.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="bg-white/5 border-none hover:bg-white/10 hover:text-white cursor-pointer">
+                            Cancelar
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(plan.id_plan)}
+                            className="bg-red-500 hover:bg-red-600 cursor-pointer"
+                          >
+                            Desativar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
 

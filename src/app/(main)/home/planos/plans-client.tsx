@@ -46,7 +46,7 @@ export default function PlansClient({ user, userPlan, availablePlans }: Props) {
   const isPremium = !!userPlan;
 
   const handleSubscribe = () => {
-    if (isPremium || !selectedPlan) return;
+    if (!selectedPlan) return;
 
     startSubscribeTransition(async () => {
       const result = await subscribeToPlanAction(user.id, selectedPlan.id_plan, Number(selectedPlan.value));
@@ -113,13 +113,17 @@ export default function PlansClient({ user, userPlan, availablePlans }: Props) {
                 </div>
 
                 <div className="flex-1 space-y-4 mb-10">
-                  <p className="text-xs font-bold text-white/20 uppercase tracking-widest">O que está incluso:</p>
+                  <p className="text-xs font-bold text-white/20 uppercase tracking-widest">Funcionalidades incluídas:</p>
                   {[
                     "Cronograma e livro do mês",
                     "Acesso às frases da comunidade",
-                    "Quiz básico por livro",
+                    "Quizzes literários básicos",
                     "2 Desafios Literários mensais",
                     "Contribuições ilimitadas",
+                    "Ranking geral de leitores",
+                    "Salas de debate (participar)",
+                    "Biblioteca básica (acervo geral)",
+                    "Chat com Admin",
                   ].map((feature, i) => (
                     <div key={i} className="flex items-center gap-3 text-white/60">
                       <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center shrink-0">
@@ -131,7 +135,7 @@ export default function PlansClient({ user, userPlan, availablePlans }: Props) {
                 </div>
 
                 <Button variant="outline" className="w-full h-14 rounded-2xl border-white/10 text-white/40 cursor-default" disabled>
-                  {isPremium ? "Plano Base" : "Seu Plano Atual"}
+                  {!isPremium ? "Seu Plano Atual" : "Plano Base"}
                 </Button>
               </GlassCard>
 
@@ -143,9 +147,9 @@ export default function PlansClient({ user, userPlan, availablePlans }: Props) {
                 return (
                   <GlassCard
                     key={plan.id_plan}
-                    onClick={() => !isPremium && setSelectedPlan(plan)}
+                    onClick={() => setSelectedPlan(plan)}
                     className={`p-8 rounded-[2.5rem] border-white/5 relative overflow-hidden flex flex-col group transition-all cursor-pointer ${userHasThisPlan ? "ring-2 ring-amber-500/30 bg-amber-500/5" :
-                        isActive && !isPremium ? "ring-2 ring-amber-500/60 bg-amber-500/10" : "bg-gradient-to-b from-white/[0.02] to-transparent"
+                      isActive ? "ring-2 ring-amber-500/60 bg-amber-500/10" : "bg-gradient-to-b from-white/[0.02] to-transparent"
                       }`}
                   >
                     <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-amber-500/10 transition-all duration-700" />
@@ -197,7 +201,7 @@ export default function PlansClient({ user, userPlan, availablePlans }: Props) {
           </motion.section>
 
           {/* CHECKOUT SECTION */}
-          {!isPremium && selectedPlan && (
+          {selectedPlan && (
             <motion.section variants={item} id="checkout" className="scroll-mt-32">
               <div className="text-center mb-8">
                 <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-2 flex items-center justify-center gap-2">

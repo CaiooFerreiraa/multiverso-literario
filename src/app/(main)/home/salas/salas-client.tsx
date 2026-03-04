@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import * as LucideIcons from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createScheduledRoomAction } from "@/actions/rooms";
+import { toast } from "sonner";
 
 const Plus = LucideIcons.Plus as any;
 const Search = LucideIcons.Search as any;
@@ -21,6 +23,7 @@ const BookOpen = LucideIcons.BookOpen as any;
 const Sparkles = LucideIcons.Sparkles as any;
 const Radio = LucideIcons.Radio as any;
 const X = LucideIcons.X as any;
+const Loader2 = LucideIcons.Loader2 as any;
 
 interface SalasClientProps {
   user: {
@@ -100,6 +103,7 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newRoom, setNewRoom] = useState({ title: "", description: "", category: "Literatura Brasileira" });
+  const [isCreating, setIsCreating] = useState(false);
 
   const filteredRooms = allRoomsFormatted.filter((room) => {
     const matchesSearch = room.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -111,12 +115,31 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
   const liveRooms = filteredRooms.filter((r) => r.isLive);
   const upcomingRooms = filteredRooms.filter((r) => r.isUpcoming);
 
-  const handleCreateRoom = () => {
+  const handleCreateRoom = async () => {
     if (!newRoom.title.trim()) return;
-    const slug = newRoom.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-    setShowCreateModal(false);
-    setNewRoom({ title: "", description: "", category: "Literatura Brasileira" });
-    router.push(`/home/salas/${slug}`);
+
+    setIsCreating(true);
+    try {
+      const result = await createScheduledRoomAction({
+        title: newRoom.title,
+        description: newRoom.description,
+        category: newRoom.category,
+        scheduledAt: new Date().toISOString(), // Criação imediata
+      });
+
+      if (result.success && result.data) {
+        toast.success("Sala criada com sucesso!");
+        setShowCreateModal(false);
+        setNewRoom({ title: "", description: "", category: "Literatura Brasileira" });
+        router.push(`/home/salas/${result.data.slug}`);
+      } else {
+        toast.error(result.error || "Erro ao criar sala");
+      }
+    } catch (error) {
+      toast.error("Ocorreu um erro ao criar a sala");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -467,14 +490,18 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
                   </Button>
                   <Button
                     onClick={handleCreateRoom}
-                    disabled={!newRoom.title.trim()}
-                    className={`flex-1 h-11 rounded-xl font-bold gap-2 transition-all cursor-pointer ${newRoom.title.trim()
+                    disabled={isCreating || !newRoom.title.trim()}
+                    className={`flex-1 h-11 rounded-xl font-bold gap-2 transition-all cursor-pointer ${newRoom.title.trim() && !isCreating
                       ? "bg-primary hover:bg-primary/90 shadow-[0_0_20px_rgba(109,40,217,0.3)]"
                       : "bg-white/5 text-white/30 cursor-not-allowed"
                       }`}
                   >
-                    <Video className="w-4 h-4 transition-all" />
-                    Criar e Entrar
+                    {isCreating ? (
+                      <LucideIcons.Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    ) : (
+                      <Video className="w-4 h-4 transition-all" />
+                    )}
+                    {isCreating ? "Criando..." : "Criar e Entrar"}
                   </Button>
                 </div>
               </GlassCard>

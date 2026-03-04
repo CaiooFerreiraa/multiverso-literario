@@ -47,7 +47,10 @@ export async function createScheduledRoomAction(data: CreateScheduledRoomDTO) {
       return { success: false, error: "Não autenticado" };
     }
 
-    const userId = (session.user as any).id;
+    const userId = Number((session.user as any).id);
+    if (isNaN(userId)) {
+      return { success: false, error: "Sessão inválida" };
+    }
     const slug = generateSlug(data.title);
 
     const result = await neonClient.query(

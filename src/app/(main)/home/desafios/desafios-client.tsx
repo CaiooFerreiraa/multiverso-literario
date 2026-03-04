@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Trophy, Flame, Lock, CheckCircle2,
-  Sparkles, Crown, Target, Zap, FileUp,
+  Sparkles, Crown, Target, Zap, FileUp, Award, Video
 } from "lucide-react";
 import Link from "next/link";
 import { completeChallengeAction } from "@/actions/challenges";
@@ -18,6 +18,10 @@ interface Props {
   challenges: any[];
   userPoints: { total_points: number; challenges_completed: number };
   isPremium: boolean;
+  attendanceData?: {
+    totalMeetings: number;
+    rewards: any[];
+  } | null;
 }
 
 const container = {
@@ -30,7 +34,7 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
-export default function DesafiosClient({ userId, challenges: initialChallenges, userPoints, isPremium }: Props) {
+export default function DesafiosClient({ userId, challenges: initialChallenges, userPoints, isPremium, attendanceData }: Props) {
   const [challenges, setChallenges] = useState(initialChallenges || []);
   const [isPending, startTransition] = useTransition();
   const [selectedFiles, setSelectedFiles] = useState<Record<number, File | null>>({});
@@ -226,6 +230,78 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
             <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-bold">Total</p>
           </GlassCard>
         </motion.div>
+
+        {/* Attendance Rewards Section */}
+        {attendanceData && (
+          <motion.section variants={item} className="space-y-4">
+            <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">
+              <Award className="w-4 h-4 text-emerald-400" /> Presença Premiada
+            </h3>
+
+            <GlassCard className="p-6 rounded-2xl border-emerald-500/10 bg-emerald-500/5">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                    <Video className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-white/80">Seus Encontros</p>
+                    <p className="text-[10px] text-white/40 uppercase tracking-widest">Participações em salas</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black text-emerald-400">{attendanceData.totalMeetings}</p>
+                  <p className="text-[10px] text-white/30 uppercase font-bold">Encontros</p>
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                {attendanceData.rewards.map((reward: any) => {
+                  const isCompleted = reward.claimed;
+                  const progress = Math.min(100, (attendanceData.totalMeetings / reward.required_meetings) * 100);
+
+                  return (
+                    <div key={reward.id_reward} className={`p-4 rounded-xl border transition-all ${isCompleted ? "bg-emerald-500/10 border-emerald-500/20" : "bg-white/5 border-white/5"
+                      }`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className={`w-4 h-4 ${isCompleted ? "text-emerald-400" : "text-white/20"}`} />
+                          <span className={`text-xs font-bold ${isCompleted ? "text-emerald-300" : "text-white/60"}`}>
+                            {reward.name}
+                          </span>
+                        </div>
+                        <Badge className={`text-[9px] h-5 ${isCompleted ? "bg-emerald-500/20 text-emerald-400" : "bg-white/5 text-white/40"}`}>
+                          {isCompleted ? "RECOMPENSA GANHA" : `${reward.required_meetings} ENCONTROS`}
+                        </Badge>
+                      </div>
+
+                      {!isCompleted && (
+                        <div className="space-y-2">
+                          <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-emerald-500 transition-all duration-1000"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                          <div className="flex justify-between text-[8px] font-bold text-white/20 uppercase">
+                            <span>{attendanceData.totalMeetings} encontros</span>
+                            <span>meta: {reward.required_meetings}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {isCompleted && (
+                        <p className="text-[9px] text-emerald-400/60 font-medium">
+                          Bônus de <span className="font-bold underline">+{reward.bonus_points} pontos</span> creditado em seu ranking!
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </GlassCard>
+          </motion.section>
+        )}
 
         {/* Free Challenges */}
         <motion.section variants={item}>

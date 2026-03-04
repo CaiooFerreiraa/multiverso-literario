@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { readCurrentTimelineAction, readUserPlanStatusAction, readUserSealsAction, readGlobalRankingAction } from "@/actions/dashboard";
+import { readCurrentTimelineAction, readUserPlanStatusAction, readUserSealsAction, readGlobalRankingAction, readActiveAwardAction } from "@/actions/dashboard";
 import { readUserPointsAction } from "@/actions/challenges";
 import { readAllPhrasesAction } from "@/actions/phrases";
 import HomeClient from "@/app/(main)/home/home-client";
@@ -14,13 +14,14 @@ export default async function DashboardPage() {
 
   const userId = (session.user as any).id;
 
-  const [timelineRes, planRes, sealsRes, pointsRes, phrasesRes, rankingRes] = await Promise.all([
+  const [timelineRes, planRes, sealsRes, pointsRes, phrasesRes, rankingRes, awardRes] = await Promise.all([
     readCurrentTimelineAction(),
     readUserPlanStatusAction(userId),
     readUserSealsAction(userId),
     readUserPointsAction(userId),
     readAllPhrasesAction({ currentUserId: userId, limit: 12, page: 1 }),
     readGlobalRankingAction(),
+    readActiveAwardAction(),
   ]);
 
   const userPlan = (planRes as any).success ? (planRes as any).data : null;
@@ -42,6 +43,7 @@ export default async function DashboardPage() {
       userPoints={(pointsRes as any).success ? (pointsRes as any).data : { total_points: 0, challenges_completed: 0 }}
       phrases={phrases}
       ranking={(rankingRes as any).success ? (rankingRes as any).data : []}
+      activeAward={(awardRes as any).success ? (awardRes as any).data : null}
     />
   );
 }

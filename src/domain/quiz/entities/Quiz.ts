@@ -9,7 +9,8 @@ export class Quiz {
   public statement: string;
   public id_timeline_book: number;
   public questions: Question[];
-  public id_quiz?: number
+  public id_quiz?: number;
+  public time_per_question?: number;
 
   constructor(data: CreateQuizDTO);
   constructor(data: UpdateQuizDTO);
@@ -19,6 +20,7 @@ export class Quiz {
     this.questions = data.questions;
     this.statement = data.statement;
     this.title = data.tittle;
+    this.time_per_question = (data as any).time_per_question || 0;
 
     if ("id_quiz" in data) {
       this.id_quiz = data.id_quiz

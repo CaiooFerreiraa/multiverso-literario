@@ -19,6 +19,7 @@ export const CreateQuizSchema = z.object({
   tittle: z.string(),
   id_timeline_book: z.coerce.number(),
   statement: z.string().default("ativo"),
+  time_per_question: z.coerce.number().min(0).default(0),
   questions: z.array(
     CreateQuizQuestionsSchema
   ),

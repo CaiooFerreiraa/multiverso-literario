@@ -22,10 +22,10 @@ export class QuizDatabaseNeon implements QuizRepository {
 
   private async insertDataQuiz(query: Database, quiz: Quiz) {
     const [result] = await query.query(
-      `INSERT INTO quiz (tittle, id_timeline_book, statement) VALUES (
-        $1, $2, $3
+      `INSERT INTO quiz (tittle, id_timeline_book, statement, time_per_question) VALUES (
+        $1, $2, $3, $4
       ) RETURNING id_quiz`,
-      [quiz.title, quiz.id_timeline_book, quiz.statement]
+      [quiz.title, quiz.id_timeline_book, quiz.statement, quiz.time_per_question || 0]
     );
 
     const id_quiz: number = result.id_quiz;
@@ -73,6 +73,7 @@ export class QuizDatabaseNeon implements QuizRepository {
           a.tittle,
           a.statement,
           a.id_timeline_book,
+          a.time_per_question,
           COALESCE(
             json_agg(
               json_build_object(
@@ -132,9 +133,10 @@ export class QuizDatabaseNeon implements QuizRepository {
       `UPDATE quiz
        SET tittle = $1,
            id_timeline_book = $2,
-           statement = $3
-       WHERE id_quiz = $4`,
-      [quiz.title, quiz.id_timeline_book, quiz.statement, id_quiz]
+           statement = $3,
+           time_per_question = $4
+       WHERE id_quiz = $5`,
+      [quiz.title, quiz.id_timeline_book, quiz.statement, quiz.time_per_question || 0, id_quiz]
     );
 
     const questions: Question[] = quiz.questions;

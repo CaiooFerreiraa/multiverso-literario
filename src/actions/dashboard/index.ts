@@ -87,6 +87,11 @@ export async function readGlobalRankingAction() {
                   JOIN alternatives a ON r.id_alternative = a.id_alternative
                   JOIN questions q ON r.id_question = q.id_question
                   WHERE rqu.id_user = u.id_user AND a.iscorrect = true
+              ), 0) +
+              COALESCE((
+                  SELECT SUM(points_earned)
+                  FROM attendance_reward_claim arc
+                  WHERE arc.id_user = u.id_user
               ), 0)
           ) as total_points
        FROM users u
@@ -158,7 +163,7 @@ export async function checkQuizCompletionAction(id_user: number, id_quiz: number
 export async function readLibraryBooksAction() {
   try {
     const result = await neonClient.query(
-      `SELECT id_book, name, id_plan FROM book ORDER BY name ASC`
+      `SELECT id_book, name, id_plan, cover_url, pdf_url FROM book ORDER BY name ASC`
     );
     return { success: true, data: result };
   } catch (error: unknown) {
@@ -169,7 +174,7 @@ export async function readLibraryBooksAction() {
 export async function readLibraryBookAction(id_book: number) {
   try {
     const result = await neonClient.query(
-      `SELECT id_book, name, text, id_plan FROM book WHERE id_book = $1`,
+      `SELECT id_book, name, text, id_plan, cover_url, pdf_url FROM book WHERE id_book = $1`,
       [id_book]
     );
     return { success: true, data: result.length > 0 ? result[0] : null };
@@ -191,6 +196,11 @@ export async function readUserTotalPointsAction(id_user: number) {
             JOIN alternatives a ON r.id_alternative = a.id_alternative
             JOIN questions q ON r.id_question = q.id_question
             WHERE rqu.id_user = $1 AND a.iscorrect = true
+          ), 0) +
+          COALESCE((
+            SELECT SUM(points_earned)
+            FROM attendance_reward_claim
+            WHERE id_user = $1
           ), 0)
         ) as total_points,
         (SELECT COUNT(*) FROM user_challenges WHERE id_user = $1) as challenges_completed`,
@@ -198,6 +208,17 @@ export async function readUserTotalPointsAction(id_user: number) {
     );
     const data = result[0] || { total_points: 0, challenges_completed: 0 };
     return { success: true, data };
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+export async function readActiveAwardAction() {
+  try {
+    const result = await neonClient.query(
+      `SELECT * FROM awards WHERE is_active = true ORDER BY deadline ASC LIMIT 1`
+    );
+    return { success: true, data: result.length > 0 ? result[0] : null };
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }

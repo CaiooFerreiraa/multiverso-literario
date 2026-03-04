@@ -4,6 +4,17 @@ import React, { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { createAwardAction, readAwardsAction, toggleAwardStatusAction, deleteAwardAction } from "@/actions/admin/awards";
 import { GlassCard } from "@/components/glass-card";
 import { Badge } from "@/components/ui/badge";
@@ -73,7 +84,6 @@ export function AdminAwardsForm({ timelines }: AwardsFormProps) {
   };
 
   const handleDeleteAward = async (id: number) => {
-    if (!confirm("Excluir este prêmio permanentemente?")) return;
     const res = await deleteAwardAction(id);
     if (res.success) {
       toast.success("Prêmio excluído!");
@@ -185,14 +195,36 @@ export function AdminAwardsForm({ timelines }: AwardsFormProps) {
                   >
                     {award.is_active ? "Encerrar" : "Ativar"}
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteAward(award.id_award)}
-                    className="h-11 w-11 rounded-xl text-white/20 hover:text-red-400 hover:bg-red-400/10 cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-11 w-11 rounded-xl text-white/20 hover:text-red-400 hover:bg-red-400/10 cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-[#0A0D28] border-white/5 text-white">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir prêmio?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-white/50">
+                          Tem certeza que deseja excluir este prêmio permanentemente? Essa ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-white/5 border-none hover:bg-white/10 hover:text-white cursor-pointer">
+                          Cancelar
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteAward(award.id_award)}
+                          className="bg-red-500 hover:bg-red-600 cursor-pointer"
+                        >
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </GlassCard>

@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { readAllTimelinesAction, readAllQuizzesAction } from "@/actions/admin";
-import { readGlobalRankingAction } from "@/actions/dashboard";
+import { readGlobalRankingAction, readLibraryBooksAction } from "@/actions/dashboard";
 import * as LucideIcons from "lucide-react";
 import { AdminClient } from "./admin-client";
 
@@ -15,15 +15,17 @@ export default async function AdminDashboardPage() {
   const isAdmin = session.user.email === process.env.ADMIN_EMAIL;
   if (!isAdmin) redirect("/home");
 
-  const [timelinesRes, rankingRes, quizzesRes] = await Promise.all([
+  const [timelinesRes, rankingRes, quizzesRes, booksRes] = await Promise.all([
     readAllTimelinesAction(),
     readGlobalRankingAction(),
-    readAllQuizzesAction()
+    readAllQuizzesAction(),
+    readLibraryBooksAction()
   ]);
 
   const timelines = (timelinesRes.success ? timelinesRes.data : []) as any[];
   const quizzes = (quizzesRes.success ? quizzesRes.data : []) as any[];
   const ranking = (rankingRes.success ? rankingRes.data : []) as any[];
+  const books = (booksRes.success ? booksRes.data : []) as any[];
 
   return (
     <div className="min-h-screen px-6 lg:px-12 py-10">
@@ -43,6 +45,7 @@ export default async function AdminDashboardPage() {
           timelines={timelines}
           quizzes={quizzes}
           ranking={ranking}
+          books={books}
         />
       </div>
     </div>

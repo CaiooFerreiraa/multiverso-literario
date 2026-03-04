@@ -12,6 +12,17 @@ import {
   deleteScheduledRoomAction,
   listTimelinesForSelectAction,
 } from "@/actions/rooms";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import * as LucideIcons from "lucide-react";
 
 const Video = LucideIcons.Video as any;
@@ -112,7 +123,6 @@ export function AdminRoomsForm() {
   }
 
   async function handleDelete(roomId: number) {
-    if (!confirm("Deseja realmente remover esta sala agendada?")) return;
 
     startTransition(async () => {
       const result = await deleteScheduledRoomAction(roomId);
@@ -215,8 +225,8 @@ export function AdminRoomsForm() {
           type="submit"
           disabled={isPending || !form.title.trim() || !form.scheduledAt}
           className={`w-full h-12 rounded-xl font-bold gap-2 transition-all ${form.title.trim() && form.scheduledAt
-              ? "bg-primary hover:bg-primary/90 shadow-[0_0_20px_rgba(109,40,217,0.3)]"
-              : "bg-white/5 text-white/30 cursor-not-allowed"
+            ? "bg-primary hover:bg-primary/90 shadow-[0_0_20px_rgba(109,40,217,0.3)]"
+            : "bg-white/5 text-white/30 cursor-not-allowed"
             }`}
         >
           <Video className="w-4 h-4" />
@@ -272,15 +282,37 @@ export function AdminRoomsForm() {
                     </p>
                   </div>
 
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(room.id_room)}
-                    disabled={isPending}
-                    className="text-red-400/40 hover:text-red-400 hover:bg-red-500/10 rounded-xl shrink-0 ml-3 cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={isPending}
+                        className="text-red-400/40 hover:text-red-400 hover:bg-red-500/10 rounded-xl shrink-0 ml-3 cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-[#0A0D28] border-white/5 text-white">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remover sala agendada?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-white/50">
+                          Deseja realmente remover esta sala agendada? Essa ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-white/5 border-none hover:bg-white/10 hover:text-white cursor-pointer">
+                          Cancelar
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(room.id_room)}
+                          className="bg-red-500 hover:bg-red-600 cursor-pointer"
+                        >
+                          Remover
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </GlassCard>
               );
             })}

@@ -45,6 +45,7 @@ interface HomeProps {
   userPoints: { total_points: number; challenges_completed: number };
   phrases: any[];
   ranking: { id_user: number; name: string; image: string | null; total_points: number }[];
+  activeAward?: any;
 }
 
 const sealIcons: Record<string, any> = {
@@ -75,6 +76,7 @@ export default function HomeClient({
   userPoints,
   ranking,
   phrases: initialPhrases,
+  activeAward
 }: HomeProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -98,6 +100,10 @@ export default function HomeClient({
   const elapsed = now.getTime() - start.getTime();
   const progressPercent = isMounted && total > 0 ? Math.min(100, Math.max(0, (elapsed / total) * 100)) : 0;
   const daysRemaining = isMounted ? Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : 0;
+
+  const awardDaysRemaining = isMounted && activeAward && activeAward.deadline
+    ? Math.max(0, Math.ceil((new Date(activeAward.deadline).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+    : daysRemaining;
 
 
 
@@ -332,15 +338,17 @@ export default function HomeClient({
             <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mb-4 border border-amber-500/20">
               <Award className="w-8 h-8 text-amber-500" />
             </div>
-            <h4 className="text-lg font-bold text-amber-400 mb-2">Premiação do Mês</h4>
-            <p className="text-sm text-white/60 mb-6 px-4">
-              O primeiro colocado no ranking ao final do cronograma receberá um <strong>Box de Livros Exclusivo</strong> do Multiverso Literário.
-            </p>
+            <h4 className="text-lg font-bold text-amber-400 mb-2">{activeAward ? activeAward.name : "Premiação do Mês"}</h4>
+            <div className="text-sm text-white/60 mb-6 px-4">
+              {activeAward ? activeAward.description : (
+                <p>Nenhuma premiação ativa no momento. Participe e aguarde as próximas novidades!</p>
+              )}
+            </div>
             <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-4">
               <div className="h-full bg-amber-500 transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
             </div>
             <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold font-mono">
-              {currentTimeline ? `Finaliza em ${daysRemaining} dias` : "Sem cronograma ativo"}
+              {activeAward ? `Finaliza em ${awardDaysRemaining} dias` : (currentTimeline ? `Finaliza em ${daysRemaining} dias` : "Sem cronograma ativo")}
             </p>
           </GlassCard>
         </div>

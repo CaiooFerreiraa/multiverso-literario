@@ -17,6 +17,7 @@ const Plus = LucideIcons.Plus as any;
 const Trash2 = LucideIcons.Trash2 as any;
 const Zap = LucideIcons.Zap as any;
 const X = LucideIcons.X as any;
+const TimerIcon = LucideIcons.Timer as any;
 
 interface AdminQuizFormProps {
   timelines: any[];
@@ -33,6 +34,7 @@ export function AdminQuizForm({ timelines, initialData, onCancel }: AdminQuizFor
       tittle: initialData?.tittle || initialData?.title || "",
       id_timeline_book: initialData?.id_timeline_book || timelines[0]?.id_timeline || 0,
       statement: initialData?.statement || "ativo",
+      time_per_question: initialData?.time_per_question || 0,
       questions: initialData?.questions || [
         {
           question_tittle: "",
@@ -127,6 +129,31 @@ export function AdminQuizForm({ timelines, initialData, onCancel }: AdminQuizFor
                       ))}
                     </select>
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+            <FormField
+              control={form.control}
+              name="time_per_question"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1.5 text-xs text-white/40">
+                    <TimerIcon className="w-3 h-3 text-emerald-400" /> Tempo por Questão (segundos)
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      min={0}
+                      placeholder="0 = sem limite"
+                      className="bg-white/5 border-white/10 w-48 text-emerald-300 font-bold text-center h-11"
+                    />
+                  </FormControl>
+                  <p className="text-[10px] text-white/30 mt-1">Use 0 para desativar o timer. Exemplo: 60 = 1 minuto por questão.</p>
                   <FormMessage />
                 </FormItem>
               )}

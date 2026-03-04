@@ -18,7 +18,9 @@ export default async function SalasPage() {
 
   const scheduledRooms = roomsResult.success ? (roomsResult.data as any[]) : [];
   const userPlan = (planRes as any).success ? (planRes as any).data : null;
-  const viewType: 'student' | 'adult' | 'free' = userPlan?.view_type === 'student' ? 'student' : userPlan ? 'adult' : 'free';
+  const adminEmail = process.env.ADMIN_EMAIL || "";
+  const isAdmin = session.user.email === adminEmail;
+  const viewType: 'student' | 'adult' | 'free' = isAdmin ? 'adult' : userPlan?.view_type === 'student' ? 'student' : userPlan ? 'adult' : 'free';
 
   return (
     <SalasClient

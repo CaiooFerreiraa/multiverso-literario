@@ -47,7 +47,7 @@ export default async function QuizPage({ params }: { params: Promise<{ id: strin
             Você já respondeu a este quiz e garantiu seus pontos no Multiverso Literário. <br />
             Continue lendo para novos desafios!
           </p>
-          <Link href="/dashboard/quizzes">
+          <Link href="/home/quizzes">
             <Button className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 font-bold cursor-pointer">
               Ver Outros Quizzes
             </Button>

@@ -31,7 +31,7 @@ export default async function ReaderPage({ params }: PageProps) {
 
   // Check plan restriction
   if (book.id_plan === 2 && !isPremium) {
-    redirect("/dashboard/biblioteca");
+    redirect("/home/biblioteca");
   }
 
   return (

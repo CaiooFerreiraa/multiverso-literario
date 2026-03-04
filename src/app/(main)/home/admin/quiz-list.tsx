@@ -7,6 +7,17 @@ import { deleteQuizAction, toggleQuizStatusAction } from "@/actions/admin";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Trash2, Ticket, BookOpen, Edit2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface QuizListProps {
   quizzes: any[];
@@ -17,8 +28,6 @@ export function AdminQuizList({ quizzes, onEdit }: QuizListProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Tem certeza que deseja excluir este quiz?")) return;
-
     startTransition(async () => {
       const res = await deleteQuizAction(id);
       if (res.success) {
@@ -81,15 +90,37 @@ export function AdminQuizList({ quizzes, onEdit }: QuizListProps) {
               >
                 {q.statement === 'ativo' ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDelete(q.id_quiz)}
-                disabled={isPending}
-                className="text-white/20 hover:text-red-400 hover:bg-red-400/10 cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={isPending}
+                    className="text-white/20 hover:text-red-400 hover:bg-red-400/10 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-[#0A0D28] border-white/5 text-white">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir quiz?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-white/50">
+                      Tem certeza que deseja excluir este quiz? Isso apagará as perguntas vinculadas.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="bg-white/5 border-none hover:bg-white/10 hover:text-white cursor-pointer">
+                      Cancelar
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => handleDelete(q.id_quiz)}
+                      className="bg-red-500 hover:bg-red-600 cursor-pointer"
+                    >
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </GlassCard>

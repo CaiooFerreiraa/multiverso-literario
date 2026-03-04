@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import * as LucideIcons from "lucide-react";
 import { useRouter } from "next/navigation";
 import { trackRoomAttendanceAction } from "@/actions/rooms";
+import { checkAndClaimAttendanceRewardsAction } from "@/actions/attendance";
+import { toast } from "sonner";
 
 const Mic = LucideIcons.Mic as any;
 const MicOff = LucideIcons.MicOff as any;
@@ -127,7 +129,7 @@ export default function RoomClient({ roomData, user }: RoomClientProps) {
     script.async = true;
     script.onload = () => {
       if (jitsiContainerRef.current) {
-        const domain = "meet.ffmuc.net";
+        const domain = "meet.jit.si";
         const options = {
           roomName: `multiverso-${roomData.slug}`,
           width: "100%",
@@ -141,9 +143,11 @@ export default function RoomClient({ roomData, user }: RoomClientProps) {
             startWithAudioMuted: !isMicOn,
             startWithVideoMuted: !isCameraOn,
             prejoinPageEnabled: false,
-            disableDeepLinking: true,
+            disableDeepLinking: false,
             disableThirdPartyRequests: true,
-            toolbarButtons: [],
+            toolbarButtons: ['microphone', 'camera', 'desktop', 'hangup', 'chat', 'raisehand'], // Mantém internamente mas o CSS esconde
+            desktopSharingChromeDisabled: false,
+            desktopSharingFirefoxDisabled: false,
             hideConferenceSubject: true,
             hideConferenceTimer: true,
             hideParticipantsStats: true,
@@ -154,7 +158,6 @@ export default function RoomClient({ roomData, user }: RoomClientProps) {
             hideDisplayName: false,
           },
           interfaceConfigOverwrite: {
-            TOOLBAR_BUTTONS: [],
             SHOW_JITSI_WATERMARK: false,
             SHOW_WATERMARK_FOR_GUESTS: false,
             SHOW_BRAND_WATERMARK: false,
@@ -223,13 +226,13 @@ export default function RoomClient({ roomData, user }: RoomClientProps) {
   // Update Jitsi state when local controls change
   useEffect(() => {
     if (jitsiApiRef.current) {
-      jitsiApiRef.current.executeCommand("toggleAudio", isMicOn);
+      jitsiApiRef.current.executeCommand("toggleAudio");
     }
   }, [isMicOn]);
 
   useEffect(() => {
     if (jitsiApiRef.current) {
-      jitsiApiRef.current.executeCommand("toggleVideo", isCameraOn);
+      jitsiApiRef.current.executeCommand("toggleVideo");
     }
   }, [isCameraOn]);
 
@@ -299,11 +302,24 @@ export default function RoomClient({ roomData, user }: RoomClientProps) {
     setNewMessage("");
   };
 
-  const handleLeave = () => {
+  const handleLeave = async () => {
     // Enviar atualização final com o delta restante antes de sair
     const finalDelta = elapsed % 60;
-    if (finalDelta > 0) trackRoomAttendanceAction(roomData.id_room, finalDelta);
-    router.push("/dashboard/salas");
+    if (finalDelta > 0) await trackRoomAttendanceAction(roomData.id_room, finalDelta);
+
+    // Verificar e resgatar recompensas de presença
+    try {
+      const rewardRes = await checkAndClaimAttendanceRewardsAction();
+      if (rewardRes.success && rewardRes.data && rewardRes.data.claimedNow && rewardRes.data.claimedNow.length > 0) {
+        for (const r of rewardRes.data.claimedNow) {
+          toast.success(`🎉 Presença Premiada: +${r.bonus_points} pontos! (${r.name})`, { duration: 5000 });
+        }
+      }
+    } catch (e) {
+      // Silently fail — don't block navigation
+    }
+
+    router.push("/home/salas");
   };
 
   const toggleChat = () => {
@@ -331,24 +347,28 @@ export default function RoomClient({ roomData, user }: RoomClientProps) {
     <div className="flex flex-col h-screen bg-[#0a0a14] overflow-hidden">
       {/* CSS para esconder TODA a UI nativa do Jitsi */}
       <style jsx global>{`
-        /* Esconder toolbar nativa do Jitsi */
-        .new-toolbox, .toolbox-content-items,
+        /* Esconder toolbar nativa do Jitsi e novos overlays */
+        .new-toolbox, .toolbox-content-items, .toolbox-container,
         #new-toolbox, .subject, .meeting-info-container,
         .subject-info-container, .conference-timer,
         .watermark, .leftwatermark, .rightwatermark,
-        .powered-by, .oJlr0 { display: none !important; }
-        /* Esconder header da conferência */
-        .oJlr0, .oTusO { display: none !important; }
-        /* Esconder notificações */
-        .oJlr0, .oTusO, .oJlr0 { display: none !important; }
-        /* Esconder filmstrip labels e outros overlays */
-        .oAVFo, .oW0CQ { display: none !important; }
+        .powered-by, .oJlr0, .oTusO, .oAVFo, .oW0CQ,
+        .filmstrip-toolbox, .toolbox-button,
+        .hangup-button, .audio-preview, .video-preview { display: none !important; }
+        
         /* Container do iframe Jitsi - garantir que só o vídeo apareça */
         iframe[id^="jitsiConference"] {
           border: none !important;
+          z-index: 1 !important;
         }
-        /* Esconder qualquer borda ou padding do container */
-        .oJlr0 { display: none !important; }
+        
+        /* Esconder barra de notificações e balões do Jitsi */
+        .jitsi-notify, .notifications-container, .error-notification, .warning-notification { display: none !important; }
+
+        /* Esconder qualquer elemento que o Jitsi injete para controles */
+        [class*="toolbox"], [id*="toolbox"], [class*="Toolbox"], [class*="ToolboxButton"] {
+           display: none !important;
+        }
       `}</style>
 
       {/* Top Bar - compacto no mobile */}

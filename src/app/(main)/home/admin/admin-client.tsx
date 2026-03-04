@@ -7,9 +7,13 @@ import { TimelineForm } from "./timeline-form";
 import { AdminQuizForm } from "./quiz-form";
 import { AdminAwardsForm } from "./awards-form";
 import { AdminRoomsForm } from "./rooms-form";
+import { AdminBookForm } from "./books-form";
+import { AdminBookList } from "./books-list";
 import { AdminTimelineList } from "./timeline-list";
 import { AdminQuizList } from "./quiz-list";
 import { AdminPlanForm } from "./plan-form";
+import { AdminAttendanceRewardForm } from "./attendance-reward-form";
+import { AdminChallengesForm } from "./challenges-form";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import * as LucideIcons from "lucide-react";
@@ -19,14 +23,17 @@ const Ticket = LucideIcons.Ticket as any;
 const Video = LucideIcons.Video as any;
 const Trophy = LucideIcons.Trophy as any;
 const Zap = LucideIcons.Zap as any;
+const LibraryPlaceholder = LucideIcons.LibraryBig as any;
+const Award = LucideIcons.Award as any;
 
 interface AdminClientProps {
   timelines: any[];
   quizzes: any[];
   ranking: any[];
+  books: any[];
 }
 
-export function AdminClient({ timelines, quizzes, ranking }: AdminClientProps) {
+export function AdminClient({ timelines, quizzes, ranking, books }: AdminClientProps) {
   const [editingTimeline, setEditingTimeline] = useState<any>(null);
   const [editingQuiz, setEditingQuiz] = useState<any>(null);
 
@@ -42,6 +49,12 @@ export function AdminClient({ timelines, quizzes, ranking }: AdminClientProps) {
         <TabsTrigger value="rooms" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white cursor-pointer">
           <Video className="w-4 h-4 mr-2" /> Salas
         </TabsTrigger>
+        <TabsTrigger value="challenges" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white cursor-pointer text-xs">
+          <Zap className="w-4 h-4 mr-2" /> Desafios
+        </TabsTrigger>
+        <TabsTrigger value="books" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white cursor-pointer">
+          <LibraryPlaceholder className="w-4 h-4 mr-2" /> Biblioteca
+        </TabsTrigger>
         <TabsTrigger value="ranking" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white cursor-pointer">
           <Trophy className="w-4 h-4 mr-2" /> Ranking
         </TabsTrigger>
@@ -50,6 +63,9 @@ export function AdminClient({ timelines, quizzes, ranking }: AdminClientProps) {
         </TabsTrigger>
         <TabsTrigger value="plans" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white cursor-pointer text-xs">
           <LucideIcons.CreditCard className="w-4 h-4 mr-2" /> Planos
+        </TabsTrigger>
+        <TabsTrigger value="attendance" className="rounded-xl px-6 h-full data-[state=active]:bg-emerald-500 data-[state=active]:text-white cursor-pointer text-xs">
+          <Award className="w-4 h-4 mr-2" /> Presença
         </TabsTrigger>
       </TabsList>
 
@@ -112,6 +128,21 @@ export function AdminClient({ timelines, quizzes, ranking }: AdminClientProps) {
           </div>
           <AdminRoomsForm />
         </GlassCard>
+      </TabsContent>
+
+      <TabsContent value="books">
+        <GlassCard className="p-8 rounded-3xl border-white/5">
+          <div className="mb-8">
+            <h3 className="text-xl font-bold mb-1">Adicionar e Gerenciar Livros</h3>
+            <p className="text-sm text-white/40">Adicione livros à biblioteca do sistema. Você pode buscar PDFs e anexar as capas.</p>
+          </div>
+          <AdminBookForm onCancel={() => window.scrollTo(0, 0)} />
+        </GlassCard>
+
+        <div className="mt-8">
+          <h4 className="text-sm font-bold text-white/30 uppercase tracking-widest mb-4">Acervo de Livros</h4>
+          <AdminBookList books={books} />
+        </div>
       </TabsContent>
 
       <TabsContent value="ranking">
@@ -185,6 +216,26 @@ export function AdminClient({ timelines, quizzes, ranking }: AdminClientProps) {
             <p className="text-sm text-white/40">Ajuste os valores e durações dos planos premium do sistema</p>
           </div>
           <AdminPlanForm />
+        </GlassCard>
+      </TabsContent>
+
+      <TabsContent value="attendance">
+        <GlassCard className="p-8 rounded-3xl border-white/5">
+          <div className="mb-8">
+            <h3 className="text-xl font-bold mb-1">Presença Premiada</h3>
+            <p className="text-sm text-white/40">Configure pontos automáticos por participação em encontros literários</p>
+          </div>
+          <AdminAttendanceRewardForm />
+        </GlassCard>
+      </TabsContent>
+
+      <TabsContent value="challenges">
+        <GlassCard className="p-8 rounded-3xl border-white/5">
+          <div className="mb-8">
+            <h3 className="text-xl font-bold mb-1">Gerenciar Desafios</h3>
+            <p className="text-sm text-white/40">Crie desafios de leitura ou tarefas manuais com recompensa de pontos</p>
+          </div>
+          <AdminChallengesForm />
         </GlassCard>
       </TabsContent>
     </Tabs>

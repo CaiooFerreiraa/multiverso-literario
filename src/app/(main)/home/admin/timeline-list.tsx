@@ -4,6 +4,17 @@ import React, { useTransition } from "react";
 import { GlassCard } from "@/components/glass-card";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit2, Calendar } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { deleteTimelineAction } from "@/actions/admin";
 import { toast } from "sonner";
 
@@ -16,8 +27,6 @@ export function AdminTimelineList({ timelines, onEdit }: TimelineListProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Tem certeza que deseja excluir este cronograma? Isso pode afetar dados relacionados.")) return;
-
     startTransition(async () => {
       const res = await deleteTimelineAction(id);
       if (res.success) {
@@ -55,15 +64,37 @@ export function AdminTimelineList({ timelines, onEdit }: TimelineListProps) {
               >
                 <Edit2 className="w-4 h-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDelete(t.id_timeline)}
-                disabled={isPending}
-                className="text-white/20 hover:text-red-400 hover:bg-red-400/10 cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={isPending}
+                    className="text-white/20 hover:text-red-400 hover:bg-red-400/10 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-[#0A0D28] border-white/5 text-white">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir cronograma?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-white/50">
+                      Tem certeza que deseja excluir este cronograma? Isso pode afetar dados relacionados e não pode ser desfeito.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="bg-white/5 border-none hover:bg-white/10 hover:text-white cursor-pointer">
+                      Cancelar
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => handleDelete(t.id_timeline)}
+                      className="bg-red-500 hover:bg-red-600 cursor-pointer"
+                    >
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </GlassCard>

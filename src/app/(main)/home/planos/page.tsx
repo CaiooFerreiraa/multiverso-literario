@@ -19,10 +19,6 @@ export default async function PlansPage() {
 
   const userPlan = (planRes as any).success ? (planRes as any).data : null;
 
-  // Estudantes não podem acessar a página de planos
-  if (userPlan?.view_type === 'student') {
-    redirect("/home");
-  }
 
   return (
     <PlansClient

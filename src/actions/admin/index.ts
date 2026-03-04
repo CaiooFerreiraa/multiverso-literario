@@ -92,9 +92,16 @@ export async function readAllQuizzesAction() {
 
 export async function deleteTimelineAction(id_timeline: number) {
   try {
-    // Delete from timeline (due to CASCADE or manual delete of books/quiz if needed)
-    // Assuming schema handles CASCADE, but let's be safe if not.
-    await neonClient.query(`DELETE FROM timeline WHERE id_timeline = $1`, [id_timeline]);
+    await neonClient.transaction(async (tx) => {
+      // 1. Delete user responses for any quizzes linked to this timeline_book
+      await tx.query(`DELETE FROM response_quiz_user WHERE id_quiz IN (SELECT id_quiz FROM quiz WHERE id_timeline_book = $1)`, [id_timeline]);
+      // 2. Delete the quizzes themselves
+      await tx.query(`DELETE FROM quiz WHERE id_timeline_book = $1`, [id_timeline]);
+      // 3. Delete from scheduled rooms if any
+      await tx.query(`DELETE FROM scheduled_rooms WHERE id_timeline_book = $1`, [id_timeline]).catch(() => null);
+      // 4. Finally delete the timeline (which normally cascades to timeline_book and timeline_belongs)
+      await tx.query(`DELETE FROM timeline WHERE id_timeline = $1`, [id_timeline]);
+    });
     revalidatePath("/home");
     revalidatePath("/home/admin");
     return { success: true };
@@ -134,5 +141,33 @@ export async function toggleQuizStatusAction(id_quiz: number, status: 'ativo' | 
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
+  }
+}
+
+export async function createBookAction(data: { name: string; pdf_url?: string; cover_url?: string; id_plan?: number }) {
+  try {
+    const result = await neonClient.query(
+      `INSERT INTO book (name, pdf_url, cover_url, id_plan) VALUES ($1, $2, $3, $4) RETURNING *`,
+      [data.name, data.pdf_url || null, data.cover_url || null, data.id_plan || null]
+    );
+    revalidatePath("/home/admin");
+    revalidatePath("/home/biblioteca");
+    return { success: true, data: result[0] };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Erro ao criar livro" };
+  }
+}
+
+export async function deleteBookAction(id_book: number) {
+  try {
+    await neonClient.query(
+      `DELETE FROM book WHERE id_book = $1`,
+      [id_book]
+    );
+    revalidatePath("/home/admin");
+    revalidatePath("/home/biblioteca");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Erro ao deletar livro" };
   }
 }

@@ -17,11 +17,14 @@ const ArrowRight = LucideIcons.ArrowRight as any;
 const Lock = LucideIcons.Lock as any;
 const Library = LucideIcons.Library as any;
 const ArrowLeft = LucideIcons.ArrowLeft as any;
+const ShieldAlert = LucideIcons.ShieldAlert as any;
 
 interface Book {
   id_book: number;
   name: string;
   id_plan: number | null;
+  cover_url?: string;
+  pdf_url?: string;
 }
 
 interface BibliotecaClientProps {
@@ -31,10 +34,17 @@ interface BibliotecaClientProps {
 
 export default function BibliotecaClient({ books, isPremium }: BibliotecaClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "adult">("all");
 
   const filteredBooks = books.filter(book =>
     book.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Split into general and adult-only
+  const generalBooks = filteredBooks.filter(b => b.id_plan !== 2);
+  const adultBooks = filteredBooks.filter(b => b.id_plan === 2);
+
+  const displayBooks = activeTab === "adult" ? adultBooks : generalBooks;
 
   return (
     <div className="min-h-screen py-10 px-6 lg:px-12">
@@ -94,19 +104,34 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
           </GlassCard>
         </motion.div>
 
-        {/* Categories/Tabs (Optional mock) */}
+        {/* Tabs: General vs Adult */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {["Todos", "Ficção", "Clássicos", "Poesia", "Ensaios"].map((cat) => (
-            <Button key={cat} variant="ghost" className="rounded-full px-6 h-9 text-xs font-bold border border-white/5 hover:bg-white/5 whitespace-nowrap cursor-pointer">
-              {cat}
-            </Button>
-          ))}
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`px-6 h-9 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border ${activeTab === "all"
+                ? "bg-primary text-white border-primary/30 shadow-[0_0_15px_rgba(109,40,217,0.3)]"
+                : "bg-white/5 text-white/50 border-white/5 hover:bg-white/10"
+              }`}
+          >
+            📚 Acervo Geral
+          </button>
+          <button
+            onClick={() => setActiveTab("adult")}
+            className={`px-6 h-9 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-2 ${activeTab === "adult"
+                ? "bg-amber-500/20 text-amber-500 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+                : "bg-white/5 text-white/50 border-white/5 hover:bg-white/10"
+              }`}
+          >
+            <ShieldAlert className="w-3.5 h-3.5" />
+            Pasta Exclusiva Adultos
+            {!isPremium && <Lock className="w-3 h-3 ml-1 text-amber-500/50" />}
+          </button>
         </div>
 
         {/* Books Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-20">
           <AnimatePresence mode="popLayout">
-            {filteredBooks.map((book, i) => {
+            {displayBooks.map((book, i) => {
               const isLocked = book.id_plan === 2 && !isPremium;
               return (
                 <motion.div
@@ -119,8 +144,13 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
                 >
                   <Link href={isLocked ? "#" : `/home/biblioteca/${book.id_book}`}>
                     <GlassCard className="group flex flex-col h-full rounded-2xl p-4 transition-all hover:bg-white/5 hover:-translate-y-1 cursor-pointer border-white/5 hover:border-white/15 overflow-hidden">
-                      <div className="aspect-[3/4] rounded-xl bg-gradient-to-br from-white/10 to-white/[0.02] border border-white/5 mb-4 flex items-center justify-center relative overflow-hidden">
-                        <BookOpen className="w-10 h-10 text-white/10 group-hover:text-primary/30 transition-colors" />
+                      <div className="aspect-[3/4] rounded-xl bg-gradient-to-br from-white/10 to-white/[0.02] border border-white/5 mb-4 flex items-center justify-center relative overflow-hidden bg-black/40">
+                        {book.cover_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={book.cover_url} alt={book.name} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                        ) : (
+                          <BookOpen className="w-10 h-10 text-white/10 group-hover:text-primary/30 transition-colors" />
+                        )}
                         {isLocked && (
                           <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
                             <div className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
@@ -150,10 +180,23 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
             })}
           </AnimatePresence>
 
-          {filteredBooks.length === 0 && (
+          {displayBooks.length === 0 && (
             <div className="col-span-full py-20 text-center space-y-4">
               <Bookmark className="w-12 h-12 text-white/5 mx-auto" />
-              <p className="text-white/20 text-sm">Nenhum livro encontrado para sua busca.</p>
+              <p className="text-white/20 text-sm">
+                {activeTab === "adult" && !isPremium
+                  ? "Conteúdo exclusivo para assinantes premium."
+                  : "Nenhum livro encontrado para sua busca."
+                }
+              </p>
+              {activeTab === "adult" && !isPremium && (
+                <Button asChild className="bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl cursor-pointer">
+                  <Link href="/home/planos">
+                    <Crown className="w-4 h-4 mr-2" />
+                    Assinar Plano Premium
+                  </Link>
+                </Button>
+              )}
             </div>
           )}
         </div>
