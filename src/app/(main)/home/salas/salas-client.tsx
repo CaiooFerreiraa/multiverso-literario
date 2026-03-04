@@ -7,23 +7,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import * as LucideIcons from "lucide-react";
+import {
+  Plus,
+  Search,
+  Users,
+  Video,
+  ArrowLeft,
+  Clock,
+  BookOpen,
+  Sparkles,
+  Radio,
+  X,
+  Loader2,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createScheduledRoomAction } from "@/actions/rooms";
 import { toast } from "sonner";
-
-const Plus = LucideIcons.Plus as any;
-const Search = LucideIcons.Search as any;
-const Users = LucideIcons.Users as any;
-const Video = LucideIcons.Video as any;
-const ArrowLeft = LucideIcons.ArrowLeft as any;
-const Clock = LucideIcons.Clock as any;
-const BookOpen = LucideIcons.BookOpen as any;
-const Sparkles = LucideIcons.Sparkles as any;
-const Radio = LucideIcons.Radio as any;
-const X = LucideIcons.X as any;
-const Loader2 = LucideIcons.Loader2 as any;
 
 interface SalasClientProps {
   user: {
@@ -497,7 +497,7 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
                       }`}
                   >
                     {isCreating ? (
-                      <LucideIcons.Loader2 className="w-4 h-4 animate-spin text-primary" />
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
                     ) : (
                       <Video className="w-4 h-4 transition-all" />
                     )}

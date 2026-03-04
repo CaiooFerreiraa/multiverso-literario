@@ -4,12 +4,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/glass-card";
 import { Button } from "@/components/ui/button";
-import * as LucideIcons from "lucide-react";
+import { ArrowLeft, BookOpen, Bookmark } from "lucide-react";
 import Link from "next/link";
-
-const ArrowLeft = LucideIcons.ArrowLeft as any;
-const BookOpen = LucideIcons.BookOpen as any;
-const Bookmark = LucideIcons.Bookmark as any;
 
 interface Book {
   id_book: number;

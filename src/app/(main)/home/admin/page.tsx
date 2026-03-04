@@ -2,10 +2,8 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { readAllTimelinesAction, readAllQuizzesAction } from "@/actions/admin";
 import { readGlobalRankingAction, readLibraryBooksAction } from "@/actions/dashboard";
-import * as LucideIcons from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import { AdminClient } from "./admin-client";
-
-const ShieldAlert = LucideIcons.ShieldAlert as any;
 
 export default async function AdminDashboardPage() {
   const session = await auth();

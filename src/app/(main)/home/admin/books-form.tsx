@@ -5,18 +5,9 @@ import { GlassCard } from "@/components/glass-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import * as LucideIcons from "lucide-react";
+import { Save, X, BookType, Image as ImageLucide, Search, Trash2, Link as LinkIcon, Loader2 } from "lucide-react";
 import { createBookAction } from "@/actions/admin";
 import { toast } from "sonner";
-import Image from "next/image";
-
-const Save = LucideIcons.Save as any;
-const X = LucideIcons.X as any;
-const BookType = LucideIcons.BookType as any;
-const ImageLucide = LucideIcons.Image as any;
-const Search = LucideIcons.Search as any;
-const Trash2 = LucideIcons.Trash2 as any;
-const LinkIcon = LucideIcons.Link as any;
 
 interface BookFormProps {
   onCancel: () => void;
@@ -148,7 +139,7 @@ export function AdminBookForm({ onCancel }: BookFormProps) {
                 disabled={isSearchingImage}
                 className="bg-primary/20 hover:bg-primary/40 text-primary border-none whitespace-nowrap"
               >
-                {isSearchingImage ? <LucideIcons.Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
+                {isSearchingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
                 Buscar Capa
               </Button>
             </div>
@@ -212,7 +203,7 @@ export function AdminBookForm({ onCancel }: BookFormProps) {
             Cancelar
           </Button>
           <Button type="submit" disabled={isPending} className="bg-primary hover:bg-primary/90">
-            {isPending ? <LucideIcons.Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+            {isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
             Salvar Livro
           </Button>
         </div>

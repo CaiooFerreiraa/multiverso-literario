@@ -22,14 +22,7 @@ import {
   readAllChallengesAction,
   deleteChallengeAction,
 } from "@/actions/challenges";
-import * as LucideIcons from "lucide-react";
-
-const Trophy = LucideIcons.Trophy as any;
-const Zap = LucideIcons.Zap as any;
-const Trash2 = LucideIcons.Trash2 as any;
-const Plus = LucideIcons.Plus as any;
-const Star = LucideIcons.Star as any;
-const LayoutList = LucideIcons.LayoutList as any;
+import { Trophy, Zap, Trash2, Plus, Star, LayoutList } from "lucide-react";
 
 export function AdminChallengesForm() {
   const [isPending, startTransition] = useTransition();
@@ -179,8 +172,8 @@ export function AdminChallengesForm() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${challenge.is_premium
-                      ? "bg-amber-500/10 border-amber-500/20"
-                      : "bg-white/5 border-white/10"
+                    ? "bg-amber-500/10 border-amber-500/20"
+                    : "bg-white/5 border-white/10"
                     }`}>
                     <Trophy className={`w-6 h-6 ${challenge.is_premium ? "text-amber-400" : "text-white/20"}`} />
                   </div>

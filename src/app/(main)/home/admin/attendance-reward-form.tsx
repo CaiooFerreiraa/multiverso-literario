@@ -23,15 +23,7 @@ import {
   deleteAttendanceRewardAction,
   toggleAttendanceRewardAction,
 } from "@/actions/attendance";
-import * as LucideIcons from "lucide-react";
-
-const Award = LucideIcons.Award as any;
-const Users = LucideIcons.Users as any;
-const Zap = LucideIcons.Zap as any;
-const Trash2 = LucideIcons.Trash2 as any;
-const CheckCircle2 = LucideIcons.CheckCircle2 as any;
-const Target = LucideIcons.Target as any;
-const Plus = LucideIcons.Plus as any;
+import { Award, Users, Zap, Trash2, CheckCircle2, Target, Plus } from "lucide-react";
 
 export function AdminAttendanceRewardForm() {
   const [isPending, startTransition] = useTransition();
@@ -191,8 +183,8 @@ export function AdminAttendanceRewardForm() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${reward.is_active
-                      ? "bg-emerald-500/10 border-emerald-500/20"
-                      : "bg-white/5 border-white/10"
+                    ? "bg-emerald-500/10 border-emerald-500/20"
+                    : "bg-white/5 border-white/10"
                     }`}>
                     <Award className={`w-6 h-6 ${reward.is_active ? "text-emerald-400" : "text-white/20"}`} />
                   </div>

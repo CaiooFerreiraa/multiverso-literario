@@ -6,18 +6,18 @@ import { GlassCard } from "@/components/glass-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import * as LucideIcons from "lucide-react";
+import {
+  BookOpen,
+  Bookmark,
+  Search,
+  Crown,
+  ArrowRight,
+  Lock,
+  Library,
+  ArrowLeft,
+  ShieldAlert,
+} from "lucide-react";
 import Link from "next/link";
-
-const BookOpen = LucideIcons.BookOpen as any;
-const Bookmark = LucideIcons.Bookmark as any;
-const Search = LucideIcons.Search as any;
-const Crown = LucideIcons.Crown as any;
-const ArrowRight = LucideIcons.ArrowRight as any;
-const Lock = LucideIcons.Lock as any;
-const Library = LucideIcons.Library as any;
-const ArrowLeft = LucideIcons.ArrowLeft as any;
-const ShieldAlert = LucideIcons.ShieldAlert as any;
 
 interface Book {
   id_book: number;
@@ -109,8 +109,8 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
           <button
             onClick={() => setActiveTab("all")}
             className={`px-6 h-9 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border ${activeTab === "all"
-                ? "bg-primary text-white border-primary/30 shadow-[0_0_15px_rgba(109,40,217,0.3)]"
-                : "bg-white/5 text-white/50 border-white/5 hover:bg-white/10"
+              ? "bg-primary text-white border-primary/30 shadow-[0_0_15px_rgba(109,40,217,0.3)]"
+              : "bg-white/5 text-white/50 border-white/5 hover:bg-white/10"
               }`}
           >
             📚 Acervo Geral
@@ -118,8 +118,8 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
           <button
             onClick={() => setActiveTab("adult")}
             className={`px-6 h-9 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-2 ${activeTab === "adult"
-                ? "bg-amber-500/20 text-amber-500 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-                : "bg-white/5 text-white/50 border-white/5 hover:bg-white/10"
+              ? "bg-amber-500/20 text-amber-500 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+              : "bg-white/5 text-white/50 border-white/5 hover:bg-white/10"
               }`}
           >
             <ShieldAlert className="w-3.5 h-3.5" />

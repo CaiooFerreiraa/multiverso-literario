@@ -7,17 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import * as LucideIcons from "lucide-react";
-
-// Casting icons to any to resolve React 19 / JSX element type incompatibilities
-const Search = LucideIcons.Search as any;
-const Mail = LucideIcons.Mail as any;
-const Calendar = LucideIcons.Calendar as any;
-const Bell = LucideIcons.Bell as any;
-const Plus = LucideIcons.Plus as any;
-const Users = LucideIcons.Users as any;
-const MessageSquare = LucideIcons.MessageSquare as any;
-const LogOut = LucideIcons.LogOut as any;
+import {
+  Search,
+  Mail,
+  Calendar,
+  Bell,
+  Plus,
+  Users,
+  MessageSquare,
+  LogOut,
+} from "lucide-react";
 import Link from "next/link";
 
 const UPCOMING_EVENTS = [

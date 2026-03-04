@@ -8,16 +8,17 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { responseQuizAction } from "@/actions/dashboard";
 import { useRouter } from "next/navigation";
-import * as LucideIcons from "lucide-react";
-
-const CheckCircle2 = LucideIcons.CheckCircle2 as any;
-const XCircle = LucideIcons.XCircle as any;
-const Trophy = LucideIcons.Trophy as any;
-const ArrowRight = LucideIcons.ArrowRight as any;
-const Zap = LucideIcons.Zap as any;
-const HelpCircle = LucideIcons.HelpCircle as any;
-const Timer = LucideIcons.Timer as any;
-const AlertTriangle = LucideIcons.AlertTriangle as any;
+import {
+  CheckCircle2,
+  XCircle,
+  Trophy,
+  ArrowRight,
+  Zap,
+  HelpCircle,
+  Timer,
+  AlertTriangle,
+  PenTool,
+} from "lucide-react";
 
 interface Alternative {
   id_alternative: number;
@@ -300,7 +301,7 @@ export default function QuizClient({ quiz, user }: QuizClientProps) {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex items-center gap-1.5 bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full border border-indigo-500/20">
-                      <LucideIcons.PenTool className="w-3 h-3" />
+                      <PenTool className="w-3 h-3" />
                       <span className="text-[10px] font-bold uppercase tracking-wider">Questão Aberta</span>
                     </div>
                   </div>

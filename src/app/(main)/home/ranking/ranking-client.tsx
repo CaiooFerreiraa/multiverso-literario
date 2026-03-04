@@ -6,17 +6,17 @@ import { GlassCard } from "@/components/glass-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import * as LucideIcons from "lucide-react";
+import {
+  Trophy,
+  Zap,
+  Crown,
+  ArrowLeft,
+  Flame,
+  Sparkles,
+  Star,
+  Medal,
+} from "lucide-react";
 import Link from "next/link";
-
-const Trophy = LucideIcons.Trophy as any;
-const Zap = LucideIcons.Zap as any;
-const Crown = LucideIcons.Crown as any;
-const ArrowLeft = LucideIcons.ArrowLeft as any;
-const Flame = LucideIcons.Flame as any;
-const Sparkles = LucideIcons.Sparkles as any;
-const Star = LucideIcons.Star as any;
-const Medal = LucideIcons.Medal as any;
 
 interface RankingPlayer {
   id_user: number;

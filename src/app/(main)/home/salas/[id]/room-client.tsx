@@ -4,31 +4,31 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import * as LucideIcons from "lucide-react";
+import {
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  MonitorUp,
+  Hand,
+  MessageSquare,
+  Users,
+  Phone,
+  Send,
+  X,
+  MoreVertical,
+  Smile,
+  Crown,
+  Clock,
+  Copy,
+  Shield,
+  Radio,
+  Info,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { trackRoomAttendanceAction } from "@/actions/rooms";
 import { checkAndClaimAttendanceRewardsAction } from "@/actions/attendance";
 import { toast } from "sonner";
-
-const Mic = LucideIcons.Mic as any;
-const MicOff = LucideIcons.MicOff as any;
-const Video = LucideIcons.Video as any;
-const VideoOff = LucideIcons.VideoOff as any;
-const MonitorUp = LucideIcons.MonitorUp as any;
-const Hand = LucideIcons.Hand as any;
-const MessageSquare = LucideIcons.MessageSquare as any;
-const Users = LucideIcons.Users as any;
-const Phone = LucideIcons.Phone as any;
-const Send = LucideIcons.Send as any;
-const X = LucideIcons.X as any;
-const MoreVertical = LucideIcons.MoreVertical as any;
-const Smile = LucideIcons.Smile as any;
-const Crown = LucideIcons.Crown as any;
-const Clock = LucideIcons.Clock as any;
-const Copy = LucideIcons.Copy as any;
-const Shield = LucideIcons.Shield as any;
-const Radio = LucideIcons.Radio as any;
-const Info = LucideIcons.Info as any;
 
 interface RoomClientProps {
   roomData: { id_room: number; slug: string };

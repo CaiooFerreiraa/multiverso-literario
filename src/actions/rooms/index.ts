@@ -48,9 +48,19 @@ export async function createScheduledRoomAction(data: CreateScheduledRoomDTO) {
     }
 
     const userId = Number((session.user as any).id);
-    if (isNaN(userId)) {
-      return { success: false, error: "Sessão inválida" };
+    if (isNaN(userId) || userId <= 0) {
+      return { success: false, error: "Sessão inválida — ID de usuário não reconhecido." };
     }
+
+    // Verificar se o usuário existe na tabela users (evita FK violation)
+    const userCheck = await neonClient.query(
+      `SELECT id_user FROM users WHERE id_user = $1`,
+      [userId]
+    );
+    if (!userCheck || userCheck.length === 0) {
+      return { success: false, error: "Usuário não encontrado. Faça login novamente." };
+    }
+
     const slug = generateSlug(data.title);
 
     const result = await neonClient.query(

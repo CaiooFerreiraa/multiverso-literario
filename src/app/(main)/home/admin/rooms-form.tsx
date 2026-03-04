@@ -23,15 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import * as LucideIcons from "lucide-react";
-
-const Video = LucideIcons.Video as any;
-const Trash2 = LucideIcons.Trash2 as any;
-const BookOpen = LucideIcons.BookOpen as any;
-const Clock = LucideIcons.Clock as any;
-const Calendar = LucideIcons.Calendar as any;
-const Radio = LucideIcons.Radio as any;
-const Users = LucideIcons.Users as any;
+import { Video, Trash2, BookOpen, Clock, Calendar, Radio, Users } from "lucide-react";
 
 const ROOM_CATEGORIES = [
   "Literatura Brasileira",

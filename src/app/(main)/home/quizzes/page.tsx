@@ -4,12 +4,7 @@ import { redirect } from "next/navigation";
 import { GlassCard } from "@/components/glass-card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import * as LucideIcons from "lucide-react";
-
-const Ticket = LucideIcons.Ticket as any;
-const Bookmark = LucideIcons.Bookmark as any;
-const HelpCircle = LucideIcons.HelpCircle as any;
-const ChevronRight = LucideIcons.ChevronRight as any;
+import { Ticket, Bookmark, HelpCircle, ChevronRight, Zap } from "lucide-react";
 
 import { readCurrentTimelineAction, readQuizzesAction } from "@/actions/dashboard";
 
@@ -74,7 +69,7 @@ export default async function QuizzesPage() {
                     <HelpCircle className="w-6 h-6 text-primary" />
                   </div>
                   <div className="flex items-center gap-1.5 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-                    <LucideIcons.Zap className="w-3 h-3 text-amber-500" />
+                    <Zap className="w-3 h-3 text-amber-500" />
                     <span className="text-[10px] font-bold text-amber-500 uppercase">{quiz.total_points || 0} pts</span>
                   </div>
                 </div>

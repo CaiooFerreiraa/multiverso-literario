@@ -8,28 +8,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import * as LucideIcons from "lucide-react";
-const BookOpen = LucideIcons.BookOpen as any;
-const Calendar = LucideIcons.Calendar as any;
-const Trophy = LucideIcons.Trophy as any;
-const Star = LucideIcons.Star as any;
-const Quote = LucideIcons.Quote as any;
-const Sparkles = LucideIcons.Sparkles as any;
-const Send = LucideIcons.Send as any;
-const ChevronRight = LucideIcons.ChevronRight as any;
-const Flame = LucideIcons.Flame as any;
-const Shield = LucideIcons.Shield as any;
-const Rocket = LucideIcons.Rocket as any;
-const SearchIcon = LucideIcons.Search as any;
-const Crown = LucideIcons.Crown as any;
-const Zap = LucideIcons.Zap as any;
-const MessageCircle = LucideIcons.MessageCircle as any;
-const Video = LucideIcons.Video as any;
-const Ticket = LucideIcons.Ticket as any;
-const LogOut = LucideIcons.LogOut as any;
-const Target = LucideIcons.Target as any;
-const Award = LucideIcons.Award as any;
-const ShieldAlert = LucideIcons.ShieldAlert as any;
+import {
+  BookOpen,
+  Calendar,
+  Trophy,
+  Star,
+  Quote,
+  Sparkles,
+  Send,
+  ChevronRight,
+  Flame,
+  Shield,
+  Rocket,
+  Search as SearchIcon,
+  Crown,
+  Zap,
+  MessageCircle,
+  Video,
+  Ticket,
+  LogOut,
+  Target,
+  Award,
+  ShieldAlert,
+} from "lucide-react";
 import Link from "next/link";
 import { createPhraseAction } from "@/actions/phrases";
 import { signOut } from "next-auth/react";

@@ -5,9 +5,7 @@ import QuizClient from "./quiz-client";
 import { GlassCard } from "@/components/glass-card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import * as LucideIcons from "lucide-react";
-
-const Trophy = LucideIcons.Trophy as any;
+import { Trophy } from "lucide-react";
 
 interface PageProps {
   params: {

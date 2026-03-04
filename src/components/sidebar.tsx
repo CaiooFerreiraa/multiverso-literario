@@ -4,18 +4,28 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import * as LucideIcons from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { signOut } from "next-auth/react";
 import {
   Menu,
   X,
   LogOut,
   User,
   ShieldAlert,
-  ChevronRight
+  ChevronRight,
+  LayoutDashboard,
+  Video,
+  Star,
+  Gamepad2,
+  Ticket,
+  Quote,
+  Library,
+  Trophy,
+  MessageCircle,
+  Zap,
+  ArrowLeft,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { signOut } from "next-auth/react";
 
 interface SidebarProps {
   user: {
@@ -36,15 +46,15 @@ export function Sidebar({ user, viewType }: SidebarProps) {
   const isStudent = viewType === 'student';
 
   const menuItems = [
-    { label: "Home", icon: LucideIcons.LayoutDashboard, href: "/home" },
-    { label: "Salas", icon: LucideIcons.Video, href: "/home/salas" },
-    { label: "Plano", icon: LucideIcons.Star, href: "/home/planos" },
-    { label: "Desafios", icon: LucideIcons.Gamepad2, href: "/home/desafios" },
-    { label: "Quizzes", icon: LucideIcons.Ticket, href: "/home/quizzes" },
-    { label: "Frases", icon: LucideIcons.Quote, href: "/home/frases" },
-    { label: "Biblioteca", icon: LucideIcons.Library, href: "/home/biblioteca" },
-    { label: "Ranking", icon: LucideIcons.Trophy, href: "/home/ranking" },
-    { label: "Chat com Admin", icon: LucideIcons.MessageCircle, href: "/home/suporte" },
+    { label: "Home", icon: LayoutDashboard, href: "/home" },
+    { label: "Salas", icon: Video, href: "/home/salas" },
+    { label: "Plano", icon: Star, href: "/home/planos" },
+    { label: "Desafios", icon: Gamepad2, href: "/home/desafios" },
+    { label: "Quizzes", icon: Ticket, href: "/home/quizzes" },
+    { label: "Frases", icon: Quote, href: "/home/frases" },
+    { label: "Biblioteca", icon: Library, href: "/home/biblioteca" },
+    { label: "Ranking", icon: Trophy, href: "/home/ranking" },
+    { label: "Chat com Admin", icon: MessageCircle, href: "/home/suporte" },
     ...(user.isAdmin ? [{ label: "Admin", icon: ShieldAlert, href: "/home/admin" }] : []),
   ];
 
@@ -128,7 +138,7 @@ export function Sidebar({ user, viewType }: SidebarProps) {
 
             <div className="relative z-10">
               <div className="flex items-end gap-1.5 mb-1.5">
-                <LucideIcons.Zap className="w-4 h-4 text-amber-400 fill-amber-400 group-hover:animate-pulse mb-0.5" />
+                <Zap className="w-4 h-4 text-amber-400 fill-amber-400 group-hover:animate-pulse mb-0.5" />
                 <span className="text-xl font-black text-amber-400 tracking-tighter leading-none">
                   {user.points || 0}
                 </span>
@@ -156,7 +166,7 @@ export function Sidebar({ user, viewType }: SidebarProps) {
           className="w-full flex items-center justify-between gap-4 px-4 py-3 text-white/40 hover:text-red-400 transition-all group cursor-pointer uppercase font-black italic tracking-widest text-[11px]"
         >
           <div className="flex items-center gap-3">
-            <LucideIcons.ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             <span>SAIR</span>
           </div>
         </button>

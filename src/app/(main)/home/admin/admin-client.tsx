@@ -16,15 +16,17 @@ import { AdminAttendanceRewardForm } from "./attendance-reward-form";
 import { AdminChallengesForm } from "./challenges-form";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import * as LucideIcons from "lucide-react";
-
-const LayoutDashboard = LucideIcons.LayoutDashboard as any;
-const Ticket = LucideIcons.Ticket as any;
-const Video = LucideIcons.Video as any;
-const Trophy = LucideIcons.Trophy as any;
-const Zap = LucideIcons.Zap as any;
-const LibraryPlaceholder = LucideIcons.LibraryBig as any;
-const Award = LucideIcons.Award as any;
+import {
+  LayoutDashboard,
+  Ticket,
+  Video,
+  Trophy,
+  Zap,
+  LibraryBig,
+  Award,
+  Gift,
+  CreditCard,
+} from "lucide-react";
 
 interface AdminClientProps {
   timelines: any[];
@@ -53,16 +55,16 @@ export function AdminClient({ timelines, quizzes, ranking, books }: AdminClientP
           <Zap className="w-4 h-4 mr-2" /> Desafios
         </TabsTrigger>
         <TabsTrigger value="books" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white cursor-pointer">
-          <LibraryPlaceholder className="w-4 h-4 mr-2" /> Biblioteca
+          <LibraryBig className="w-4 h-4 mr-2" /> Biblioteca
         </TabsTrigger>
         <TabsTrigger value="ranking" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white cursor-pointer">
           <Trophy className="w-4 h-4 mr-2" /> Ranking
         </TabsTrigger>
         <TabsTrigger value="awards" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white cursor-pointer text-xs">
-          <LucideIcons.Gift className="w-4 h-4 mr-2" /> Premiações
+          <Gift className="w-4 h-4 mr-2" /> Premiações
         </TabsTrigger>
         <TabsTrigger value="plans" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white cursor-pointer text-xs">
-          <LucideIcons.CreditCard className="w-4 h-4 mr-2" /> Planos
+          <CreditCard className="w-4 h-4 mr-2" /> Planos
         </TabsTrigger>
         <TabsTrigger value="attendance" className="rounded-xl px-6 h-full data-[state=active]:bg-emerald-500 data-[state=active]:text-white cursor-pointer text-xs">
           <Award className="w-4 h-4 mr-2" /> Presença

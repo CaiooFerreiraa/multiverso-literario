@@ -10,14 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useTransition, useEffect } from "react";
 import { createQuizAction, updateQuizAction } from "@/actions/admin";
 import { toast } from "sonner";
-import * as LucideIcons from "lucide-react";
+import { Plus, Trash2, Zap, X, Timer as TimerIcon, CheckSquare } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-
-const Plus = LucideIcons.Plus as any;
-const Trash2 = LucideIcons.Trash2 as any;
-const Zap = LucideIcons.Zap as any;
-const X = LucideIcons.X as any;
-const TimerIcon = LucideIcons.Timer as any;
 
 interface AdminQuizFormProps {
   timelines: any[];
@@ -264,7 +258,7 @@ export function AdminQuizForm({ timelines, initialData, onCancel }: AdminQuizFor
                 {form.watch(`questions.${qIndex}.type` as any) === "choice" ? (
                   <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                     <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest flex items-center gap-2">
-                      <LucideIcons.CheckSquare className="w-3 h-3" /> Alternativas e Correção
+                      <CheckSquare className="w-3 h-3" /> Alternativas e Correção
                     </p>
                     <div className="grid gap-2">
                       {[0, 1, 2, 3].map((altIndex) => (
