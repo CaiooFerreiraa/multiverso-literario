@@ -75,6 +75,9 @@ jobs:
             printf "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}\n" >> .env
             printf "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}\n" >> .env
             printf "AUTH_SECRET=${{ secrets.AUTH_SECRET }}\n" >> .env
+            printf "AUTH_TRUST_HOST=true\n" >> .env
+            printf "ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}\n" >> .env
+            printf "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}\n" >> .env
             printf "DOCKER_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/multiverso-literario:latest\n" >> .env
             
             echo "Realizando pull da imagem mais recente..."
