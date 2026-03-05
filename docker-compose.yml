@@ -1,8 +1,6 @@
-version: "3.8"
-
 services:
   app:
-    image: ${DOCKER_IMAGE:-kaiozym/multiverso-literario:latest}
+    image: kaiozyn/multiverso-literario:latest
     container_name: multiverso-literario
     restart: always
     expose:
