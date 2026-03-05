@@ -47,9 +47,9 @@ jobs:
             docker run -d \
               --name multiverso-literario \
               -p 3000:3000 \
-              --env DATABASE_URL=${{ secrets.DATABASE_URL }} \
-              --env NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
-              --env NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }} \
-              --env AUTH_SECRET=${{ secrets.AUTH_SECRET }} \
+              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -e NEXT_PUBLIC_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}" \
+              -e NEXTAUTH_URL="${{ secrets.NEXTAUTH_URL }}" \
+              -e AUTH_SECRET="${{ secrets.AUTH_SECRET }}" \
               --restart always \
               ${{ secrets.DOCKERHUB_USERNAME }}/multiverso-literario:latest
