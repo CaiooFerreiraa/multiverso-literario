@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   app:
-    image: ${DOCKER_IMAGE:-cs191/multiverso-literario:latest}
+    image: ${DOCKER_IMAGE:-kaiozym/multiverso-literario:latest}
     container_name: multiverso-literario
     restart: always
     expose:
@@ -14,19 +14,6 @@ services:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       AUTH_SECRET: ${AUTH_SECRET}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
-    networks:
-      - nginx-proxy-manager_default
-
-  nginx:
-    image: nginx:alpine
-    container_name: multiverso-literario-nginx
-    restart: always
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - app
     networks:
       - nginx-proxy-manager_default
 
