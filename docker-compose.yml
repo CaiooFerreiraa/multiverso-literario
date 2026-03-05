@@ -2,9 +2,7 @@ version: "3.8"
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${DOCKER_IMAGE:-cs191/multiverso-literario:latest}
     container_name: multiverso-literario
     restart: always
     expose:
@@ -17,7 +15,7 @@ services:
       AUTH_SECRET: ${AUTH_SECRET}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
     networks:
-      - nginx_network
+      - nginx-proxy-manager_default
 
   nginx:
     image: nginx:alpine
@@ -30,8 +28,8 @@ services:
     depends_on:
       - app
     networks:
-      - nginx_network
+      - nginx-proxy-manager_default
 
 networks:
-  nginx_network:
-    driver: bridge
+  nginx-proxy-manager_default:
+    external: true

@@ -34,6 +34,18 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml,nginx/nginx.conf"
+          target: "multiverso-literario"
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -41,15 +53,14 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/multiverso-literario:latest
-            docker stop multiverso-literario || true
-            docker rm multiverso-literario || true
-            docker run -d \
-              --name multiverso-literario \
-              -p 3000:3000 \
-              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-              -e NEXT_PUBLIC_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}" \
-              -e NEXTAUTH_URL="${{ secrets.NEXTAUTH_URL }}" \
-              -e AUTH_SECRET="${{ secrets.AUTH_SECRET }}" \
-              --restart always \
-              ${{ secrets.DOCKERHUB_USERNAME }}/multiverso-literario:latest
+            cd multiverso-literario
+            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+            echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
+            echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" >> .env
+            echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env
+            echo "DOCKER_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/multiverso-literario:latest" >> .env
+            
+            docker compose pull
+            docker compose down || true
+            docker compose up -d
+
