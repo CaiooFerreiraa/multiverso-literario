@@ -40,27 +40,19 @@ interface SidebarProps {
   viewType: 'student' | 'adult' | 'free';
 }
 
-export function Sidebar({ user, viewType }: SidebarProps) {
-  const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
-  const isStudent = viewType === 'student';
+interface SidebarContentProps {
+  user: SidebarProps['user'];
+  viewType: SidebarProps['viewType'];
+  menuItems: { label: string; icon: any; href: string }[];
+  handleSignOut: () => void;
+  setIsOpen: (v: boolean) => void;
+  pathname: string;
+  mobile?: boolean;
+}
 
-  const menuItems = [
-    { label: "Home", icon: LayoutDashboard, href: "/home" },
-    { label: "Salas", icon: Video, href: "/home/salas" },
-    { label: "Plano", icon: Star, href: "/home/planos" },
-    { label: "Desafios", icon: Gamepad2, href: "/home/desafios" },
-    { label: "Quizzes", icon: Ticket, href: "/home/quizzes" },
-    { label: "Frases", icon: Quote, href: "/home/frases" },
-    { label: "Biblioteca", icon: Library, href: "/home/biblioteca" },
-    { label: "Ranking", icon: Trophy, href: "/home/ranking" },
-    { label: "Chat com Admin", icon: MessageCircle, href: "/home/suporte" },
-    ...(user.isAdmin ? [{ label: "Admin", icon: ShieldAlert, href: "/home/admin" }] : []),
-  ];
-
-  const handleSignOut = () => signOut({ callbackUrl: "/login" });
-
-  const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
+// Defined OUTSIDE of Sidebar to avoid re-creation on every render
+function SidebarContent({ user, viewType, menuItems, handleSignOut, setIsOpen, pathname, mobile = false }: SidebarContentProps) {
+  return (
     <>
       <div className={`${mobile ? "block" : "hidden lg:block"} mb-12 uppercase`}>
         <h1 className="text-2xl font-black tracking-tighter text-white">
@@ -138,7 +130,7 @@ export function Sidebar({ user, viewType }: SidebarProps) {
 
             <div className="relative z-10">
               <div className="flex items-end gap-1.5 mb-1.5">
-                <Zap className="w-4 h-4 text-amber-400 fill-amber-400 group-hover:animate-pulse mb-0.5" />
+                <Zap className="w-4 h-4 text-amber-400 fill-amber-400 mb-0.5" />
                 <span className="text-xl font-black text-amber-400 tracking-tighter leading-none">
                   {user.points || 0}
                 </span>
@@ -150,10 +142,10 @@ export function Sidebar({ user, viewType }: SidebarProps) {
                   {user.challengesCompleted || 0} Desafios Completados
                 </p>
                 <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.min((user.points || 0) / 10, 100)}%` }}
-                    className="h-full bg-gradient-to-r from-amber-500 to-primary shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+                  {/* CSS transition — evita framer-motion overhead no sidebar */}
+                  <div
+                    className="h-full bg-gradient-to-r from-amber-500 to-primary shadow-[0_0_8px_rgba(245,158,11,0.5)] transition-[width] duration-700"
+                    style={{ width: `${Math.min((user.points || 0) / 10, 100)}%` }}
                   />
                 </div>
               </div>
@@ -173,6 +165,27 @@ export function Sidebar({ user, viewType }: SidebarProps) {
       </div>
     </>
   );
+}
+
+export function Sidebar({ user, viewType }: SidebarProps) {
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const menuItems = [
+    { label: "Home", icon: LayoutDashboard, href: "/home" },
+    { label: "Salas", icon: Video, href: "/home/salas" },
+    { label: "Plano", icon: Star, href: "/home/planos" },
+    { label: "Desafios", icon: Gamepad2, href: "/home/desafios" },
+    { label: "Quizzes", icon: Ticket, href: "/home/quizzes" },
+    { label: "Frases", icon: Quote, href: "/home/frases" },
+    { label: "Biblioteca", icon: Library, href: "/home/biblioteca" },
+    { label: "Ranking", icon: Trophy, href: "/home/ranking" },
+    { label: "Chat com Admin", icon: MessageCircle, href: "/home/suporte" },
+    ...(user.isAdmin ? [{ label: "Admin", icon: ShieldAlert, href: "/home/admin" }] : []),
+  ];
+
+  const handleSignOut = () => signOut({ callbackUrl: "/login" });
+  const sharedProps: SidebarContentProps = { user, viewType, menuItems, handleSignOut, setIsOpen, pathname };
 
   return (
     <>
@@ -192,7 +205,7 @@ export function Sidebar({ user, viewType }: SidebarProps) {
       {/* DESKTOP SIDEBAR */}
       <aside className="hidden lg:flex fixed inset-y-0 left-0 w-72 flex-col p-8 border-r border-white/5 bg-[#0f1235]/40 backdrop-blur-3xl z-40 h-screen overflow-y-auto scrollbar-hide shadow-[10px_0_40px_rgba(0,0,0,0.3)]">
         <div className="absolute top-0 left-0 w-full h-32 bg-primary/5 blur-3xl rounded-full pointer-events-none" />
-        <SidebarContent />
+        <SidebarContent {...sharedProps} />
       </aside>
 
       {/* MOBILE SIDEBAR (Animated) */}
@@ -215,7 +228,7 @@ export function Sidebar({ user, viewType }: SidebarProps) {
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="fixed inset-y-0 left-0 w-72 flex flex-col p-8 border-r border-white/10 bg-[#0f1235]/90 backdrop-blur-3xl z-[70] h-screen overflow-y-auto scrollbar-hide shadow-2xl"
             >
-              <SidebarContent mobile />
+              <SidebarContent {...sharedProps} mobile />
             </motion.aside>
           </>
         )}

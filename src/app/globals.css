@@ -202,3 +202,35 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+textarea,
+.custom-scrollbar {
+  @apply bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-white/10 cursor-text selection:bg-primary/30;
+
+  /* Standard Scrollbar styling for a cleaner look */
+  scrollbar-width: thin;
+  scrollbar-color: oklch(1 0 0 / 10%) transparent;
+}
+
+textarea::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+textarea::-webkit-scrollbar-thumb,
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: oklch(1 0 0 / 10%);
+  border-radius: 99px;
+}

@@ -3,9 +3,8 @@
 import React, { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { GlassCard } from "@/components/glass-card";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { createChallengeAction, readAllChallengesAction as listChallengesAction, deleteChallengeAction } from "@/actions/challenges";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,46 +16,46 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { motion, AnimatePresence } from "framer-motion";
+import { Zap, Plus, Trophy, Trash2, Clock, Gamepad2 } from "lucide-react";
 import {
-  createChallengeAction,
-  readAllChallengesAction,
-  deleteChallengeAction,
-} from "@/actions/challenges";
-import { Trophy, Zap, Trash2, Plus, Star, LayoutList } from "lucide-react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function AdminChallengesForm() {
   const [isPending, startTransition] = useTransition();
   const [challenges, setChallenges] = useState<any[]>([]);
-  const [form, setForm] = useState({
+  const [newChallenge, setNewChallenge] = useState({
     title: "",
     description: "",
-    points: 100,
-    challenge_type: "manual",
-    is_premium: false,
+    points: 0,
+    type: "manual" as "manual" | "automatic",
   });
 
-  useEffect(() => {
-    loadChallenges();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
-  async function loadChallenges() {
-    const res = await readAllChallengesAction();
+  async function loadData() {
+    const res = await listChallengesAction();
     if (res.success) setChallenges(res.data as any[]);
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim() || form.points < 1) {
-      toast.error("Preencha o título e os pontos corretamente");
+    if (!newChallenge.title || newChallenge.points <= 0) {
+      toast.error("Preencha o título e uma pontuação válida");
       return;
     }
 
     startTransition(async () => {
-      const res = await createChallengeAction(form);
+      const res = await createChallengeAction(newChallenge);
       if (res.success) {
-        toast.success("Desafios criado com sucesso!");
-        setForm({ title: "", description: "", points: 100, challenge_type: "manual", is_premium: false });
-        loadChallenges();
+        toast.success("Desafio criado!");
+        setNewChallenge({ title: "", description: "", points: 0, type: "manual" });
+        loadData();
       } else {
         toast.error("Erro: " + res.error);
       }
@@ -66,174 +65,147 @@ export function AdminChallengesForm() {
   const handleDelete = async (id: number) => {
     const res = await deleteChallengeAction(id);
     if (res.success) {
-      toast.success("Desafio excluído!");
-      loadChallenges();
+      toast.success("Desafio removido");
+      loadData();
     }
   };
 
   return (
-    <div className="space-y-10">
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid md:grid-cols-2 gap-5">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
-              Título do Desafio *
-            </label>
-            <Input
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="Ex: Ler o livro do mês em 15 dias"
-              className="bg-white/5 border-white/10 h-11 cursor-text"
+    <div className="space-y-8">
+      {/* Form */}
+      <div className="bg-white/[0.025] border border-white/8 rounded-2xl p-6 md:p-8">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
+                <Gamepad2 className="w-3 h-3 text-primary" /> Nome do Desafio
+              </label>
+              <Input
+                value={newChallenge.title}
+                onChange={e => setNewChallenge({ ...newChallenge, title: e.target.value })}
+                placeholder="Ex: Leitor Ávido"
+                className="focus:border-primary/40"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
+                  <Zap className="w-3 h-3 text-amber-500" /> Pontos
+                </label>
+                <Input
+                  type="number"
+                  value={newChallenge.points || ""}
+                  onChange={e => setNewChallenge({ ...newChallenge, points: Number(e.target.value) })}
+                  placeholder="50"
+                  className="focus:border-amber-500/40"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Tipo</label>
+                <Select
+                  value={newChallenge.type}
+                  onValueChange={(val) => setNewChallenge({ ...newChallenge, type: val as any })}
+                >
+                  <SelectTrigger className="focus:border-primary/40">
+                    <SelectValue placeholder="Selecionar tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="automatic">Automático</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Instruções (opcional)</label>
+            <textarea
+              value={newChallenge.description}
+              onChange={e => setNewChallenge({ ...newChallenge, description: e.target.value })}
+              placeholder="Descreva o que o usuário deve fazer..."
+              rows={3}
+              className="resize-none"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
-              Tipo do Desafio
-            </label>
-            <select
-              value={form.challenge_type}
-              onChange={(e) => setForm({ ...form, challenge_type: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl h-11 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer text-white"
-            >
-              <option value="manual" className="bg-[#1a1a2e]">Manual / Comunitário</option>
-              <option value="reading" className="bg-[#1a1a2e]">Leitura</option>
-              <option value="event" className="bg-[#1a1a2e]">Evento Especial</option>
-            </select>
-          </div>
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm uppercase tracking-wider gap-2 cursor-pointer transition-all shadow-lg shadow-primary/20"
+          >
+            {isPending ? <Clock className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            Criar Desafio
+          </Button>
+        </form>
+      </div>
+
+      {/* List */}
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.25em]">Desafios Criados</p>
+          <div className="h-px flex-1 bg-white/5" />
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
-            Descrição (Regras para completar)
-          </label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            placeholder="Descreva o que o usuário deve fazer para ganhar os pontos..."
-            rows={3}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-white/20 resize-none cursor-text"
-          />
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-5">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-white/50 uppercase tracking-wider flex items-center gap-2">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              Pontos de Recompensa *
-            </label>
-            <Input
-              type="number"
-              min={1}
-              value={form.points}
-              onChange={(e) => setForm({ ...form, points: Number(e.target.value) })}
-              className="bg-white/5 border-white/10 h-11 font-bold text-amber-300 text-center w-32 cursor-text"
-            />
-          </div>
-
-          <div className="space-y-2 flex flex-col justify-center">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="is_premium"
-                checked={form.is_premium}
-                onChange={(e) => setForm({ ...form, is_premium: e.target.checked })}
-                className="w-5 h-5 rounded border-white/10 bg-white/5 text-primary focus:ring-primary cursor-pointer"
-              />
-              <label htmlFor="is_premium" className="text-sm font-medium cursor-pointer flex items-center gap-2">
-                <Star className={`w-4 h-4 ${form.is_premium ? 'text-amber-400 fill-amber-400' : 'text-white/20'}`} />
-                Desafio Premium (Exclusivo assinantes)
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <Button
-          type="submit"
-          disabled={isPending || !form.title.trim()}
-          className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold gap-2 transition-all active:scale-[0.98] shadow-[0_0_20px_rgba(109,40,217,0.3)] cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          {isPending ? "Criando..." : "Cadastrar Novo Desafio"}
-        </Button>
-      </form>
-
-      <div className="space-y-4">
-        <h4 className="text-sm font-bold text-white/30 uppercase tracking-widest flex items-center gap-2">
-          <LayoutList className="w-4 h-4" /> Desafios Cadastrados
-        </h4>
-
-        <div className="grid gap-3">
-          {challenges.map((challenge: any) => (
-            <GlassCard
-              key={challenge.id_challenge}
-              className="p-5 rounded-2xl border-white/5 hover:bg-white/5 transition-all"
-            >
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${challenge.is_premium
-                    ? "bg-amber-500/10 border-amber-500/20"
-                    : "bg-white/5 border-white/10"
-                    }`}>
-                    <Trophy className={`w-6 h-6 ${challenge.is_premium ? "text-amber-400" : "text-white/20"}`} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h5 className="font-bold">{challenge.title}</h5>
-                      {challenge.is_premium && (
-                        <Badge className="bg-amber-500/20 text-amber-400 border-none px-1.5 h-4 text-[9px] font-bold">PREMIUM</Badge>
-                      )}
-                    </div>
-                    {challenge.description && (
-                      <p className="text-xs text-white/40 mb-2 line-clamp-1">{challenge.description}</p>
-                    )}
-                    <div className="flex items-center gap-4 text-[10px] text-white/30 font-bold uppercase tracking-widest">
-                      <span className="flex items-center gap-1.5 text-amber-300">
-                        <Zap className="w-3 h-3" />
-                        {challenge.points} pontos
-                      </span>
-                      <span className="bg-white/5 px-2 py-0.5 rounded-full lowercase">{challenge.challenge_type}</span>
-                    </div>
-                  </div>
+          <AnimatePresence mode="popLayout">
+            {challenges.map((ch: any) => (
+              <motion.div
+                key={ch.id_challenge}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                className="flex items-center gap-4 p-4 rounded-xl border border-white/8 bg-white/[0.025] hover:border-white/15 transition-all"
+              >
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-primary/10">
+                  <Zap className="w-4 h-4 text-primary" />
                 </div>
 
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-10 w-10 rounded-xl text-white/20 hover:text-red-400 hover:bg-red-400/10 cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="bg-[#0A0D28] border-white/5 text-white">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Excluir desafio?</AlertDialogTitle>
-                      <AlertDialogDescription className="text-white/50">
-                        Essa ação removerá o desafio permanentemente.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel className="bg-white/5 border-none hover:bg-white/10 hover:text-white cursor-pointer">
-                        Cancelar
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDelete(challenge.id_challenge)}
-                        className="bg-red-500 hover:bg-red-600 cursor-pointer"
-                      >
-                        Excluir
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </GlassCard>
-          ))}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-white truncate">{ch.title}</p>
+                  <p className="text-[10px] text-white/30 mt-0.5">
+                    {ch.type === "manual" ? "Atribuição Manual" : "Atribuição Automática"} · {ch.points} pontos
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="hidden sm:flex items-center gap-1.5 bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg">
+                    <Trophy className="w-3 h-3" />
+                    <span className="text-[10px] font-black">{ch.points}</span>
+                  </div>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button className="p-2 text-white/15 hover:text-red-400 hover:bg-red-400/10 rounded-lg cursor-pointer transition-all">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-[#0d0f2b] border-white/10 text-white rounded-2xl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir desafio?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-white/40">
+                          Isso removerá "{ch.title}" permanentemente.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-white/5 border-none hover:bg-white/10 cursor-pointer">Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDelete(ch.id_challenge)} className="bg-red-500/10 hover:bg-red-500 text-red-100 hover:text-white border border-red-500/20 cursor-pointer">
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {challenges.length === 0 && (
-            <div className="p-12 text-center border border-dashed border-white/5 rounded-3xl">
-              <p className="text-white/20 text-sm italic">Nenhum desafio manual cadastrado</p>
+            <div className="py-16 text-center border border-dashed border-white/8 rounded-2xl">
+              <Zap className="w-7 h-7 text-white/10 mx-auto mb-3" />
+              <p className="text-sm text-white/20 font-medium">Nenhum desafio criado</p>
             </div>
           )}
         </div>

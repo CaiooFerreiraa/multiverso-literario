@@ -25,23 +25,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-screen bg-[#0d0f2b] text-white selection:bg-primary/40 selection:text-white overflow-x-hidden relative">
-      {/* Crisp Universe Atmosphere - Much more vibrant and light-filled */}
-      <div className="fixed inset-0 bg-gradient-to-b from-[#0f1235] via-[#0d0f2b] to-[#12143d] pointer-events-none z-0" />
+      {/* Static atmosphere — GPU-composited, zero JS animations */}
+      <div className="fixed inset-0 pointer-events-none z-0" style={{
+        background: `
+          radial-gradient(circle at 0% 30%, rgba(139,92,246,0.30) 0%, transparent 55%),
+          radial-gradient(circle at 100% 10%, rgba(59,130,246,0.20) 0%, transparent 50%),
+          radial-gradient(circle at 80% 90%, rgba(236,72,153,0.12) 0%, transparent 50%),
+          radial-gradient(circle at 40% 100%, rgba(79,70,229,0.18) 0%, transparent 65%),
+          linear-gradient(180deg, #0f1235 0%, #0d0f2b 50%, #12143d 100%)
+        `,
+        willChange: 'auto',
+        transform: 'translateZ(0)',
+      }} />
 
-      {/* Dynamic Nebulas - Brighter spot lights */}
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_0%_30%,rgba(139,92,246,0.35),transparent_60%)] pointer-events-none z-0" />
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_100%_10%,rgba(59,130,246,0.25),transparent_50%)] pointer-events-none z-0" />
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_80%_90%,rgba(236,72,153,0.15),transparent_50%)] pointer-events-none z-0" />
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_40%_100%,rgba(79,70,229,0.2),transparent_70%)] pointer-events-none z-0" />
-
-      {/* High Intensity Glows */}
-      <div className="fixed top-[-10%] left-[-5%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full pointer-events-none z-0 animate-pulse" />
-      <div className="fixed bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none z-0 animate-pulse" />
-
-      {/* Shimmering Stars - High Contrast */}
-      <div className="fixed top-20 left-[15%] w-1.5 h-1.5 bg-white rounded-full opacity-90 z-0 shadow-[0_0_15px_rgba(255,255,255,1)]" />
-      <div className="fixed top-60 left-[45%] w-1 h-1 bg-white rounded-full opacity-60 z-0 shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
-      <div className="fixed bottom-40 left-[10%] w-2 h-2 bg-primary/40 rounded-full blur-[2px] opacity-70 z-0 animate-pulse" />
+      {/* Soft ambient glows — static, no animations */}
+      <div className="fixed top-[-8%] left-[-4%] w-[38%] h-[38%] bg-primary/15 blur-[130px] rounded-full pointer-events-none z-0" style={{ transform: 'translateZ(0)' }} />
+      <div className="fixed bottom-[-8%] right-[-4%] w-[38%] h-[38%] bg-blue-500/8 blur-[130px] rounded-full pointer-events-none z-0" style={{ transform: 'translateZ(0)' }} />
 
       <div className="relative z-10 flex w-full">
         <Sidebar

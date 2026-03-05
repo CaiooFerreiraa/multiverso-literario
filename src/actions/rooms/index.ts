@@ -163,3 +163,51 @@ export async function trackRoomAttendanceAction(id_room: number, seconds: number
     return { success: false, error: error.message };
   }
 }
+
+/**
+ * Conta quantos usuários distintos atualizaram sua presença
+ * nesta sala nos últimos 2 minutos (proxy de "ainda na sala").
+ */
+export async function getRoomParticipantCountAction(id_room: number) {
+  try {
+    const result = await neonClient.query<{ count: string }>(
+      `SELECT COUNT(DISTINCT id_user) as count
+       FROM user_call_attendance
+       WHERE id_room = $1
+         AND updated_at >= NOW() - INTERVAL '5 minutes'`,
+      [id_room]
+    );
+    const count = parseInt(result[0]?.count ?? "0", 10);
+    return { success: true, count };
+  } catch (error: any) {
+    return { success: false, count: 0, error: error.message };
+  }
+}
+
+/**
+ * Fecha uma sala (desativa) — pode ser chamado por qualquer usuário autenticado
+ * que esteja na sala (o último a sair aciona isso).
+ */
+export async function closeRoomAction(id_room: number) {
+  try {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "Não autenticado" };
+
+    // Só desativa se não houver participantes de fato
+    const { count } = await getRoomParticipantCountAction(id_room);
+    if (count > 0) {
+      return { success: false, error: "A sala ainda possui participantes ativos" };
+    }
+
+    await neonClient.query(
+      `UPDATE scheduled_rooms SET is_active = false WHERE id_room = $1`,
+      [id_room]
+    );
+
+    revalidatePath("/home/salas");
+    revalidatePath("/home/admin");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}

@@ -1,11 +1,16 @@
 "use client";
 
 import React, { useState, useTransition, useEffect, useRef } from "react";
-import { GlassCard } from "@/components/glass-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, X, BookType, Image as ImageLucide, Search, Trash2, Link as LinkIcon, Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Book, Image as ImageIcon, Link as LinkIcon, Loader2, Plus, Search, X } from "lucide-react";
 import { createBookAction } from "@/actions/admin";
 import { toast } from "sonner";
 
@@ -19,12 +24,10 @@ export function AdminBookForm({ onCancel }: BookFormProps) {
     name: "",
     pdf_url: "",
     cover_url: "",
-    id_plan: "1" // Default free/basic
+    id_plan: "1"
   });
   const [isSearchingImage, setIsSearchingImage] = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Transform Drive view link to direct download link
   const transformPdfUrl = (url: string) => {
     if (url.includes("drive.google.com/file/d/")) {
       const match = url.match(/file\/d\/([^/]+)/);
@@ -35,20 +38,6 @@ export function AdminBookForm({ onCancel }: BookFormProps) {
     return url;
   };
 
-  // Auto-search cover when name changes (debounced)
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!formData.name || formData.name.length < 3) return;
-
-    debounceRef.current = setTimeout(() => {
-      handleSearchCover();
-    }, 1000);
-
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [formData.name]);
-
   const handleSearchCover = async () => {
     if (!formData.name) {
       toast.error("Digite o nome do livro primeiro");
@@ -56,23 +45,21 @@ export function AdminBookForm({ onCancel }: BookFormProps) {
     }
     setIsSearchingImage(true);
     try {
-      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(formData.name)}&maxResults=1`);
+      const res = await fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(formData.name)}&limit=1`);
       const data = await res.json();
-      if (data.items && data.items.length > 0 && data.items[0].volumeInfo.imageLinks) {
-        let imageUrl = data.items[0].volumeInfo.imageLinks.thumbnail || data.items[0].volumeInfo.imageLinks.smallThumbnail;
-        if (imageUrl) {
-          // Replace http with https
-          imageUrl = imageUrl.replace(/^http:\/\//i, 'https://');
-          setFormData(prev => ({ ...prev, cover_url: imageUrl }));
-          toast.success("Capa encontrada!");
-        } else {
-          toast.error("Capa não encontrada para este livro");
-        }
+
+      if (data.docs && data.docs.length > 0 && data.docs[0].cover_i) {
+        const coverId = data.docs[0].cover_i;
+        const imageUrl = `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`;
+
+        setFormData(prev => ({ ...prev, cover_url: imageUrl }));
+        toast.success("Capa encontrada na Open Library!");
       } else {
-        toast.error("Livro não encontrado na base de dados");
+        toast.error("Capa não encontrada na Open Library");
       }
     } catch (error) {
-      toast.error("Erro ao buscar capa");
+      console.error("Erro ao buscar capa", error);
+      toast.error("Falha ao pesquisar capa na Open Library");
     } finally {
       setIsSearchingImage(false);
     }
@@ -81,7 +68,7 @@ export function AdminBookForm({ onCancel }: BookFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name) {
-      toast.error("O nome do livro é obrigatório.");
+      toast.error("O título do livro é obrigatório.");
       return;
     }
 
@@ -96,118 +83,132 @@ export function AdminBookForm({ onCancel }: BookFormProps) {
       });
 
       if (res.success) {
-        toast.success("Livro adicionado com sucesso!");
+        toast.success("Livro adicionado!");
         onCancel();
       } else {
-        toast.error(res.error || "Erro ao adicionar livro");
+        toast.error(res.error || "Erro ao adicionar");
       }
     });
   };
 
   return (
-    <GlassCard className="p-8 rounded-2xl border-white/5 space-y-6">
-      <div className="flex items-center justify-between mb-2">
-        <div>
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <BookType className="w-5 h-5 text-primary" />
-            Adicionar Livro
-          </h2>
-          <p className="text-xs text-white/40 mt-1">
-            Insira o nome, busque a capa automaticamente e adicione o link do PDF.
-          </p>
-        </div>
-        <Button variant="ghost" size="icon" onClick={onCancel} className="rounded-xl">
-          <X className="w-5 h-5" />
-        </Button>
-      </div>
+    <div className="bg-white/[0.025] border border-white/8 rounded-2xl p-6 md:p-8">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <div className="grid md:grid-cols-[1fr_240px] gap-8">
+          <div className="flex flex-col gap-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
+                  <Book className="w-3 h-3 text-primary" /> Título do Livro
+                </label>
+                <div className="relative group">
+                  <Input
+                    placeholder="Ex: Dom Casmurro"
+                    value={formData.name}
+                    onChange={(e) => setFormData(x => ({ ...x, name: e.target.value }))}
+                    className="pr-20"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSearchCover}
+                    disabled={isSearchingImage || !formData.name}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 px-3 rounded-lg bg-primary/10 hover:bg-primary text-primary hover:text-white text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-30 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {isSearchingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : <Search className="w-3 h-3" />}
+                    <span>Buscar</span>
+                  </button>
+                </div>
+              </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-white/50 uppercase tracking-wider px-1">Título do Livro</label>
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Ex: Essencialismo"
-                value={formData.name}
-                onChange={(e) => setFormData(x => ({ ...x, name: e.target.value }))}
-                className="bg-white/5 border-white/10"
-                required
-              />
-              <Button
-                type="button"
-                onClick={handleSearchCover}
-                disabled={isSearchingImage}
-                className="bg-primary/20 hover:bg-primary/40 text-primary border-none whitespace-nowrap"
-              >
-                {isSearchingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
-                Buscar Capa
-              </Button>
-            </div>
-          </div>
-
-          {formData.cover_url && (
-            <div className="flex flex-col items-start gap-2">
-              <label className="text-xs font-bold text-white/50 uppercase tracking-wider px-1">Capa Visualizada</label>
-              <div className="relative w-32 h-48 rounded-xl border border-white/10 overflow-hidden bg-black/20">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={formData.cover_url}
-                  alt="Capa"
-                  className="w-full h-full object-cover"
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
+                  <LinkIcon className="w-3 h-3 text-emerald-400" /> Link do PDF
+                </label>
+                <Input
+                  placeholder="Google Drive download..."
+                  value={formData.pdf_url}
+                  onChange={(e) => setFormData(x => ({ ...x, pdf_url: e.target.value }))}
+                  className="focus:border-emerald-500/40 font-mono text-emerald-400/80"
                 />
               </div>
             </div>
-          )}
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-white/50 uppercase tracking-wider px-1">URL da Imagem da Capa (Manual)</label>
-            <Input
-              placeholder="https://exemplo.com/capa.jpg"
-              value={formData.cover_url}
-              onChange={(e) => setFormData(x => ({ ...x, cover_url: e.target.value }))}
-              className="bg-white/5 border-white/10"
-            />
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
+                  <ImageIcon className="w-3 h-3 text-amber-500" /> URL da Capa (Manual)
+                </label>
+                <Input
+                  placeholder="https://..."
+                  value={formData.cover_url}
+                  onChange={(e) => setFormData(x => ({ ...x, cover_url: e.target.value }))}
+                  className="focus:border-amber-500/40 text-amber-200/40"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
+                  <LinkIcon className="w-3 h-3 text-indigo-400" /> Plano de Acesso
+                </label>
+                <Select
+                  value={formData.id_plan}
+                  onValueChange={(val) => setFormData(prev => ({ ...prev, id_plan: val }))}
+                >
+                  <SelectTrigger className="focus:border-indigo-500/35">
+                    <SelectValue placeholder="Selecionar plano" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Gratuito / Essencial</SelectItem>
+                    <SelectItem value="2">Exclusivo / Premium</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-white/50 uppercase tracking-wider px-1">Link do PDF</label>
-            <Input
-              placeholder="Link do Google Drive (ex: https://drive.google.com/file/d/.../view)"
-              value={formData.pdf_url}
-              onChange={(e) => setFormData(x => ({ ...x, pdf_url: e.target.value }))}
-              className="bg-white/5 border-white/10"
-            />
-            <p className="text-[10px] text-primary/80 mt-1">Links do Google Drive serão convertidos automaticamente para download direto ao salvar.</p>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-white/50 uppercase tracking-wider px-1">Plano Necessário</label>
-            <Select
-              value={formData.id_plan}
-              onValueChange={(val: string) => setFormData(x => ({ ...x, id_plan: val }))}
-            >
-              <SelectTrigger className="bg-white/5 border-white/10 cursor-pointer">
-                <SelectValue placeholder="Selecione o plano" />
-              </SelectTrigger>
-              <SelectContent className="bg-black/90 border-white/10 text-white">
-                <SelectItem value="1" className="cursor-pointer">Livre / Essencial (Adultos)</SelectItem>
-                <SelectItem value="2" className="cursor-pointer">Exclusivo / Premium (Adultos)</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-[10px] text-white/40 mt-1">Livros Adultos só ficam visíveis para quem não é plano Student.</p>
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-full aspect-[3/4] rounded-2xl border border-white/8 bg-white/5 overflow-hidden flex items-center justify-center relative group shadow-2xl">
+              {formData.cover_url ? (
+                <>
+                  <img src={formData.cover_url} alt="Cover Preview" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <button
+                    onClick={() => setFormData(prev => ({ ...prev, cover_url: "" }))}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-red-500"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </>
+              ) : (
+                <div className="text-center opacity-10">
+                  <Book className="w-12 h-12 mx-auto mb-3" />
+                  <p className="text-[9px] font-black uppercase tracking-widest text-white">Sem capa</p>
+                </div>
+              )}
+            </div>
+            <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.4em]">Prévia da Capa</p>
           </div>
         </div>
 
-        <div className="pt-4 flex justify-end gap-3">
-          <Button type="button" variant="ghost" onClick={onCancel} className="hover:bg-white/5">
+        <div className="flex gap-4 pt-4 border-t border-white/5">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onCancel}
+            className="flex-1 h-12 rounded-xl text-white/40 hover:text-white hover:bg-white/5 transition-all text-[11px] font-black uppercase tracking-widest cursor-pointer"
+          >
             Cancelar
           </Button>
-          <Button type="submit" disabled={isPending} className="bg-primary hover:bg-primary/90">
-            {isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-            Salvar Livro
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="flex-[2] h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-[0.2em] text-[11px] gap-2 transition-all cursor-pointer shadow-lg shadow-primary/20"
+          >
+            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            {isPending ? "Adicionando..." : "Confirmar Cadastro"}
           </Button>
         </div>
       </form>
-    </GlassCard>
+    </div>
   );
 }

@@ -1,11 +1,8 @@
 "use client";
 
 import React, { useTransition } from "react";
-import { GlassCard } from "@/components/glass-card";
-import { Button } from "@/components/ui/button";
 import { deleteQuizAction, toggleQuizStatusAction } from "@/actions/admin";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Trash2, Ticket, BookOpen, Edit2 } from "lucide-react";
 import {
   AlertDialog,
@@ -18,6 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface QuizListProps {
   quizzes: any[];
@@ -31,9 +29,9 @@ export function AdminQuizList({ quizzes, onEdit }: QuizListProps) {
     startTransition(async () => {
       const res = await deleteQuizAction(id);
       if (res.success) {
-        toast.success("Quiz excluído!");
+        toast.success("Quiz removido!");
       } else {
-        toast.error("Erro ao excluir: " + res.error);
+        toast.error("Erro ao remover: " + res.error);
       }
     });
   };
@@ -51,83 +49,83 @@ export function AdminQuizList({ quizzes, onEdit }: QuizListProps) {
   };
 
   return (
-    <div className="grid gap-3">
-      {quizzes.map((q: any) => (
-        <GlassCard key={q.id_quiz} className="p-4 rounded-xl flex items-center justify-between border-white/5 hover:bg-white/5 transition-colors">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-              <Ticket className="w-5 h-5" />
+    <div className="space-y-2">
+      <AnimatePresence mode="popLayout">
+        {quizzes.map((q: any) => (
+          <motion.div
+            key={q.id_quiz}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${q.statement !== 'ativo' ? 'opacity-40 grayscale bg-white/[0.01] border-white/5' : 'bg-white/[0.025] border-white/8 hover:border-white/15'
+              }`}
+          >
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${q.statement === 'ativo' ? 'bg-indigo-500/10' : 'bg-white/5'}`}>
+              <Ticket className={`w-5 h-5 ${q.statement === 'ativo' ? 'text-indigo-400' : 'text-white/20'}`} />
             </div>
-            <div>
-              <p className="font-bold">{q.tittle || q.title}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <BookOpen className="w-3 h-3 text-white/40" />
-                <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">{q.name_book}</p>
+
+            <div className="flex-1 min-w-0">
+              <h5 className="font-bold text-sm text-white truncate">{q.tittle || q.title}</h5>
+              <div className="flex items-center gap-2 mt-0.5">
+                <BookOpen className="w-3 h-3 text-white/20" />
+                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest truncate">{q.name_book || "Geral"}</p>
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <Badge className={q.statement === 'ativo' ? "bg-green-500/10 text-green-400" : "bg-white/5 text-white/30"}>
-              {q.statement === 'ativo' ? "ATIVO" : "INATIVO"}
-            </Badge>
+
             <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onEdit?.(q)}
-                title="Editar Quiz"
-                className="text-white/20 hover:text-primary cursor-pointer"
-              >
-                <Edit2 className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 onClick={() => handleToggleStatus(q.id_quiz, q.statement)}
                 disabled={isPending}
-                title={q.statement === 'ativo' ? "Finalizar/Desativar" : "Ativar Quiz"}
-                className={`cursor-pointer ${q.statement === 'ativo' ? 'text-white/20 hover:text-amber-400' : 'text-primary'}`}
+                className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer ${q.statement === 'ativo' ? "text-white/40 hover:text-white" : "text-emerald-400 bg-emerald-500/10"
+                  }`}
               >
-                {q.statement === 'ativo' ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-              </Button>
+                {q.statement === 'ativo' ? "Inativar" : "Ativar"}
+              </button>
+
+              <button
+                onClick={() => onEdit?.(q)}
+                className="p-2 text-white/20 hover:text-white rounded-lg hover:bg-white/5 transition-all cursor-pointer"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
+                  <button
                     disabled={isPending}
-                    className="text-white/20 hover:text-red-400 hover:bg-red-400/10 cursor-pointer"
+                    className="p-2 text-white/15 hover:text-red-400 rounded-lg hover:bg-white/5 transition-all cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
-                  </Button>
+                  </button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="bg-[#0A0D28] border-white/5 text-white">
+                <AlertDialogContent className="bg-[#0d0f2b] border-white/10 text-white rounded-2xl">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Excluir quiz?</AlertDialogTitle>
-                    <AlertDialogDescription className="text-white/50">
-                      Tem certeza que deseja excluir este quiz? Isso apagará as perguntas vinculadas.
+                    <AlertDialogTitle>Remover quiz?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-white/40">
+                      Isso removerá "{q.tittle || q.title}" e todas as perguntas vinculadas.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="bg-white/5 border-none hover:bg-white/10 hover:text-white cursor-pointer">
-                      Cancelar
-                    </AlertDialogCancel>
+                    <AlertDialogCancel className="bg-white/5 border-none hover:bg-white/10 cursor-pointer">Cancelar</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => handleDelete(q.id_quiz)}
-                      className="bg-red-500 hover:bg-red-600 cursor-pointer"
+                      className="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 cursor-pointer"
                     >
-                      Excluir
+                      Remover
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             </div>
-          </div>
-        </GlassCard>
-      ))}
+          </motion.div>
+        ))}
+      </AnimatePresence>
 
       {quizzes.length === 0 && (
-        <div className="py-10 text-center opacity-40 italic text-sm">Nenhum quiz registrado.</div>
+        <div className="py-16 text-center border border-dashed border-white/8 rounded-2xl">
+          <Ticket className="w-8 h-8 text-white/10 mx-auto mb-3" />
+          <p className="text-sm text-white/20 font-medium">Nenhum quiz cadastrado</p>
+        </div>
       )}
     </div>
   );

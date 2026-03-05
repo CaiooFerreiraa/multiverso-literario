@@ -1,17 +1,34 @@
 "use client";
-// @ts-nocheck
 
-import React, { useEffect, useState, useTransition } from "react";
+import React, { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { GlassCard } from "@/components/glass-card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   createScheduledRoomAction,
-  listScheduledRoomsAction,
-  deleteScheduledRoomAction,
-  listTimelinesForSelectAction,
+  listScheduledRoomsAction as readAllRoomsAction,
+  deleteScheduledRoomAction as deleteRoomAction,
+  closeRoomAction as toggleRoomStatusAction,
 } from "@/actions/rooms";
+import {
+  Video,
+  Plus,
+  Trash2,
+  Calendar,
+  Clock,
+  BookOpen,
+  Users,
+  Tag,
+  Gamepad2,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,293 +40,243 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Video, Trash2, BookOpen, Clock, Calendar, Radio, Users } from "lucide-react";
 
 const ROOM_CATEGORIES = [
-  "Literatura Brasileira",
-  "Ficção Científica",
-  "Clássicos",
-  "Fantasia",
-  "Filosofia",
-  "Poesia",
-  "Romance",
-  "Suspense",
-  "Não-ficção",
-  "Clube do Livro",
+  "Clube de Leitura",
+  "Debate",
+  "Análise Crítica",
+  "Leitura Coletiva",
+  "Oficina",
 ];
-
-interface Timeline {
-  id_timeline_book: number;
-  name: string;
-  author: string;
-  date_start: string;
-  date_end: string;
-}
-
-interface ScheduledRoom {
-  id_room: number;
-  title: string;
-  description: string | null;
-  category: string;
-  slug: string;
-  scheduled_at: string;
-  is_active: boolean;
-  book_name?: string;
-  book_author?: string;
-  creator_name?: string;
-}
 
 export function AdminRoomsForm() {
   const [isPending, startTransition] = useTransition();
-  const [timelines, setTimelines] = useState<Timeline[]>([]);
-  const [rooms, setRooms] = useState<ScheduledRoom[]>([]);
-  const [loading, setLoading] = useState(true);
-
+  const [rooms, setRooms] = useState<any[]>([]);
   const [form, setForm] = useState({
     title: "",
     description: "",
-    category: "Clube do Livro",
+    category: "Clube de Leitura",
     scheduledAt: "",
-    idTimelineBook: "" as string,
+    maxParticipants: 10,
+    isPrivate: false,
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadRooms(); }, []);
 
-  async function loadData() {
-    setLoading(true);
-    const [timelinesRes, roomsRes] = await Promise.all([
-      listTimelinesForSelectAction(),
-      listScheduledRoomsAction(),
-    ]);
-    if (timelinesRes.success) setTimelines(timelinesRes.data as Timeline[]);
-    if (roomsRes.success) setRooms(roomsRes.data as ScheduledRoom[]);
-    setLoading(false);
+  async function loadRooms() {
+    const res = await readAllRoomsAction();
+    if (res.success) setRooms(res.data as any[]);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.scheduledAt) {
-      toast.error("Preencha o título e a data/hora");
+    if (!form.title || !form.scheduledAt) {
+      toast.error("Preencha o título e a data");
       return;
     }
 
     startTransition(async () => {
-      const result = await createScheduledRoomAction({
-        title: form.title,
-        description: form.description,
-        category: form.category,
+      const res = await createScheduledRoomAction({
+        ...form,
         scheduledAt: new Date(form.scheduledAt).toISOString(),
-        idTimelineBook: form.idTimelineBook ? Number(form.idTimelineBook) : null,
       });
 
-      if (result.success) {
-        toast.success("Sala agendada com sucesso!");
-        setForm({ title: "", description: "", category: "Clube do Livro", scheduledAt: "", idTimelineBook: "" });
-        loadData();
+      if (res.success) {
+        toast.success("Sala agendada!");
+        setForm({
+          title: "",
+          description: "",
+          category: "Clube de Leitura",
+          scheduledAt: "",
+          maxParticipants: 10,
+          isPrivate: false,
+        });
+        loadRooms();
       } else {
-        toast.error(result.error || "Erro ao agendar sala");
+        toast.error("Erro: " + res.error);
       }
     });
-  }
+  };
 
-  async function handleDelete(roomId: number) {
+  const handleDelete = async (id: number) => {
+    const res = await deleteRoomAction(id);
+    if (res.success) {
+      toast.success("Sala removida");
+      loadRooms();
+    }
+  };
 
-    startTransition(async () => {
-      const result = await deleteScheduledRoomAction(roomId);
-      if (result.success) {
-        toast.success("Sala removida");
-        loadData();
-      } else {
-        toast.error(result.error || "Erro ao remover");
-      }
-    });
-  }
-
-  const now = new Date();
+  const handleToggle = async (id: number, currentStatus: boolean) => {
+    // Para salas agendadas, toggleStatus geralmente significa desativar (fechar)
+    const res = await toggleRoomStatusAction(id);
+    if (res.success) {
+      toast.success("Status atualizado!");
+      loadRooms();
+    } else {
+      toast.error(res.error || "Erro ao atualizar status");
+    }
+  };
 
   return (
     <div className="space-y-8">
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
-              Título da Sala *
-            </label>
-            <Input
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="Ex: Debate — Dom Casmurro, Capítulos 1-5"
-              className="bg-white/5 border-white/10 rounded-xl h-11 cursor-text"
+      <div className="bg-white/[0.025] border border-white/8 rounded-2xl p-6 md:p-8">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
+                <Video className="w-3 h-3 text-primary" /> Título do Encontro
+              </label>
+              <Input
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder="Ex: Debate: Dom Casmurro - Cap 1 a 10"
+                className="focus:border-primary/40"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
+                <Tag className="w-3 h-3 text-primary" /> Categoria
+              </label>
+              <Select
+                value={form.category}
+                onValueChange={(val) => setForm({ ...form, category: val })}
+              >
+                <SelectTrigger className="focus:border-primary/40">
+                  <SelectValue placeholder="Selecionar categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROOM_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Descrição (opcional)</label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Tópicos e pontos de discussão..."
+              rows={3}
+              className="resize-none"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
-              Categoria
-            </label>
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl h-11 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer text-white"
-            >
-              {ROOM_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat} className="bg-[#1a1a2e] text-white">
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
+                <Calendar className="w-3 h-3 text-emerald-400" /> Data e hora
+              </label>
+              <Input
+                type="datetime-local"
+                value={form.scheduledAt}
+                onChange={(e) => setForm({ ...form, scheduledAt: e.target.value })}
+                className="[color-scheme:dark] focus:border-emerald-500/40"
+              />
+            </div>
 
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
-            Descrição
-          </label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            placeholder="Descreva o tema da discussão..."
-            rows={2}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-white/20 resize-none cursor-text"
-          />
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-white/50 uppercase tracking-wider flex items-center gap-2">
-              <Calendar className="w-3.5 h-3.5" />
-              Data e Hora de Início *
-            </label>
-            <Input
-              type="datetime-local"
-              value={form.scheduledAt}
-              onChange={(e) => setForm({ ...form, scheduledAt: e.target.value })}
-              className="bg-white/5 border-white/10 rounded-xl h-11 cursor-text"
-            />
-            <p className="text-[10px] text-white/20">A sala ficará visível somente quando chegar esta data/hora.</p>
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
+                <Users className="w-3 h-3 text-amber-500" /> Limite de Pessoas
+              </label>
+              <Input
+                type="number"
+                min={2}
+                max={50}
+                value={form.maxParticipants}
+                onChange={(e) => setForm({ ...form, maxParticipants: Number(e.target.value) })}
+                className="focus:border-amber-500/40"
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-white/50 uppercase tracking-wider flex items-center gap-2">
-              <BookOpen className="w-3.5 h-3.5" />
-              Vincular ao Livro do Mês
-            </label>
-            <select
-              value={form.idTimelineBook}
-              onChange={(e) => setForm({ ...form, idTimelineBook: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl h-11 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer text-white"
-            >
-              <option value="" className="bg-[#1a1a2e] text-white">Nenhum (sala livre)</option>
-              {timelines.map((t) => (
-                <option key={t.id_timeline_book} value={t.id_timeline_book} className="bg-[#1a1a2e] text-white">
-                  {t.name} — {t.author}
-                </option>
-              ))}
-            </select>
-            <p className="text-[10px] text-white/20">Vincule a um cronograma de leitura existente.</p>
-          </div>
-        </div>
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm uppercase tracking-wider gap-2 cursor-pointer transition-all shadow-lg shadow-primary/20"
+          >
+            {isPending ? <Clock className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            Agendar Encontro
+          </Button>
+        </form>
+      </div>
 
-        <Button
-          type="submit"
-          disabled={isPending || !form.title.trim() || !form.scheduledAt}
-          className={`w-full h-12 rounded-xl font-bold gap-2 transition-all ${form.title.trim() && form.scheduledAt
-            ? "bg-primary hover:bg-primary/90 shadow-[0_0_20px_rgba(109,40,217,0.3)]"
-            : "bg-white/5 text-white/30 cursor-not-allowed"
-            }`}
-        >
-          <Video className="w-4 h-4" />
-          {isPending ? "Agendando..." : "Agendar Sala"}
-        </Button>
-      </form>
-
-      {/* Salas agendadas */}
+      {/* List */}
       <div>
-        <h4 className="text-sm font-bold text-white/30 uppercase tracking-widest mb-4">
-          Salas Agendadas ({rooms.length})
-        </h4>
+        <div className="flex items-center gap-3 mb-4">
+          <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.25em]">Encontros Agendados</p>
+          <div className="h-px flex-1 bg-white/5" />
+        </div>
 
-        {loading ? (
-          <div className="text-center text-white/20 py-10 text-sm">Carregando...</div>
-        ) : rooms.length === 0 ? (
-          <div className="text-center text-white/20 py-10 text-sm">Nenhuma sala agendada ainda.</div>
-        ) : (
-          <div className="grid gap-3">
-            {rooms.map((room) => {
-              const scheduledDate = new Date(room.scheduled_at);
-              const isAvailable = scheduledDate <= now;
-              const isPast = scheduledDate < new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        <div className="space-y-3">
+          <AnimatePresence mode="popLayout">
+            {rooms.map((room: any) => (
+              <motion.div
+                key={room.id_room}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${!room.is_active ? 'opacity-40 grayscale bg-white/[0.01] border-white/5' : 'bg-white/[0.025] border-white/8 hover:border-white/15'
+                  }`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${room.is_active ? 'bg-primary/10' : 'bg-white/5'}`}>
+                  <Video className={`w-5 h-5 ${room.is_active ? 'text-primary' : 'text-white/20'}`} />
+                </div>
 
-              return (
-                <GlassCard
-                  key={room.id_room}
-                  className={`p-4 rounded-xl flex items-center justify-between border-white/5 transition-colors ${isPast ? "opacity-40" : "hover:bg-white/5"
-                    }`}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      {isAvailable ? (
-                        <span className="flex items-center gap-1 bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase">
-                          <Radio className="w-2.5 h-2.5 animate-pulse" /> Disponível
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase">
-                          <Clock className="w-2.5 h-2.5" /> Agendada
-                        </span>
-                      )}
-                      {room.book_name && (
-                        <span className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[9px] font-bold">
-                          <BookOpen className="w-2.5 h-2.5" /> {room.book_name}
-                        </span>
-                      )}
-                      <span className="text-[9px] text-white/20 bg-white/5 px-2 py-0.5 rounded-full">{room.category}</span>
-                    </div>
-                    <p className="font-bold text-sm truncate">{room.title}</p>
-                    <p className="text-[10px] text-white/30 mt-0.5">
-                      {scheduledDate.toLocaleDateString("pt-BR")} às {scheduledDate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                      {room.creator_name && ` • por ${room.creator_name}`}
-                    </p>
-                  </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm text-white truncate">{room.title}</p>
+                  <p className="text-[10px] text-white/30 mt-0.5">
+                    {new Date(room.scheduled_at).toLocaleString('pt-BR')} · {room.category}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {room.is_active && (
+                    <button
+                      onClick={() => handleToggle(room.id_room, room.is_active)}
+                      className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer text-white/40 hover:text-white"
+                    >
+                      Encerrar
+                    </button>
+                  )}
 
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        disabled={isPending}
-                        className="text-red-400/40 hover:text-red-400 hover:bg-red-500/10 rounded-xl shrink-0 ml-3 cursor-pointer"
-                      >
+                      <button className="p-2.5 text-white/10 hover:text-red-400 hover:bg-red-400/10 rounded-xl cursor-pointer transition-all">
                         <Trash2 className="w-4 h-4" />
-                      </Button>
+                      </button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-[#0A0D28] border-white/5 text-white">
+                    <AlertDialogContent className="bg-[#0d0f2b] border-white/10 text-white rounded-3xl">
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Remover sala agendada?</AlertDialogTitle>
-                        <AlertDialogDescription className="text-white/50">
-                          Deseja realmente remover esta sala agendada? Essa ação não pode ser desfeita.
+                        <AlertDialogTitle className="text-xl font-black uppercase tracking-tighter">Remover sala?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-white/40 font-medium">
+                          O agendamento "{room.title}" será permanentemente removido.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel className="bg-white/5 border-none hover:bg-white/10 hover:text-white cursor-pointer">
-                          Cancelar
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDelete(room.id_room)}
-                          className="bg-red-500 hover:bg-red-600 cursor-pointer"
-                        >
-                          Remover
+                        <AlertDialogCancel className="bg-white/5 border-none h-11 rounded-xl text-xs font-bold uppercase tracking-widest cursor-pointer">Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDelete(room.id_room)} className="bg-red-500/10 hover:bg-red-500 text-red-100 h-11 rounded-xl border border-red-500/20 text-xs font-bold uppercase tracking-widest cursor-pointer">
+                          Confirmar Exclusão
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                </GlassCard>
-              );
-            })}
-          </div>
-        )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {rooms.length === 0 && (
+            <div className="py-20 text-center border border-dashed border-white/8 rounded-3xl">
+              <Users className="w-8 h-8 text-white/10 mx-auto mb-3" />
+              <p className="text-xs text-white/20 font-black uppercase tracking-widest">Nenhuma sala ativa</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

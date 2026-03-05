@@ -26,7 +26,7 @@ import {
   Info,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { trackRoomAttendanceAction } from "@/actions/rooms";
+import { trackRoomAttendanceAction, closeRoomAction, getRoomParticipantCountAction } from "@/actions/rooms";
 import { checkAndClaimAttendanceRewardsAction } from "@/actions/attendance";
 import { toast } from "sonner";
 
@@ -108,6 +108,11 @@ export default function RoomClient({ roomData, user }: RoomClientProps) {
   const jitsiContainerRef = useRef<HTMLDivElement>(null);
   const jitsiApiRef = useRef<any>(null);
 
+  // Participant count tracking (local Jitsi count)
+  const participantCountRef = useRef(1);
+  // Grace period timer ref for empty-room detection
+  const emptyRoomTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Room info
   const roomTitle = roomData.slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
@@ -142,34 +147,60 @@ export default function RoomClient({ roomData, user }: RoomClientProps) {
           configOverwrite: {
             startWithAudioMuted: !isMicOn,
             startWithVideoMuted: !isCameraOn,
+            // Disable prejoin/lobby page entirely
             prejoinPageEnabled: false,
-            disableDeepLinking: false,
+            prejoinConfig: { enabled: false },
+            // Prevent "open in app" prompt
+            disableDeepLinking: true,
+            // Disable third-party requests (prevents Google auth)
             disableThirdPartyRequests: true,
-            toolbarButtons: ['microphone', 'camera', 'desktop', 'hangup', 'chat', 'raisehand'], // Mantém internamente mas o CSS esconde
-            desktopSharingChromeDisabled: false,
-            desktopSharingFirefoxDisabled: false,
+            // Suppress Google sign-in, profiles & auth
+            requireDisplayName: false,
+            enableNoisyMicDetection: false,
+            enableNoAudioDetection: false,
+            // Hide native toolbar — we use our own controls
+            toolbarButtons: [],
+            // Disable polls, reactions, lobby features
+            disableReactions: true,
+            disablePolls: true,
+            disableProfile: true,
+            // Disable lobby
+            enableLobbyChat: false,
+            disableSelfView: false,
+            // Conference info
             hideConferenceSubject: true,
             hideConferenceTimer: true,
             hideParticipantsStats: true,
-            disableReactions: true,
+            // Notifications
             notifications: [],
-            disablePolls: true,
-            disableProfile: true,
-            hideDisplayName: false,
+            // Disable moderation UI
+            disableModeratorIndicator: true,
+            // Screen sharing
+            desktopSharingChromeDisabled: false,
+            desktopSharingFirefoxDisabled: false,
           },
           interfaceConfigOverwrite: {
+            // Remove toolbar completely
+            TOOLBAR_BUTTONS: [],
+            // Remove branding
             SHOW_JITSI_WATERMARK: false,
             SHOW_WATERMARK_FOR_GUESTS: false,
             SHOW_BRAND_WATERMARK: false,
             SHOW_POWERED_BY: false,
             JITSI_WATERMARK_LINK: '',
+            // Remove banners
             SHOW_CHROME_EXTENSION_BANNER: false,
-            DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
-            HIDE_INVITE_MORE_HEADER: true,
-            DISABLE_FOCUS_INDICATOR: true,
             MOBILE_APP_PROMO: false,
-            FILM_STRIP_MAX_HEIGHT: 100,
+            // Remove invite / join flows
+            HIDE_INVITE_MORE_HEADER: true,
+            DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
+            DISABLE_FOCUS_INDICATOR: true,
+            // UI adjustments
             VIDEO_LAYOUT_FIT: 'both',
+            FILM_STRIP_MAX_HEIGHT: 100,
+            // Disable deep linking prompt
+            MOBILE_DOWNLOAD_LINK_ANDROID: '',
+            MOBILE_DOWNLOAD_LINK_IOS: '',
           },
         };
         const api = new (window as any).JitsiMeetExternalAPI(domain, options);
@@ -203,13 +234,60 @@ export default function RoomClient({ roomData, user }: RoomClientProps) {
             // Not a reaction or invalid JSON
           }
         });
+
+        // Rastrear contagem de participantes para fechar sala quando vazia
+        api.addEventListener('participantJoined', () => {
+          participantCountRef.current += 1;
+          // Cancel any pending empty-room timer
+          if (emptyRoomTimerRef.current) {
+            clearTimeout(emptyRoomTimerRef.current);
+            emptyRoomTimerRef.current = null;
+          }
+        });
+
+        api.addEventListener('participantLeft', () => {
+          participantCountRef.current = Math.max(0, participantCountRef.current - 1);
+          if (participantCountRef.current <= 0) {
+            scheduleEmptyRoomCheck();
+          }
+        });
+
+        // Quando o próprio usuário encerra a conferência (último a sair)
+        api.addEventListener('videoConferenceLeft', () => {
+          scheduleEmptyRoomCheck();
+        });
       }
     };
     document.body.appendChild(script);
 
+    /**
+     * Aguarda 10 segundos antes de verificar no banco se a sala
+     * realmente ficou sem participantes (evita falsos positivos por
+     * reconexões rápidas). Se confirmado vazio, fecha a sala.
+     */
+    async function scheduleEmptyRoomCheck() {
+      if (emptyRoomTimerRef.current) return; // já há um timer pendente
+      emptyRoomTimerRef.current = setTimeout(async () => {
+        emptyRoomTimerRef.current = null;
+        try {
+          const res = await getRoomParticipantCountAction(roomData.id_room);
+          if (res.success && res.count === 0) {
+            await closeRoomAction(roomData.id_room);
+            // Redirecionar todos os presentes de volta para salas
+            router.push("/home/salas");
+          }
+        } catch {
+          // Falha silenciosa — não bloquear navegação do usuário
+        }
+      }, 10_000); // 10 segundos de carência
+    }
+
     return () => {
       clearInterval(timer);
       clearInterval(heartbeat);
+      if (emptyRoomTimerRef.current) {
+        clearTimeout(emptyRoomTimerRef.current);
+      }
       // Enviar atualização final com o delta restante
       const finalDelta = elapsedRef.current % 60;
       if (finalDelta > 0) {
@@ -347,27 +425,56 @@ export default function RoomClient({ roomData, user }: RoomClientProps) {
     <div className="flex flex-col h-screen bg-[#0a0a14] overflow-hidden">
       {/* CSS para esconder TODA a UI nativa do Jitsi */}
       <style jsx global>{`
-        /* Esconder toolbar nativa do Jitsi e novos overlays */
+        /* === SUPRIMIR TODA A UI NATIVA DO JITSI === */
+
+        /* Toolbar nativa */
         .new-toolbox, .toolbox-content-items, .toolbox-container,
-        #new-toolbox, .subject, .meeting-info-container,
-        .subject-info-container, .conference-timer,
+        #new-toolbox, [class*="toolbox"], [id*="toolbox"],
+        [class*="Toolbox"], [class*="ToolboxButton"],
+        .hangup-button, .filmstrip-toolbox, .toolbox-button { display: none !important; }
+
+        /* Info do encontro e cronômetro */
+        .subject, .meeting-info-container, .subject-info-container,
+        .conference-timer, #subject, .subject-container { display: none !important; }
+
+        /* Marcas d'água */
         .watermark, .leftwatermark, .rightwatermark,
-        .powered-by, .oJlr0, .oTusO, .oAVFo, .oW0CQ,
-        .filmstrip-toolbox, .toolbox-button,
-        .hangup-button, .audio-preview, .video-preview { display: none !important; }
-        
-        /* Container do iframe Jitsi - garantir que só o vídeo apareça */
+        .powered-by, .jitsi-watermark { display: none !important; }
+
+        /* Notificações */
+        .notifications-container, .error-notification,
+        .warning-notification, .info-notification,
+        [class*="notification"], [class*="Notification"] { display: none !important; }
+
+        /* Tela de Pré-entrada (prejoin) */
+        [class*="prejoin"], [class*="Prejoin"],
+        [class*="premeeting"], [class*="Premeeting"],
+        [id*="prejoin"], .lobby-screen { display: none !important; }
+
+        /* Banner "Abrir no Aplicativo" / Deep linking */
+        [class*="openInApp"], [class*="OpenInApp"],
+        [class*="deeplink"], [class*="Deeplink"],
+        [class*="mobile-app"], [class*="MobileApp"],
+        [class*="app-promo"], [class*="AppPromo"],
+        .mobile-promo { display: none !important; }
+
+        /* Botão de convidar / mais participantes */
+        [class*="invite"], [class*="Invite"],
+        .invite-more-button, .invite-button { display: none !important; }
+
+        /* Auth / Login Google */
+        [class*="calendarList"], [class*="auth"],
+        [class*="googleSignIn"], [class*="signIn"],
+        [class*="login"], [class*="Login"] { display: none !important; }
+
+        /* Classes ofuscadas frequentes do Jitsi */
+        .oJlr0, .oTusO, .oAVFo, .oW0CQ,
+        .audio-preview, .video-preview { display: none !important; }
+
+        /* Garantir que o iframe ocupe tudo sem bordas */
         iframe[id^="jitsiConference"] {
           border: none !important;
           z-index: 1 !important;
-        }
-        
-        /* Esconder barra de notificações e balões do Jitsi */
-        .jitsi-notify, .notifications-container, .error-notification, .warning-notification { display: none !important; }
-
-        /* Esconder qualquer elemento que o Jitsi injete para controles */
-        [class*="toolbox"], [id*="toolbox"], [class*="Toolbox"], [class*="ToolboxButton"] {
-           display: none !important;
         }
       `}</style>
 
