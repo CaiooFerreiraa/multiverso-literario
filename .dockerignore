@@ -9,6 +9,3 @@ Dockerfile
 .github
 README.md
 npm-debug.log
-bun.lockb
-package-lock.json
-yarn.lock
