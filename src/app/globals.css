@@ -47,6 +47,15 @@
   --radius-4xl: calc(var(--radius) + 16px);
   --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
   --shadow-glass-card: 0 20px 50px rgba(0, 0, 0, 0.5);
+
+  /* Performance Tokens */
+  --glass-blur: 40px;
+  --nebula-blur: 100px;
+
+  @media (max-width: 768px) {
+    --glass-blur: 12px;
+    --nebula-blur: 40px;
+  }
 }
 
 :root {
@@ -140,10 +149,18 @@
     background:
       radial-gradient(circle at 20% 30%, oklch(0.65 0.3 310 / 0.12) 0%, transparent 45%),
       radial-gradient(circle at 80% 70%, oklch(0.5 0.25 240 / 0.15) 0%, transparent 50%);
-    filter: blur(100px);
-    animation: nebula-float 15s ease-in-out infinite;
+    filter: blur(var(--nebula-blur));
+    animation: nebula-float 20s ease-in-out infinite;
     z-index: -1;
     pointer-events: none;
+    will-change: transform, opacity;
+
+    @media (max-width: 768px) {
+      animation: none;
+      /* Disable expensive animation on mobile */
+      filter: blur(40px);
+      opacity: 0.5;
+    }
   }
 
   .stars-overlay {
@@ -163,12 +180,20 @@
   }
 
   .glass {
-    @apply bg-white/5 backdrop-blur-3xl border border-white/10 shadow-glass;
+    background-color: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    @apply border border-white/10 shadow-glass;
   }
 
   .glass-card {
-    @apply bg-black/40 backdrop-blur-3xl border border-white/10 shadow-glass-card;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    @apply border border-white/10 shadow-glass-card;
     position: relative;
+    transform: translateZ(0);
+    /* Force Hardware Acceleration */
   }
 
   .glass-card::after {

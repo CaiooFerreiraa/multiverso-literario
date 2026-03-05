@@ -29,11 +29,11 @@ export default function RootLayout({
           {children}
         </main>
 
-        {/* Camadas de profundidade e brilho (Nebulosas) */}
-        <div className="fixed inset-0 bg-[radial-gradient(circle_at_20%_30%,_oklch(0.55_0.25_280_/_15%),_transparent_50%)] pointer-events-none z-0" />
-        <div className="fixed inset-0 bg-[radial-gradient(circle_at_80%_70%,_oklch(0.45_0.2_220_/_10%),_transparent_50%)] pointer-events-none z-0" />
-        <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full pointer-events-none z-0" />
-        <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none z-0" />
+        {/* Camadas de profundidade e brilho (Nebulosas) - Ocultas no mobile para performance */}
+        <div className="hidden md:block fixed inset-0 bg-[radial-gradient(circle_at_20%_30%,_oklch(0.55_0.25_280_/_15%),_transparent_50%)] pointer-events-none z-0" />
+        <div className="hidden md:block fixed inset-0 bg-[radial-gradient(circle_at_80%_70%,_oklch(0.45_0.2_220_/_10%),_transparent_50%)] pointer-events-none z-0" />
+        <div className="hidden lg:block fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full pointer-events-none z-0" />
+        <div className="hidden lg:block fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none z-0" />
       </body>
     </html>
   );

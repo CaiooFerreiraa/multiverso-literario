@@ -150,34 +150,17 @@ export default function RoomClient({ roomData, user }: RoomClientProps) {
             // Disable prejoin/lobby page entirely
             prejoinPageEnabled: false,
             prejoinConfig: { enabled: false },
-            // Prevent "open in app" prompt
-            disableDeepLinking: true,
-            // Disable third-party requests (prevents Google auth)
-            disableThirdPartyRequests: true,
-            // Suppress Google sign-in, profiles & auth
-            requireDisplayName: false,
-            enableNoisyMicDetection: false,
-            enableNoAudioDetection: false,
-            // Hide native toolbar — we use our own controls
-            toolbarButtons: [],
-            // Disable polls, reactions, lobby features
-            disableReactions: true,
-            disablePolls: true,
-            disableProfile: true,
-            // Disable lobby
-            enableLobbyChat: false,
-            disableSelfView: false,
-            // Conference info
-            hideConferenceSubject: true,
-            hideConferenceTimer: true,
-            hideParticipantsStats: true,
-            // Notifications
-            notifications: [],
-            // Disable moderation UI
-            disableModeratorIndicator: true,
             // Screen sharing
             desktopSharingChromeDisabled: false,
             desktopSharingFirefoxDisabled: false,
+            // Calendar & Auth (Kill Google Login & Third Party)
+            enableCalendarIntegration: false,
+            disableThirdPartyRequests: true,
+            disableDeepLinking: true,
+            doNotStoreRoom: true,
+            // Google / Microsoft integration specific
+            googleApiApplicationClientID: '',
+            microsoftApiApplicationClientID: '',
           },
           interfaceConfigOverwrite: {
             // Remove toolbar completely
@@ -201,6 +184,10 @@ export default function RoomClient({ roomData, user }: RoomClientProps) {
             // Disable deep linking prompt
             MOBILE_DOWNLOAD_LINK_ANDROID: '',
             MOBILE_DOWNLOAD_LINK_IOS: '',
+            // Disable welcome/login
+            GENERATE_ROOMNAMES_ON_WELCOME_PAGE: false,
+            DISPLAY_WELCOME_PAGE_CONTENT: false,
+            DISPLAY_WELCOME_PAGE_TOOLBAR_ADDITIONAL_CONTENT: false,
           },
         };
         const api = new (window as any).JitsiMeetExternalAPI(domain, options);
