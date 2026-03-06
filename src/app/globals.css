@@ -54,19 +54,19 @@
   --glass-blur: 40px;
   --nebula-blur: 100px;
   --radius: 1rem;
-  --background: oklch(0.12 0.03 260);
+  --background: oklch(0.18 0.04 260);
   /* Slightly lighter base */
   --foreground: oklch(0.98 0.01 260);
   --card: oklch(1 0 0 / 8%);
   --card-foreground: oklch(0.98 0.01 260);
-  --popover: oklch(0.18 0.06 260);
+  --popover: oklch(0.24 0.06 260);
   --popover-foreground: oklch(0.98 0.01 260);
   --primary: oklch(0.6 0.22 275);
   /* More vibrant primary */
   --primary-foreground: oklch(0.99 0.01 275);
   --secondary: oklch(0.3 0.1 275);
   --secondary-foreground: oklch(0.98 0.01 275);
-  --muted: oklch(0.25 0.06 260);
+  --muted: oklch(0.28 0.06 260);
   --muted-foreground: oklch(0.75 0.05 260);
   --accent: oklch(0.6 0.22 275 / 25%);
   --accent-foreground: oklch(0.98 0.01 275);
@@ -89,7 +89,7 @@
 }
 
 .dark {
-  --background: oklch(0.12 0.03 260);
+  --background: oklch(0.18 0.04 260);
   --foreground: oklch(0.98 0.01 260);
   --card: oklch(1 0 0 / 8%);
   --card-foreground: oklch(0.98 0.01 260);
@@ -140,12 +140,6 @@
       radial-gradient(circle at 50% 50%, oklch(0.45 0.25 300 / 0.15) 0%, transparent 80%);
     position: relative;
     overflow-x: hidden;
-
-    @media (max-width: 768px) {
-      background-image: none;
-      /* Simplifica background no mobile */
-      background-color: #08091a;
-    }
   }
 
   .cosmic-bg::before {
@@ -160,11 +154,6 @@
     z-index: -1;
     pointer-events: none;
     will-change: transform, opacity;
-
-    @media (max-width: 768px) {
-      display: none;
-      /* Remove nebulosas pesadas no mobile */
-    }
   }
 
   .stars-overlay {
@@ -177,15 +166,11 @@
       radial-gradient(2px 2px at 75% 85%, #fff, transparent),
       radial-gradient(1.2px 1.2px at 95% 15%, #fff, transparent);
     background-size: 350px 350px;
-    opacity: 0.4;
+    opacity: 0.7;
+    /* increased so it shows exactly like on login where background is slightly darker maybe */
     pointer-events: none;
     z-index: 0;
     animation: stars-twinkle 6s ease-in-out infinite;
-
-    @media (max-width: 768px) {
-      display: none;
-      /* Remove overlay de estrelas no mobile para poupar GPU */
-    }
   }
 
   .glass {
@@ -217,11 +202,29 @@
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
+  }
+}
 
-    @media (max-width: 768px) {
-      display: none;
-      /* Remove bordas de gradiente complexas no mobile */
-    }
+@media (max-width: 768px) {
+  .cosmic-bg {
+    background-image: none;
+    /* Simplifica background no mobile */
+    background-color: #08091a;
+  }
+
+  .cosmic-bg::before {
+    display: none;
+    /* Remove nebulosas pesadas no mobile */
+  }
+
+  .stars-overlay {
+    display: none;
+    /* Remove overlay de estrelas no mobile para poupar GPU */
+  }
+
+  .glass-card::after {
+    display: none;
+    /* Remove bordas de gradiente complexas no mobile */
   }
 }
 
