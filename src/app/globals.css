@@ -47,18 +47,12 @@
   --radius-4xl: calc(var(--radius) + 16px);
   --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
   --shadow-glass-card: 0 20px 50px rgba(0, 0, 0, 0.5);
-
-  /* Performance Tokens */
-  --glass-blur: 40px;
-  --nebula-blur: 100px;
-
-  @media (max-width: 768px) {
-    --glass-blur: 12px;
-    --nebula-blur: 40px;
-  }
 }
 
 :root {
+  /* Performance Tokens */
+  --glass-blur: 40px;
+  --nebula-blur: 100px;
   --radius: 1rem;
   --background: oklch(0.12 0.03 260);
   /* Slightly lighter base */
@@ -85,6 +79,13 @@
   --chart-3: oklch(0.45 0.12 150);
   --chart-4: oklch(0.85 0.18 80);
   --chart-5: oklch(0.8 0.18 50);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --glass-blur: 12px;
+    --nebula-blur: 40px;
+  }
 }
 
 .dark {
@@ -133,13 +134,18 @@
 @layer utilities {
   .cosmic-bg {
     background-color: #0d0f2b;
-    /* Even lighter indigo base */
     background-image:
       radial-gradient(circle at 15% 25%, oklch(0.55 0.3 285 / 0.25) 0%, transparent 60%),
       radial-gradient(circle at 85% 75%, oklch(0.65 0.25 260 / 0.2) 0%, transparent 60%),
       radial-gradient(circle at 50% 50%, oklch(0.45 0.25 300 / 0.15) 0%, transparent 80%);
     position: relative;
     overflow-x: hidden;
+
+    @media (max-width: 768px) {
+      background-image: none;
+      /* Simplifica background no mobile */
+      background-color: #08091a;
+    }
   }
 
   .cosmic-bg::before {
@@ -156,10 +162,8 @@
     will-change: transform, opacity;
 
     @media (max-width: 768px) {
-      animation: none;
-      /* Disable expensive animation on mobile */
-      filter: blur(40px);
-      opacity: 0.5;
+      display: none;
+      /* Remove nebulosas pesadas no mobile */
     }
   }
 
@@ -177,6 +181,11 @@
     pointer-events: none;
     z-index: 0;
     animation: stars-twinkle 6s ease-in-out infinite;
+
+    @media (max-width: 768px) {
+      display: none;
+      /* Remove overlay de estrelas no mobile para poupar GPU */
+    }
   }
 
   .glass {
@@ -208,6 +217,11 @@
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
+
+    @media (max-width: 768px) {
+      display: none;
+      /* Remove bordas de gradiente complexas no mobile */
+    }
   }
 }
 

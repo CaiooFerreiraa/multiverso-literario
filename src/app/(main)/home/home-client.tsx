@@ -122,23 +122,16 @@ export default function HomeClient({
       animate="show"
       className="px-6 lg:px-12 py-4 pb-32 max-w-6xl w-full mx-auto space-y-10"
     >
-      {/* HERO - Boas vindas */}
+      {/* HERO - Simplificado no mobile */}
       <motion.section variants={item}>
-        <GlassCard className="p-8 md:p-10 rounded-3xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          <div className="relative z-10">
-            <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">
-              Bem-vindo de volta
-            </p>
-            <h2 className="text-3xl md:text-4xl font-bold leading-tight mb-3">
-              Olá,{" "}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-300">
-                {user.name.split(" ")[0]}
-              </span>
-              ! ✨
+        <GlassCard className="p-6 md:p-10 rounded-2xl md:rounded-3xl relative overflow-hidden bg-black/40">
+          <div className="hidden md:block absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          <div className="relative z-10 text-center md:text-left">
+            <h2 className="text-2xl md:text-4xl font-bold leading-tight mb-2">
+              Olá, <span className="text-primary">{user.name.split(" ")[0]}</span>! ✨
             </h2>
-            <p className="text-white/50 text-sm max-w-lg">
-              Continue sua jornada pelo multiverso literário. Explore o livro do mês, complete desafios e compartilhe suas reflexões.
+            <p className="text-white/40 text-[11px] md:text-sm max-w-lg leading-relaxed mx-auto md:ml-0">
+              Sua jornada literária continua. Explore novos mundos hoje.
             </p>
           </div>
         </GlassCard>
@@ -238,8 +231,8 @@ export default function HomeClient({
         </div>
       </motion.section>
 
-      {/* SELOS LITERÁRIOS */}
-      <motion.section variants={item}>
+      {/* SELOS LITERÁRIOS - Ocultos no mobile para dashboard mais limpo */}
+      <motion.section variants={item} className="hidden md:block">
         <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-6 flex items-center gap-2">
           <Award className="w-4 h-4" /> Selos Literários
         </h3>
@@ -335,7 +328,7 @@ export default function HomeClient({
             )}
           </div>
 
-          <GlassCard className="p-6 rounded-2xl bg-amber-500/5 border-amber-500/10 flex flex-col justify-center items-center text-center">
+          <GlassCard className="hidden md:flex p-6 rounded-2xl bg-amber-500/5 border-amber-500/10 flex-col justify-center items-center text-center">
             <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mb-4 border border-amber-500/20">
               <Award className="w-8 h-8 text-amber-500" />
             </div>
@@ -348,9 +341,7 @@ export default function HomeClient({
             <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-4">
               <div className="h-full bg-amber-500 transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
             </div>
-            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold font-mono">
-              {activeAward ? `Finaliza em ${awardDaysRemaining} dias` : (currentTimeline ? `Finaliza em ${daysRemaining} dias` : "Sem cronograma ativo")}
-            </p>
+            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold font-mono" />
           </GlassCard>
         </div>
       </motion.section>
