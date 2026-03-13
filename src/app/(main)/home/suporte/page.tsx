@@ -3,15 +3,19 @@ import { redirect } from "next/navigation";
 import { readChatMessagesAction, readAdminChatUsersAction } from "@/actions/chat";
 import { readUserPlanStatusAction } from "@/actions/dashboard";
 import SuporteClient from "./suporte-client";
+import { isAdmin as checkIsAdmin } from "@/lib/is-admin";
 
 export default async function SuportePage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
   const user = session.user as any;
-  const planRes = await readUserPlanStatusAction(Number(user.id));
+  const [planRes, adminCheck] = await Promise.all([
+    readUserPlanStatusAction(Number(user.id)),
+    checkIsAdmin({ email: user.email, userId: user.id }),
+  ]);
   const userPlan = (planRes as any).success ? (planRes as any).data : null;
-  const isAdmin = user.email === process.env.ADMIN_EMAIL;
+  const isAdmin = adminCheck;
 
   // Plan-based access restriction
   if (!isAdmin && !userPlan) {

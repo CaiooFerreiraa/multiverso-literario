@@ -4,6 +4,7 @@ import { readCurrentTimelineAction, readUserPlanStatusAction, readUserSealsActio
 import { readUserPointsAction } from "@/actions/challenges";
 import { readAllPhrasesAction } from "@/actions/phrases";
 import HomeClient from "@/app/(main)/home/home-client";
+import { isAdmin } from "@/lib/is-admin";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -14,7 +15,7 @@ export default async function DashboardPage() {
 
   const userId = (session.user as any).id;
 
-  const [timelineRes, planRes, sealsRes, pointsRes, phrasesRes, rankingRes, awardRes] = await Promise.all([
+  const [timelineRes, planRes, sealsRes, pointsRes, phrasesRes, rankingRes, awardRes, adminCheck] = await Promise.all([
     readCurrentTimelineAction(),
     readUserPlanStatusAction(userId),
     readUserSealsAction(userId),
@@ -22,6 +23,7 @@ export default async function DashboardPage() {
     readAllPhrasesAction({ currentUserId: userId, limit: 12, page: 1 }),
     readGlobalRankingAction(),
     readActiveAwardAction(),
+    isAdmin({ email: session.user.email, userId }),
   ]);
 
   const userPlan = (planRes as any).success ? (planRes as any).data : null;
@@ -34,7 +36,7 @@ export default async function DashboardPage() {
         id: userId,
         name: session.user.name || "Explorador",
         email: session.user.email || "",
-        isAdmin: session.user.email === process.env.ADMIN_EMAIL,
+        isAdmin: adminCheck,
       }}
       viewType={viewType}
       currentTimeline={(timelineRes as any).success ? (timelineRes as any).data : null}

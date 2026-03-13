@@ -3,14 +3,16 @@ import { redirect } from "next/navigation";
 import { readAllTimelinesAction, readAllQuizzesAction } from "@/actions/admin";
 import { readGlobalRankingAction, readLibraryBooksAction } from "@/actions/dashboard";
 import { AdminClient } from "./admin-client";
+import { isAdmin } from "@/lib/is-admin";
 
 export default async function AdminDashboardPage() {
   const session = await auth();
 
   if (!session?.user) redirect("/login");
 
-  const isAdmin = session.user.email === process.env.ADMIN_EMAIL;
-  if (!isAdmin) redirect("/home");
+  const userId = (session.user as any).id;
+  const adminCheck = await isAdmin({ email: session.user.email, userId });
+  if (!adminCheck) redirect("/home");
 
   const [timelinesRes, rankingRes, quizzesRes, booksRes] = await Promise.all([
     readAllTimelinesAction(),

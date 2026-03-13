@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { readUserPlanStatusAction, readUserTotalPointsAction } from "@/actions/dashboard";
 import { Sidebar } from "@/components/sidebar";
+import { isAdmin } from "@/lib/is-admin";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -13,9 +14,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const userId = (session.user as any).id;
 
-  const [planRes, pointsRes] = await Promise.all([
+  const [planRes, pointsRes, adminCheck] = await Promise.all([
     readUserPlanStatusAction(userId),
-    readUserTotalPointsAction(userId)
+    readUserTotalPointsAction(userId),
+    isAdmin({ email: session.user.email, userId }),
   ]);
 
   const userPlan = (planRes as any).success ? (planRes as any).data : null;
@@ -47,7 +49,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             name: session.user.name || "Explorador",
             email: session.user.email || "",
             image: (session.user as any).image || null,
-            isAdmin: session.user.email === process.env.ADMIN_EMAIL,
+            isAdmin: adminCheck,
             points: Number(userStats.total_points || 0),
             challengesCompleted: Number(userStats.challenges_completed || 0),
           }}

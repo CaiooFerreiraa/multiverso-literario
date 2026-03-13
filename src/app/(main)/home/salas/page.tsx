@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { listScheduledRoomsAction } from "@/actions/rooms";
 import { readUserPlanStatusAction } from "@/actions/dashboard";
 import SalasClient from "./salas-client";
+import { isAdmin } from "@/lib/is-admin";
 
 export default async function SalasPage() {
   const session = await auth();
@@ -11,16 +12,16 @@ export default async function SalasPage() {
 
   const userId = (session.user as any).id;
 
-  const [roomsResult, planRes] = await Promise.all([
+  const [roomsResult, planRes, adminCheck] = await Promise.all([
     listScheduledRoomsAction(),
     readUserPlanStatusAction(userId),
+    isAdmin({ email: session.user.email, userId }),
   ]);
 
   const scheduledRooms = roomsResult.success ? (roomsResult.data as any[]) : [];
   const userPlan = (planRes as any).success ? (planRes as any).data : null;
-  const adminEmail = process.env.ADMIN_EMAIL || "";
-  const isAdmin = session.user.email === adminEmail;
-  const viewType: 'student' | 'adult' | 'free' = isAdmin ? 'adult' : userPlan?.view_type === 'student' ? 'student' : userPlan ? 'adult' : 'free';
+  const isAdminUser = adminCheck;
+  const viewType: 'student' | 'adult' | 'free' = isAdminUser ? 'adult' : userPlan?.view_type === 'student' ? 'student' : userPlan ? 'adult' : 'free';
 
   return (
     <SalasClient

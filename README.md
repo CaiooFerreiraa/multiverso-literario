@@ -1,65 +1,48 @@
-# 🌌 Multiverso Literário - Backend
-
-O **Multiverso Literário** é uma API robusta e escalável desenvolvida para gerenciar jornadas de leitura, permitindo que usuários registrem seu progresso literário através de uma timeline e testem seus conhecimentos por meio de quizzes personalizados vinculados aos livros lidos.
-
----
-
-## 📑 Sumário
-1. [Sobre o Projeto](#-sobre-o-projeto)
-2. [Arquitetura](#-arquitetura)
-3. [Tecnologias](#-tecnologias)
-4. [Configuração do Ambiente](#-configuração-do-ambiente)
-5. [Instalação e Execução](#-instalação-e-execução)
-6. [Documentação da API](#-documentação-da-api)
-    - [Usuários](#-usuários)
-    - [Timeline](#-timeline)
-    - [Quizzes](#-quizzes)
-7. [Estrutura de Dados](#-estrutura-de-dados)
-8. [Pasta de Documentação](#-pasta-de-documentação)
-
----
-
-## 🌟 Sobre o Projeto
-
-O coração do Multiverso Literário é a experiência do leitor. O sistema não apenas armazena nomes de livros, mas permite uma imersão completa:
-- **Timeline dinâmica**: Acompanhe data de início e término de cada obra.
-- **Interatividade**: Crie quizzes para desafiar outros leitores ou consolidar seu conhecimento.
-- **Segurança**: Gestão de perfil com validação rigorosa de dados.
-
----
-
-## 🏛️ Arquitetura
-
-O projeto adota a **Clean Architecture (Arquitetura Limpa)**, o que garante que as regras de negócio sejam independentes de detalhes técnicos como bancos de dados ou frameworks web.
-
-### Fluxo de Dependência
-```mermaid
-graph TD
-    A[Interfaces / Rotas] --> B[Application / Use Cases]
-    B --> C[Domain / Entities]
-    D[Infrastructure / DB] --> B
-    D --> E[External Services]
-```
-
-- **Entities (Domain)**: Objetos de negócio (User, Timeline, Quiz).
-- **Use Cases (Application)**: Lógica específica da aplicação (RegisterUser, CreateQuiz).
-- **Controllers/Routes (Interfaces)**: Adaptadores que recebem requisições HTTP e as convertem para comandos da aplicação.
-- **Repositories (Infrastructure)**: Implementações reais de persistência no Neon (PostgreSQL).
-
----
-
----
-
-## 🛠️ Tecnologias
-
-O projeto utiliza o que há de mais moderno no ecossistema JavaScript/TypeScript:
-
-- **Runtime**: [Bun v1.3.5+](https://bun.sh/) - Performance extrema para o engine.
-- **Linguagem**: [TypeScript](https://www.typescriptlang.org/) - Tipagem estática para maior segurança.
-- **Framework Web**: [Express (v5.0.0-beta)](https://expressjs.com/) - A próxima geração do Express.
-- **Banco de Dados**: [PostgreSQL (Neon Serverless)](https://neon.tech/) - Escalonamento automático e performance.
-- **Transações**: Suporte nativo a transações interativas com isolamento `RepeatableRead`.
-- **Validação**: [Zod](https://zod.dev/) - Esquemas de dados rigorosos e seguros.
+# 🌌 Multiverso Literário
+ 
+ O **Multiverso Literário** é uma plataforma imersiva voltada para comunidades de leitura. Concebido inicialmente como uma API, o projeto evoluiu para um **Monolito robusto (Frontend + Backend)**, permitindo que os usuários participem de salas de áudio e vídeo, gerenciem cronogramas de leitura, respondam quizzes dinâmicos sobre obras literárias, além de acompanhar pontuações em um ranking global com uma estética *Cosmic Glassmorphism*.
+ 
+ ---
+ 
+ ## 📑 Sumário
+ 1. [Sobre o Projeto](#-sobre-o-projeto)
+ 2. [Arquitetura e Funcionalidades](#-arquitetura-e-funcionalidades)
+ 3. [Stack e Tecnologias](#-stack-e-tecnologias)
+ 4. [Configuração do Ambiente](#-configuração-do-ambiente)
+ 5. [Instalação e Execução](#-instalação-e-execução)
+ 6. [Documentação da API Original](#-documentação-da-api-original)
+ 7. [Deploy e Estrutura Docker](#-deploy-e-estrutura-docker)
+ 
+ ---
+ 
+ ## 🌟 Sobre o Projeto
+ 
+ O coração do Multiverso Literário é a experiência de imersão e gamificação do leitor dentro de uma temática espacial/nebulosa:
+ - **Comunidade (Salas de Reunião)**: Criação de salas interativas de áudio/vídeo (via Jitsi no domínio meet.jit.si) para discussões, com controle de presença e recompensas monetizadas em pontos.
+ - **Gamificação (Quizzes e Desafios)**: Responda quizzes com tempo por questão, envie redações em PDF, ganhe bônus de presença e escale o Pódio Global.
+ - **Gestão Literária**: Administrativo completo, permitindo o controle de livros, capas buscadas automaticamente na Google Books API e disponibilização de arquivos em PDF.
+ - **Perfis e Planos**: Separação de visões entre perfis (Student vs Adult), com sistema completo de chat de suporte em tempo real (polling).
+ 
+ ---
+ 
+ ## 🏛️ Arquitetura e Funcionalidades
+ 
+ O projeto unificou sua stack e agora adota um padrão arquitetural combinando o **App Router do Next.js 15** para interface de usuário e roteamento, mantendo internamente camadas da **Clean Architecture** (Domain, Application, Infrastructure) para a lógica de negócio, conectando via Next.js API Routes e banco de dados Neon Serverless (PostgreSQL).
+ 
+ ### Destaques da UI/UX:
+ - Design *Cosmic Glassmorphism* focado em roxo, indigo e dourado.
+ - Componentização robusta com shadcn/ui.
+ - Formulários e botões estlizados e acessíveis interagindo via Radix UI e Framer Motion.
+ 
+ ---
+ 
+ ## 🛠️ Stack e Tecnologias
+ 
+ - **Runtime**: [Bun v1.3+](https://bun.sh/) - Performance extrema.
+ - **Frontend Web**: [Next.js 15 (App Router)](https://nextjs.org/) + [React 19](https://react.dev/)
+ - **Estilização**: Tailwind CSS (v4) + Shadcn/ui + Framer Motion + Lucide React
+ - **Backend e Banco de Dados**: Next.js API Routes / Express + PostgreSQL (via Neon DB) + Zod
+ - **Segurança e SEO**: Suporte total a transações interativas (`RepeatableRead`), integridade ON DELETE CASCADE gerenciada, e Next Auth.
 
 ---
 
