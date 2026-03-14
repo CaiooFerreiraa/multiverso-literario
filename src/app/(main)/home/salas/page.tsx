@@ -15,7 +15,7 @@ export default async function SalasPage() {
   const [roomsResult, planRes, adminCheck] = await Promise.all([
     listScheduledRoomsAction(),
     readUserPlanStatusAction(userId),
-    isAdmin({ email: session.user.email, userId }),
+    isAdmin({ userId }),
   ]);
 
   const scheduledRooms = roomsResult.success ? (roomsResult.data as any[]) : [];

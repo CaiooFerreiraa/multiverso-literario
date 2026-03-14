@@ -8,15 +8,12 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnAdmin = nextUrl.pathname.startsWith("/home/admin");
       const isOnProtected = nextUrl.pathname.startsWith("/home") || nextUrl.pathname.startsWith("/rooms");
       const isOnAuth = nextUrl.pathname.startsWith("/login") || nextUrl.pathname.startsWith("/register");
 
-      if (isOnAdmin) {
-        if (isLoggedIn && auth?.user?.email === process.env.ADMIN_EMAIL) return true;
-        return Response.redirect(new URL("/home", nextUrl));
-      }
-
+      // Proteção de rotas: apenas exige login.
+      // A verificação de admin (tabela do banco) é feita nos Server Components,
+      // pois o Edge Middleware não tem acesso ao banco de dados.
       if (isOnProtected) {
         if (isLoggedIn) return true;
         return false; // Redireciona para o login

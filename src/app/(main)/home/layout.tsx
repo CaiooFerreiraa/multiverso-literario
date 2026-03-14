@@ -17,7 +17,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const [planRes, pointsRes, adminCheck] = await Promise.all([
     readUserPlanStatusAction(userId),
     readUserTotalPointsAction(userId),
-    isAdmin({ email: session.user.email, userId }),
+    isAdmin({ userId }),
   ]);
 
   const userPlan = (planRes as any).success ? (planRes as any).data : null;

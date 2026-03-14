@@ -12,7 +12,7 @@ export default async function SuportePage() {
   const user = session.user as any;
   const [planRes, adminCheck] = await Promise.all([
     readUserPlanStatusAction(Number(user.id)),
-    checkIsAdmin({ email: user.email, userId: user.id }),
+    checkIsAdmin({ userId: user.id }),
   ]);
   const userPlan = (planRes as any).success ? (planRes as any).data : null;
   const isAdmin = adminCheck;

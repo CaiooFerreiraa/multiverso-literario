@@ -11,7 +11,7 @@ export default async function AdminDashboardPage() {
   if (!session?.user) redirect("/login");
 
   const userId = (session.user as any).id;
-  const adminCheck = await isAdmin({ email: session.user.email, userId });
+  const adminCheck = await isAdmin({ userId });
   if (!adminCheck) redirect("/home");
 
   const [timelinesRes, rankingRes, quizzesRes, booksRes] = await Promise.all([

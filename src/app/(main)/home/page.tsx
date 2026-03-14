@@ -23,7 +23,7 @@ export default async function DashboardPage() {
     readAllPhrasesAction({ currentUserId: userId, limit: 12, page: 1 }),
     readGlobalRankingAction(),
     readActiveAwardAction(),
-    isAdmin({ email: session.user.email, userId }),
+    isAdmin({ userId }),
   ]);
 
   const userPlan = (planRes as any).success ? (planRes as any).data : null;

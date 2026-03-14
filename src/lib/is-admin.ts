@@ -3,26 +3,15 @@ import { neonClient } from "@/infrastructure/database/neon";
 /**
  * Verifica se um usuário é administrador.
  *
- * A verificação é feita em duas etapas (OR):
- * 1. Verificação via variável de ambiente ADMIN_EMAIL (master admin)
- * 2. Verificação via tabela `admin` no banco de dados (admins cadastrados)
+ * A verificação é feita exclusivamente via tabela `admin` no banco de dados.
  *
- * @param params.email - Email do usuário (para a verificação via env)
- * @param params.userId - ID do usuário no banco (para a verificação via tabela admin)
+ * @param params.userId - ID do usuário no banco (verificação via tabela admin)
  */
 export async function isAdmin({
-  email,
   userId,
 }: {
-  email: string | null | undefined;
   userId: number | string | null | undefined;
 }): Promise<boolean> {
-  // 1. Verificação via env (master admin)
-  if (email && process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL) {
-    return true;
-  }
-
-  // 2. Verificação via banco de dados
   if (!userId) return false;
 
   try {
