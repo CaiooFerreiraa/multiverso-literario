@@ -12,12 +12,13 @@ import { AdminQuizList } from "./quiz-list";
 import { AdminPlanForm } from "./plan-form";
 import { AdminAttendanceRewardForm } from "./attendance-reward-form";
 import { AdminChallengesForm } from "./challenges-form";
+import { AdminUsersTable } from "./users-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Ticket, Video, Trophy, Zap,
   LibraryBig, Award, Gift, CreditCard, ShieldAlert,
-  Plus, Crown, Target,
+  Plus, Crown, Target, Users
 } from "lucide-react";
 
 interface AdminClientProps {
@@ -25,10 +26,17 @@ interface AdminClientProps {
   quizzes: any[];
   ranking: any[];
   books: any[];
+  usersData: {
+    data: any[];
+    total: number;
+    page: number;
+    limit: number;
+  };
 }
 
 const NAV_ITEMS = [
   { id: "timeline", label: "Cronogramas", icon: LayoutDashboard },
+  { id: "users", label: "Usuários", icon: Users },
   { id: "quiz", label: "Quizzes", icon: Ticket },
   { id: "rooms", label: "Salas", icon: Video },
   { id: "challenges", label: "Desafios", icon: Zap },
@@ -67,7 +75,7 @@ function Divider({ label }: { label: string }) {
   );
 }
 
-export function AdminClient({ timelines, quizzes, ranking, books }: AdminClientProps) {
+export function AdminClient({ timelines, quizzes, ranking, books, usersData }: AdminClientProps) {
   const [activeTab, setActiveTab] = useState<TabId>("timeline");
   const [editingTimeline, setEditingTimeline] = useState<any>(null);
   const [editingQuiz, setEditingQuiz] = useState<any>(null);
@@ -137,6 +145,19 @@ export function AdminClient({ timelines, quizzes, ranking, books }: AdminClientP
                   <TimelineForm initialData={editingTimeline} onCancel={() => setEditingTimeline(null)} />
                   <Divider label="Histórico de Leitura" />
                   <AdminTimelineList timelines={timelines} onEdit={(t) => { setEditingTimeline(t); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+                </div>
+              )}
+
+              {/* USUÁRIOS */}
+              {activeTab === "users" && (
+                <div>
+                  <SectionHeader icon={Users} title="Base de Exploradores" description="Gere os membros da comunidade e seus planos de acesso" />
+                  <AdminUsersTable 
+                    initialUsers={usersData.data} 
+                    initialTotal={usersData.total} 
+                    initialPage={usersData.page} 
+                    limit={usersData.limit} 
+                  />
                 </div>
               )}
 

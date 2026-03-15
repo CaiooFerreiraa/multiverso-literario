@@ -171,3 +171,50 @@ export async function deleteBookAction(id_book: number) {
     return { success: false, error: error.message || "Erro ao deletar livro" };
   }
 }
+
+export async function readUsersAction(page: number = 1, limit: number = 10) {
+  try {
+    const offset = (page - 1) * limit;
+
+    const [rows, countRows] = await Promise.all([
+      neonClient.query<{
+        id_user: number;
+        name: string;
+        email: string;
+        image: string | null;
+        created_at: string | null;
+        plan_name: string | null;
+        view_type: string | null;
+      }>(
+        `SELECT
+          u.id_user,
+          u.fullname AS name,
+          u.email,
+          u.image,
+          NULL AS created_at,
+          pe.title      AS plan_name,
+          pe.view_type
+         FROM users u
+         LEFT JOIN member m ON u.id_user = m.id_user
+         LEFT JOIN (
+           SELECT id_user, id_plan, MAX(created_at) as last_buy
+           FROM buy
+           WHERE status = 'concluido'
+           GROUP BY id_user, id_plan
+         ) b ON b.id_user = u.id_user
+         LEFT JOIN plan_expanded pe ON b.id_plan = pe.id_plan
+         ORDER BY u.id_user DESC
+         LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      ),
+      neonClient.query<{ total: string }>(`SELECT COUNT(*) AS total FROM users`),
+    ]);
+
+    const total = parseInt(countRows[0]?.total ?? "0", 10);
+
+    return { success: true, data: rows, total, page, limit };
+  } catch (error: any) {
+    console.error("[readUsersAction] Error:", error);
+    return { success: false, error: error.message || "Erro ao listar usuários", data: [], total: 0, page, limit };
+  }
+}
