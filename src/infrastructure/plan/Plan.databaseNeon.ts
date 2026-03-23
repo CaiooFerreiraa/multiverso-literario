@@ -6,11 +6,11 @@ import { Database } from "../database/neon";
 export class PlanDatabaseNeon implements PlanRepository {
     constructor(private database: Database) { };
 
-    async create(plan: any): Promise<any> {
+    async create(plan: Plan): Promise<any> {
         try {
             await this.database.query(
-                `INSERT INTO plan_expanded (value, duraction, title, benefits, view_type) VALUES ($1, $2, $3, $4, $5)`,
-                [plan.value, plan.duraction, plan.title, plan.benefits, plan.view_type || 'adult']
+                `INSERT INTO plan_expanded (value, duraction, title, benefits, view_type, features) VALUES ($1, $2, $3, $4, $5, $6)`,
+                [plan.value, plan.duraction, plan.title, plan.benefits, plan.view_type || 'adult', plan.features || []]
             );
         } catch (error) {
             throw error;
@@ -38,13 +38,13 @@ export class PlanDatabaseNeon implements PlanRepository {
         }
     }
 
-    async update(id_plan: number, plan: any): Promise<any> {
+    async update(id_plan: number, plan: Plan): Promise<any> {
         try {
             await this.database.query(`
                 UPDATE plan_expanded
-                SET value = $1, duraction = $2, title = $3, benefits = $4, view_type = $5
-                WHERE id_plan = $6    
-            `, [plan.value, plan.duraction, plan.title, plan.benefits, plan.view_type || 'adult', id_plan]
+                SET value = $1, duraction = $2, title = $3, benefits = $4, view_type = $5, features = $6
+                WHERE id_plan = $7    
+            `, [plan.value, plan.duraction, plan.title, plan.benefits, plan.view_type || 'adult', plan.features || [], id_plan]
             )
         } catch (error) {
             throw error;

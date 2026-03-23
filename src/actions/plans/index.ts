@@ -64,6 +64,8 @@ export async function createPlanAction(data: any) {
   try {
     const useCase = new CreatePlan(getPlanRepository());
     const result = await useCase.execute(data);
+    revalidatePath("/home/planos");
+    revalidatePath("/home/admin");
     return { success: true, data: result };
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };

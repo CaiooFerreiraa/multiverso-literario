@@ -12,12 +12,14 @@ import {
 import Link from "next/link";
 import { completeChallengeAction } from "@/actions/challenges";
 import { toast } from "sonner";
+import { hasFeature } from "@/lib/plan-utils";
 
 interface Props {
   userId: number;
   challenges: any[];
   userPoints: { total_points: number; challenges_completed: number };
-  isPremium: boolean;
+  userPlan: any;
+  isAdmin: boolean;
   attendanceData?: {
     totalMeetings: number;
     rewards: any[];
@@ -34,10 +36,14 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
-export default function DesafiosClient({ userId, challenges: initialChallenges, userPoints, isPremium, attendanceData }: Props) {
+export default function DesafiosClient({ userId, challenges: initialChallenges, userPoints, userPlan, isAdmin, attendanceData }: Props) {
   const [challenges, setChallenges] = useState(initialChallenges || []);
   const [isPending, startTransition] = useTransition();
   const [selectedFiles, setSelectedFiles] = useState<Record<number, File | null>>({});
+
+  const canDoExclu = hasFeature(userPlan, 'CHALLENGE_EXCLU', isAdmin);
+  const canDoUnlimited = hasFeature(userPlan, 'CHALLENGE_UNLIMITED', isAdmin);
+  const canDo2 = hasFeature(userPlan, 'CHALLENGE_2', isAdmin) || canDoExclu || canDoUnlimited;
 
   const freeChallenges = challenges.filter((c: any) => !c.is_premium);
   const premiumChallenges = challenges.filter((c: any) => c.is_premium);
@@ -50,9 +56,23 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
   };
 
   const handleComplete = (challenge: any) => {
-    if (!isPremium && challenge.is_premium) return;
-    if (!isPremium && completedFreeCount >= freeLimit && !challenge.completed_at) return;
+    // Se for premium, precisa de CHALLENGE_EXCLU ou UNLIMITED
+    if (challenge.is_premium && !canDoExclu && !canDoUnlimited) {
+      toast.error("Este desafio é exclusivo para membros com plano expandido.");
+      return;
+    };
+
+    // Se for gratuito, mas excedeu o limite do plano básico
+    if (!challenge.is_premium && !canDoUnlimited && !canDoExclu && completedFreeCount >= freeLimit && !challenge.completed_at) {
+       toast.error("Você atingiu o limite de desafios gratuitos do seu plano.");
+       return;
+    }
+
     if (challenge.completed_at) return;
+    if (!canDo2) {
+      toast.error("Seu plano não inclui o módulo de desafios.");
+      return;
+    }
 
     // Check for PDF attachment requirement
     const needsPDF = challenge.challenge_type === "escrita" || challenge.challenge_type === "time";
@@ -75,6 +95,7 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
       }
     });
   };
+
 
   const renderChallengeCard = (challenge: any, index: number, locked: boolean) => {
     const isCompleted = !!challenge.completed_at;
@@ -309,7 +330,7 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
             <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest">
               Desafios Gratuitos
             </h3>
-            {!isPremium && (
+            {!canDoUnlimited && !canDoExclu && canDo2 && (
               <Badge variant="outline" className="text-[9px] border-white/10">
                 {completedFreeCount}/{freeLimit} usados
               </Badge>
@@ -317,7 +338,7 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
           </div>
           <div className="space-y-3">
             {freeChallenges.map((challenge: any, i: number) => {
-              const locked = !isPremium && completedFreeCount >= freeLimit && !challenge.completed_at;
+              const locked = !canDoUnlimited && !canDoExclu && completedFreeCount >= freeLimit && !challenge.completed_at;
               return renderChallengeCard(challenge, i, locked);
             })}
             {freeChallenges.length === 0 && (
@@ -337,7 +358,7 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
             </h3>
           </div>
 
-          {!isPremium && (
+          {!canDoExclu && !canDoUnlimited && (
             <GlassCard className="p-6 rounded-2xl mb-4 bg-gradient-to-r from-amber-500/10 to-orange-600/5 border-amber-500/10">
               <div className="flex items-center gap-4">
                 <Lock className="w-8 h-8 text-amber-400/50" />
@@ -358,7 +379,7 @@ export default function DesafiosClient({ userId, challenges: initialChallenges, 
 
           <div className="space-y-3">
             {premiumChallenges.map((challenge: any, i: number) =>
-              renderChallengeCard(challenge, i, !isPremium)
+              renderChallengeCard(challenge, i, !canDoExclu && !canDoUnlimited)
             )}
           </div>
         </motion.section>

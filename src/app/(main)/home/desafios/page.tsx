@@ -4,6 +4,7 @@ import { readUserChallengesAction, readUserPointsAction } from "@/actions/challe
 import { readUserPlanStatusAction } from "@/actions/dashboard";
 import { getUserAttendanceStatusAction } from "@/actions/attendance";
 import DesafiosClient from "./desafios-client";
+import { isAdmin as checkAdmin } from "@/lib/is-admin";
 
 export default async function DesafiosPage() {
   const session = await auth();
@@ -11,20 +12,25 @@ export default async function DesafiosPage() {
 
   const userId = (session.user as any).id;
 
-  const [challengesRes, pointsRes, planRes, attendanceRes] = await Promise.all([
+  const [challengesRes, pointsRes, planRes, attendanceRes, isAdmin] = await Promise.all([
     readUserChallengesAction(userId),
     readUserPointsAction(userId),
     readUserPlanStatusAction(userId),
     getUserAttendanceStatusAction(),
+    checkAdmin({ userId }),
   ]);
+
+  const userPlan = (planRes as any).success ? (planRes as any).data : null;
 
   return (
     <DesafiosClient
       userId={userId}
       challenges={(challengesRes as any).success ? (challengesRes as any).data : []}
       userPoints={(pointsRes as any).success ? (pointsRes as any).data : { total_points: 0, challenges_completed: 0 }}
-      isPremium={!!(planRes as any).data}
+      userPlan={userPlan}
+      isAdmin={isAdmin}
       attendanceData={(attendanceRes as any).success ? (attendanceRes as any).data : null}
     />
   );
 }
+

@@ -24,6 +24,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createScheduledRoomAction } from "@/actions/rooms";
 import { toast } from "sonner";
+import { hasFeature } from "@/lib/plan-utils";
+import { Crown, Lock } from "lucide-react";
 
 interface SalasClientProps {
   user: {
@@ -35,6 +37,8 @@ interface SalasClientProps {
   viewType: 'student' | 'adult' | 'free';
   adminEmail: string;
   scheduledRooms: any[];
+  userPlan: any;
+  isAdmin: boolean;
 }
 
 interface Room {
@@ -56,9 +60,11 @@ interface Room {
 }
 
 const CATEGORIES = ["Todas", "Literatura Brasileira", "Ficção Científica", "Clássicos", "Fantasia", "Filosofia", "Poesia"];
-export default function SalasClient({ user, viewType, adminEmail, scheduledRooms: dbRooms }: SalasClientProps) {
+export default function SalasClient({ user, viewType, adminEmail, scheduledRooms: dbRooms, userPlan, isAdmin }: SalasClientProps) {
   const router = useRouter();
   const isStudent = viewType === 'student';
+  const canJoinRooms = hasFeature(userPlan, 'ROOM_JOIN', isAdmin);
+  const canCreateRooms = hasFeature(userPlan, 'AUTHOR_ROOM', isAdmin) || hasFeature(userPlan, 'REUNIOES', isAdmin);
 
   const [isMounted, setIsMounted] = useState(false);
   React.useEffect(() => {
@@ -176,13 +182,25 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
             />
           </div>
 
-          {!isStudent && (
+          {!isStudent && canCreateRooms && (
             <Button
               onClick={() => setShowCreateModal(true)}
               className="rounded-xl bg-primary hover:bg-primary/90 font-bold gap-2 h-10 px-5 shadow-[0_0_20px_rgba(109,40,217,0.3)] transition-all hover:shadow-[0_0_30px_rgba(109,40,217,0.5)] cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Criar Sala</span>
+            </Button>
+          )}
+          {!isStudent && !canCreateRooms && (
+            <Button
+              variant="outline"
+              asChild
+              className="rounded-xl border-amber-500/30 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold gap-2 h-10 px-5 cursor-pointer"
+            >
+              <Link href="/home/planos">
+                <Crown className="w-4 h-4" />
+                <span className="hidden sm:inline">Upgrade para Criar</span>
+              </Link>
             </Button>
           )}
         </div>
@@ -243,8 +261,8 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05, duration: 0.4 }}
                 >
-                  <Link href={`/home/salas/${room.id}`}>
-                    <GlassCard className="p-0 overflow-hidden group hover:border-primary/30 hover:shadow-[0_0_40px_rgba(109,40,217,0.1)] transition-all duration-500 cursor-pointer">
+                  <Link href={canJoinRooms ? `/home/salas/${room.id}` : "/home/planos"}>
+                    <GlassCard className={`p-0 overflow-hidden group hover:border-primary/30 hover:shadow-[0_0_40px_rgba(109,40,217,0.1)] transition-all duration-500 cursor-pointer ${!canJoinRooms ? 'opacity-70' : ''}`}>
                       <div className="px-5 pt-4 pb-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="flex items-center gap-1.5 bg-red-500/20 text-red-400 px-2.5 py-1 rounded-full">
@@ -254,6 +272,12 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
                           <Badge variant="outline" className="text-[9px] border-white/10 text-white/40 bg-white/5">
                             {room.category}
                           </Badge>
+                          {!canJoinRooms && (
+                            <div className="flex items-center gap-1.5 bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                              <Lock className="w-2.5 h-2.5" />
+                              <span className="text-[8px] font-bold uppercase tracking-wider">Bloqueado</span>
+                            </div>
+                          )}
                         </div>
                         <span className="text-[10px] text-white/20 font-medium flex items-center gap-1">
                           <Clock className="w-3 h-3" />
@@ -316,8 +340,8 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 + 0.2, duration: 0.4 }}
                 >
-                  <Link href={`/home/salas/${room.id}`}>
-                    <GlassCard className="p-0 overflow-hidden group hover:border-white/20 transition-all duration-500 opacity-70 hover:opacity-100 cursor-pointer">
+                  <Link href={canJoinRooms ? `/home/salas/${room.id}` : "/home/planos"}>
+                    <GlassCard className={`p-0 overflow-hidden group hover:border-white/20 transition-all duration-500 opacity-70 hover:opacity-100 cursor-pointer ${!canJoinRooms ? 'grayscale' : ''}`}>
                       <div className="px-5 pt-4 pb-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="flex items-center gap-1.5 bg-white/5 text-white/40 px-2.5 py-1 rounded-full border border-white/5">
@@ -327,6 +351,12 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
                           <Badge variant="outline" className="text-[9px] border-white/10 text-white/40 bg-white/5">
                             {room.category}
                           </Badge>
+                          {!canJoinRooms && (
+                            <div className="flex items-center gap-1.5 bg-white/5 text-white/30 border border-white/10 px-2 py-0.5 rounded-full">
+                              <Lock className="w-2.5 h-2.5" />
+                              <span className="text-[8px] font-bold uppercase tracking-wider">Upgrade</span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -385,15 +415,28 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
             </div>
             <h3 className="text-lg font-bold text-white/60 mb-2">Nenhuma sala encontrada</h3>
             <p className="text-sm text-white/30 mb-6 text-center max-w-xs">
-              {isStudent ? "Aguarde o administrador criar novas salas." : "Que tal criar uma sala e iniciar uma conversa literária?"}
+              {!canJoinRooms 
+                ? "Seu plano atual não permite participar de salas de discussão."
+                : isStudent ? "Aguarde o administrador criar novas salas." : "Que tal criar uma sala e iniciar uma conversa literária?"}
             </p>
-            {!isStudent && (
+            {!isStudent && canCreateRooms && (
               <Button
                 onClick={() => setShowCreateModal(true)}
                 className="rounded-xl bg-primary hover:bg-primary/90 font-bold gap-2 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 Criar Sala
+              </Button>
+            )}
+            {!isStudent && !canCreateRooms && (
+              <Button
+                asChild
+                className="rounded-xl bg-amber-500 hover:bg-amber-600 font-bold gap-2 cursor-pointer text-black"
+              >
+                <Link href="/home/planos">
+                  <Crown className="w-4 h-4" />
+                  Ver Planos
+                </Link>
               </Button>
             )}
           </motion.div>

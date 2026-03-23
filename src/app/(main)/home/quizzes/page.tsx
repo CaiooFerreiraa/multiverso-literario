@@ -4,16 +4,51 @@ import { redirect } from "next/navigation";
 import { GlassCard } from "@/components/glass-card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Ticket, Bookmark, HelpCircle, ChevronRight, Zap } from "lucide-react";
+import { Ticket, Bookmark, HelpCircle, ChevronRight, Zap, Lock, Crown } from "lucide-react";
 
-import { readCurrentTimelineAction, readQuizzesAction } from "@/actions/dashboard";
+import { readCurrentTimelineAction, readQuizzesAction, readUserPlanStatusAction } from "@/actions/dashboard";
+import { hasFeature } from "@/lib/plan-utils";
+import { isAdmin as checkAdmin } from "@/lib/is-admin";
 
 export default async function QuizzesPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const timelineRes = await readCurrentTimelineAction();
+  const userId = Number((session.user as any).id);
+
+  const [timelineRes, planRes, isAdmin] = await Promise.all([
+    readCurrentTimelineAction(),
+    readUserPlanStatusAction(userId),
+    checkAdmin({ userId })
+  ]);
+
+  const userPlan = planRes.success ? planRes.data : null;
   const currentTimeline = timelineRes.success ? timelineRes.data : null;
+  const canAccessQuizzes = hasFeature(userPlan, 'QUIZ_BASIC', isAdmin);
+
+  if (!canAccessQuizzes) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <GlassCard className="max-w-md w-full p-10 text-center rounded-3xl border-amber-500/20 bg-amber-500/5">
+          <Lock className="w-16 h-16 text-amber-500/20 mx-auto mb-6" />
+          <h2 className="text-2xl font-bold text-amber-500 mb-4">Quizzes Bloqueados</h2>
+          <p className="text-white/40 text-sm mb-8 leading-relaxed">
+            Seu plano atual não inclui acesso aos nossos quizzes interativos. 
+            Faça um upgrade para testar seus conhecimentos e ganhar muitos pontos!
+          </p>
+          <Button asChild className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold h-12 rounded-xl cursor-pointer">
+            <Link href="/home/planos">
+              <Crown className="w-4 h-4 mr-2" />
+              Ver Planos Literários
+            </Link>
+          </Button>
+          <Link href="/home" className="block mt-6 text-xs text-white/20 hover:text-white transition-colors uppercase tracking-widest font-bold">
+            Voltar para o Dashboard
+          </Link>
+        </GlassCard>
+      </div>
+    );
+  }
 
   let quizzes = [];
   if (currentTimeline) {
@@ -22,6 +57,7 @@ export default async function QuizzesPage() {
       quizzes = quizzesRes.data as any[];
     }
   }
+
 
   return (
     <div className="min-h-screen px-6 lg:px-12 py-10">

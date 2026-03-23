@@ -18,6 +18,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
+import { hasFeature } from "@/lib/plan-utils";
 
 interface Book {
   id_book: number;
@@ -29,12 +30,18 @@ interface Book {
 
 interface BibliotecaClientProps {
   books: Book[];
-  isPremium: boolean;
+  userPlan: any;
+  isAdmin: boolean;
 }
 
-export default function BibliotecaClient({ books, isPremium }: BibliotecaClientProps) {
+export default function BibliotecaClient({ books, userPlan, isAdmin }: BibliotecaClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "adult">("all");
+
+  const isPremium = !!userPlan;
+  const canAccessGeneral = hasFeature(userPlan, 'LIBRARY_BASIC', isAdmin);
+  const canAccessAdult = hasFeature(userPlan, 'LIBRARY_EXPANDED', isAdmin);
+  const canAccessDigital = hasFeature(userPlan, 'LIBRARY_DIGITAL', isAdmin);
 
   const filteredBooks = books.filter(book =>
     book.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -45,6 +52,7 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
   const adultBooks = filteredBooks.filter(b => b.id_plan === 2);
 
   const displayBooks = activeTab === "adult" ? adultBooks : generalBooks;
+  const currentTabLocked = activeTab === "adult" ? !canAccessAdult : !canAccessGeneral;
 
   return (
     <div className="min-h-screen py-10 px-6 lg:px-12">
@@ -92,11 +100,11 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
                 Acesse PDFs exclusivos, planners de leitura e obras completas dos seus autores favoritos.
                 Expanda seus horizontes no Multiverso Literário.
               </p>
-              {!isPremium && (
+              {!canAccessDigital && (
                 <Button className="bg-amber-500 hover:bg-amber-600 rounded-xl h-12 px-8 font-bold gap-2 cursor-pointer shadow-lg shadow-amber-500/20" asChild>
                   <Link href="/home/planos">
                     <Crown className="w-4 h-4" />
-                    Assinar para Acesso Total
+                    Assinar para Acesso Digital
                   </Link>
                 </Button>
               )}
@@ -108,12 +116,13 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           <button
             onClick={() => setActiveTab("all")}
-            className={`px-6 h-9 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border ${activeTab === "all"
+            className={`px-6 h-9 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-2 ${activeTab === "all"
               ? "bg-primary text-white border-primary/30 shadow-[0_0_15px_rgba(109,40,217,0.3)]"
               : "bg-white/5 text-white/50 border-white/5 hover:bg-white/10"
               }`}
           >
             📚 Acervo Geral
+            {!canAccessGeneral && <Lock className="w-3 h-3 ml-1 text-white/50" />}
           </button>
           <button
             onClick={() => setActiveTab("adult")}
@@ -124,7 +133,7 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
           >
             <ShieldAlert className="w-3.5 h-3.5" />
             Pasta Exclusiva Adultos
-            {!isPremium && <Lock className="w-3 h-3 ml-1 text-amber-500/50" />}
+            {!canAccessAdult && <Lock className="w-3 h-3 ml-1 text-amber-500/50" />}
           </button>
         </div>
 
@@ -132,7 +141,7 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-20">
           <AnimatePresence mode="popLayout">
             {displayBooks.map((book, i) => {
-              const isLocked = book.id_plan === 2 && !isPremium;
+              const isLocked = (book.id_plan === 2 && !canAccessAdult) || (book.id_plan !== 2 && !canAccessGeneral);
               return (
                 <motion.div
                   key={book.id_book}
@@ -184,16 +193,16 @@ export default function BibliotecaClient({ books, isPremium }: BibliotecaClientP
             <div className="col-span-full py-20 text-center space-y-4">
               <Bookmark className="w-12 h-12 text-white/5 mx-auto" />
               <p className="text-white/20 text-sm">
-                {activeTab === "adult" && !isPremium
-                  ? "Conteúdo exclusivo para assinantes premium."
+                {currentTabLocked
+                  ? "Seu plano atual não inclui acesso a este acervo."
                   : "Nenhum livro encontrado para sua busca."
                 }
               </p>
-              {activeTab === "adult" && !isPremium && (
+              {currentTabLocked && (
                 <Button asChild className="bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl cursor-pointer">
                   <Link href="/home/planos">
                     <Crown className="w-4 h-4 mr-2" />
-                    Assinar Plano Premium
+                    Fazer Upgrade de Plano
                   </Link>
                 </Button>
               )}

@@ -34,6 +34,9 @@ export default async function SalasPage() {
       viewType={viewType}
       adminEmail={process.env.ADMIN_EMAIL || ""}
       scheduledRooms={scheduledRooms}
+      userPlan={userPlan}
+      isAdmin={isAdminUser}
     />
   );
 }
+

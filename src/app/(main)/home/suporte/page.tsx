@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { readChatMessagesAction, readAdminChatUsersAction } from "@/actions/chat";
 import { readUserPlanStatusAction } from "@/actions/dashboard";
+import { hasFeature } from "@/lib/plan-utils";
 import SuporteClient from "./suporte-client";
 import { isAdmin as checkIsAdmin } from "@/lib/is-admin";
 
@@ -18,7 +19,9 @@ export default async function SuportePage() {
   const isAdmin = adminCheck;
 
   // Plan-based access restriction
-  if (!isAdmin && !userPlan) {
+  const canAccessChat = hasFeature(userPlan, 'CHAT_ADMIN', isAdmin);
+  
+  if (!canAccessChat) {
     redirect("/home/planos");
   }
 

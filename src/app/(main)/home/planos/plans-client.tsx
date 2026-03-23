@@ -18,6 +18,7 @@ import {
 import { subscribeToPlanAction } from "@/actions/plans";
 import { toast } from "sonner";
 import Link from "next/link";
+import { FEATURE_LABELS } from "@/lib/plan-utils";
 
 interface Props {
   user: { id: number; name: string; email: string };
@@ -175,14 +176,25 @@ export default function PlansClient({ user, userPlan, availablePlans }: Props) {
 
                     <div className="flex-1 space-y-4 mb-10 relative z-10">
                       <p className="text-xs font-bold text-amber-500/40 uppercase tracking-widest">Recursos Premium:</p>
-                      {plan.benefits && plan.benefits.map((feature: string, i: number) => (
-                        <div key={i} className="flex items-center gap-3 text-white/80">
-                          <div className="w-5 h-5 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
-                            <CheckCircle2 className="w-3 h-3 text-amber-500" />
+                      {(() => {
+                        const allBenefits = [
+                          ...(plan.features || []).map((f: any) => (FEATURE_LABELS as any)[f]).filter(Boolean),
+                          ...(plan.benefits || [])
+                        ];
+                        
+                        if (allBenefits.length === 0) {
+                          return <p className="text-sm font-medium text-white/40 italic">Nenhum recurso listado.</p>;
+                        }
+                        
+                        return allBenefits.map((feature: string, i: number) => (
+                          <div key={i} className="flex items-center gap-3 text-white/80">
+                            <div className="w-5 h-5 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
+                              <CheckCircle2 className="w-3 h-3 text-amber-500" />
+                            </div>
+                            <span className="text-sm font-medium">{feature}</span>
                           </div>
-                          <span className="text-sm font-medium">{feature}</span>
-                        </div>
-                      ))}
+                        ));
+                      })()}
                     </div>
 
                     {userHasThisPlan ? (

@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { SYSTEM_FEATURES, FEATURE_LABELS } from "@/lib/plan-utils";
+
 export function AdminPlanForm() {
   const [isPending, startTransition] = useTransition();
   const [plans, setPlans] = useState<any[]>([]);
@@ -44,6 +46,7 @@ export function AdminPlanForm() {
     duraction: "30",
     benefits: [""] as string[],
     view_type: "adult" as "student" | "adult",
+    features: [] as string[],
   });
 
   useEffect(() => { loadPlans(); }, []);
@@ -61,6 +64,7 @@ export function AdminPlanForm() {
       duraction: "30",
       benefits: [""],
       view_type: "adult",
+      features: [],
     });
     setIsEditing(false);
   };
@@ -73,6 +77,7 @@ export function AdminPlanForm() {
       duraction: plan.duraction.toString(),
       benefits: plan.benefits && plan.benefits.length > 0 ? plan.benefits : [""],
       view_type: plan.view_type || "adult",
+      features: plan.features || [],
     });
     setIsEditing(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -103,6 +108,7 @@ export function AdminPlanForm() {
         duraction: Number(form.duraction),
         benefits: form.benefits.filter(b => b.trim() !== ""),
         view_type: form.view_type,
+        features: form.features,
       };
 
       const res = form.id_plan
@@ -168,6 +174,57 @@ export function AdminPlanForm() {
                 placeholder="30"
                 className="bg-white/5 border-white/8 h-11 rounded-xl text-sm"
               />
+            </div>
+          </div>
+
+          <div className="space-y-4 col-span-full pt-4 border-t border-white/5">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Recursos Ativos (Bloqueio Dinâmico)</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, features: SYSTEM_FEATURES.map(f => f.key) })}
+                  className="text-[9px] font-bold text-primary hover:underline uppercase tracking-tighter cursor-pointer"
+                >
+                  Selecionar todos
+                </button>
+                <span className="text-white/10 text-[9px]">|</span>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, features: [] })}
+                  className="text-[9px] font-bold text-white/40 hover:text-white hover:underline uppercase tracking-tighter cursor-pointer"
+                >
+                  Limpar
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
+              {SYSTEM_FEATURES.map((feat) => (
+                <button
+                  key={feat.key}
+                  type="button"
+                  onClick={() => {
+                    const exists = form.features.includes(feat.key);
+                    setForm({
+                      ...form,
+                      features: exists
+                        ? form.features.filter(f => f !== feat.key)
+                        : [...form.features, feat.key]
+                    });
+                  }}
+                  className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between h-[60px] ${form.features.includes(feat.key)
+                      ? "bg-primary/10 border-primary/30 text-primary shadow-[0_0_15px_-5px_rgba(99,102,241,0.2)]"
+                      : "bg-white/5 border-white/8 text-white/30 hover:bg-white/8 hover:border-white/15"
+                    }`}
+                >
+                  <p className={`text-[9px] font-bold uppercase leading-tight ${form.features.includes(feat.key) ? 'text-primary' : 'text-white/40'}`}>{feat.label}</p>
+                  <div className="flex justify-end">
+                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-all ${form.features.includes(feat.key) ? 'bg-primary border-primary' : 'border-white/10'}`}>
+                      {form.features.includes(feat.key) && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
+                    </div>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -296,15 +353,23 @@ export function AdminPlanForm() {
                   </div>
 
                   <div className="pt-3 border-t border-white/5 space-y-1.5 min-h-[80px]">
-                    {plan.benefits?.slice(0, 3).map((b: string, i: number) => (
-                      <div key={i} className="flex items-center gap-2 text-[10px] text-white/40 font-medium">
-                        <Zap className="w-2.5 h-2.5 text-primary/30 shrink-0" />
-                        <span className="truncate">{b}</span>
-                      </div>
-                    ))}
-                    {(!plan.benefits || plan.benefits.length === 0) && (
-                      <p className="text-[10px] text-white/10 italic">Sem benefícios listados</p>
-                    )}
+                    {(() => {
+                      const allBenefits = [
+                        ...(plan.features || []).map((f: any) => (FEATURE_LABELS as any)[f]).filter(Boolean),
+                        ...(plan.benefits || [])
+                      ];
+                      
+                      if (allBenefits.length === 0) {
+                        return <p className="text-[10px] text-white/10 italic">Sem benefícios listados</p>;
+                      }
+                      
+                      return allBenefits.slice(0, 4).map((b: string, i: number) => (
+                        <div key={i} className="flex items-center gap-2 text-[10px] text-white/40 font-medium">
+                          <Zap className="w-2.5 h-2.5 text-primary/30 shrink-0" />
+                          <span className="truncate">{b}</span>
+                        </div>
+                      ));
+                    })()}
                   </div>
                 </div>
               </motion.div>

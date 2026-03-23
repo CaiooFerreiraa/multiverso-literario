@@ -34,18 +34,19 @@ import {
 import Link from "next/link";
 import { createPhraseAction } from "@/actions/phrases";
 import { signOut } from "next-auth/react";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { hasFeature } from "@/lib/plan-utils";
+import { Lock } from "lucide-react";
 
 interface HomeProps {
-  user: { id: number; name: string; email: string; isAdmin?: boolean; image?: string };
+  user: { id: number; name: string; email: string; isAdmin: boolean; image?: string };
   viewType: 'student' | 'adult' | 'free';
   currentTimeline: any;
   userPlan: any;
   seals: any[];
-  userPoints: { total_points: number; challenges_completed: number };
+  userPoints: any;
+  ranking: any[];
   phrases: any[];
-  ranking: { id_user: number; name: string; image: string | null; total_points: number }[];
   activeAward?: any;
 }
 
@@ -83,8 +84,14 @@ export default function HomeClient({
   const pathname = usePathname();
   const [phrases] = useState(initialPhrases || []);
   const [isPending, startTransition] = useTransition();
-  const isPremium = !!userPlan;
-  const isStudent = viewType === 'student';
+  const isVipRanking = hasFeature(userPlan, 'RANKING_VIP', user.isAdmin);
+  const canSeeRanking = hasFeature(userPlan, 'RANKING_GENERAL', user.isAdmin) || isVipRanking;
+  const canSeeTimeline = hasFeature(userPlan, 'CRON_LIVRO', user.isAdmin);
+  const canSeePhrases = hasFeature(userPlan, 'COMMUNITY_PHRASES', user.isAdmin);
+  
+  const canDoExclu = hasFeature(userPlan, 'CHALLENGE_EXCLU', user.isAdmin);
+  const canDoUnlimited = hasFeature(userPlan, 'CHALLENGE_UNLIMITED', user.isAdmin);
+  const hasChallenges = hasFeature(userPlan, 'CHALLENGE_2', user.isAdmin) || canDoExclu || canDoUnlimited;
 
   const [isMounted, setIsMounted] = React.useState(false);
 
@@ -141,8 +148,24 @@ export default function HomeClient({
       <motion.section variants={item} id="cronograma">
         <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-6 flex items-center gap-2">
           <Calendar className="w-4 h-4" /> Livro do Mês
+          {!canSeeTimeline && <Lock className="w-3 h-3 ml-1 text-white/20" />}
         </h3>
-        {currentTimeline ? (
+        {!canSeeTimeline ? (
+          <GlassCard className="p-10 rounded-3xl text-center border-amber-500/10 bg-amber-500/5">
+            <Lock className="w-12 h-12 text-amber-500/20 mx-auto mb-4" />
+            <h4 className="text-lg font-bold text-amber-500/60 mb-2">Cronograma Bloqueado</h4>
+            <p className="text-white/30 text-sm mb-6 max-w-md mx-auto">
+              Seu plano atual não inclui acesso ao cronograma e livro do mês. 
+              Faça um upgrade para acompanhar as leituras coletivas!
+            </p>
+            <Button asChild className="bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl cursor-pointer">
+              <Link href="/home/planos">
+                <Crown className="w-4 h-4 mr-2" />
+                Ver Planos Disponíveis
+              </Link>
+            </Button>
+          </GlassCard>
+        ) : currentTimeline ? (
           <GlassCard className="p-8 rounded-3xl">
             <div className="grid md:grid-cols-[auto_1fr] gap-8">
               <div className="w-full md:w-48 h-64 rounded-2xl bg-gradient-to-br from-primary/30 to-indigo-600/20 border border-white/10 flex flex-col items-center justify-center gap-3">
@@ -222,7 +245,7 @@ export default function HomeClient({
                   Ver Desafios
                 </p>
                 <p className="text-[10px] text-white/40">
-                  {isPremium ? "Acesso total a todos os desafios" : "2 desafios gratuitos disponíveis"}
+                  {canDoUnlimited || canDoExclu ? "Acesso total a todos os desafios" : hasChallenges ? "2 desafios gratuitos disponíveis" : "Upgrade para liberar desafios"}
                 </p>
               </div>
               <ChevronRight className="w-4 h-4 text-white/20 self-end mt-4 group-hover:text-primary transition-colors group-hover:translate-x-1" />
@@ -278,78 +301,99 @@ export default function HomeClient({
       <motion.section variants={item} id="ranking" className="mb-12">
         <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-6 flex items-center gap-2">
           <Trophy className="w-4 h-4 text-amber-500" /> Ranking Global
+          {!canSeeRanking && <Lock className="w-3 h-3 ml-1 text-white/20" />}
         </h3>
 
-        <div className="grid lg:grid-cols-[1fr_350px] gap-8">
-          <div className="space-y-3">
-            {ranking?.slice(0, 5).map((player, i) => (
-              <div
-                key={player.id_user}
-                className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${player.id_user === user.id
-                  ? "bg-primary/10 border-primary/20 ring-1 ring-primary/30"
-                  : "bg-white/5 border-white/5 hover:bg-white/10"
-                  }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center justify-center w-8 h-8 font-black text-[10px] uppercase tracking-widest text-white/20">
-                    {i === 0 ? <span className="text-2xl">🥇</span> :
-                      i === 1 ? <span className="text-2xl">🥈</span> :
-                        i === 2 ? <span className="text-2xl">🥉</span> :
-                          `#${i + 1}`}
+          {!canSeeRanking ? (
+            <div className="col-span-full">
+              <GlassCard className="p-12 text-center border-dashed border-white/10">
+                <Trophy className="w-12 h-12 text-white/5 mx-auto mb-4" />
+                <p className="text-white/30 text-sm">O ranking está disponível apenas para planos selecionados.</p>
+                <Button variant="link" asChild className="text-primary font-bold mt-2 cursor-pointer">
+                  <Link href="/home/planos">Conhecer Planos →</Link>
+                </Button>
+              </GlassCard>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                {ranking?.slice(0, 5).map((player, i) => (
+                  <div
+                    key={player.id_user}
+                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${player.id_user === user.id
+                      ? "bg-primary/10 border-primary/20 ring-1 ring-primary/30"
+                      : "bg-white/5 border-white/5 hover:bg-white/10"
+                      }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center w-8 h-8 font-black text-[10px] uppercase tracking-widest text-white/20">
+                        {i === 0 ? <span className="text-2xl">🥇</span> :
+                          i === 1 ? <span className="text-2xl">🥈</span> :
+                            i === 2 ? <span className="text-2xl">🥉</span> :
+                              `#${i + 1}`}
+                      </div>
+                      <Avatar className="w-10 h-10 border border-white/10 shrink-0">
+                        <AvatarImage src={player.image || ""} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold uppercase">
+                          {player.name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className={`text-sm font-bold ${player.id_user === user.id ? "text-primary" : "text-white/80"}`}>
+                          {player.name}
+                          {player.id_user === user.id && <span className="ml-2 text-[10px] text-primary/60 font-medium">(Você)</span>}
+                        </span>
+                        <span className="text-[10px] text-white/40 uppercase tracking-widest">
+                          {isVipRanking ? "Membro VIP" : "Membro Prime"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center gap-1.5 text-amber-400 font-bold">
+                        <Zap className="w-3.5 h-3.5" />
+                        <span className="text-sm">{player.total_points}</span>
+                      </div>
+                      <span className="text-[9px] text-white/20 uppercase tracking-tighter">pontos totais</span>
+                    </div>
                   </div>
-                  <Avatar className="w-10 h-10 border border-white/10 shrink-0">
-                    <AvatarImage src={player.image || ""} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold uppercase">
-                      {player.name?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col">
-                    <span className={`text-sm font-bold ${player.id_user === user.id ? "text-primary" : "text-white/80"}`}>
-                      {player.name}
-                      {player.id_user === user.id && <span className="ml-2 text-[10px] text-primary/60 font-medium">(Você)</span>}
-                    </span>
-                    <span className="text-[10px] text-white/40 uppercase tracking-widest">Membro Prime</span>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end">
-                  <div className="flex items-center gap-1.5 text-amber-400 font-bold">
-                    <Zap className="w-3.5 h-3.5" />
-                    <span className="text-sm">{player.total_points}</span>
-                  </div>
-                  <span className="text-[9px] text-white/20 uppercase tracking-tighter">pontos totais</span>
-                </div>
-              </div>
-            ))}
+                ))}
 
-            {(!ranking || ranking.length === 0) && (
-              <div className="text-center py-12 bg-white/5 rounded-2xl border border-dashed border-white/10">
-                <p className="text-sm text-white/40">O ranking começará em breve. Participe dos desafios!</p>
+                {(!ranking || ranking.length === 0) && (
+                  <div className="text-center py-12 bg-white/5 rounded-2xl border border-dashed border-white/10">
+                    <p className="text-sm text-white/40">O ranking começará em breve. Participe dos desafios!</p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          <GlassCard className="hidden md:flex p-6 rounded-2xl bg-amber-500/5 border-amber-500/10 flex-col justify-center items-center text-center">
-            <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mb-4 border border-amber-500/20">
-              <Award className="w-8 h-8 text-amber-500" />
-            </div>
-            <h4 className="text-lg font-bold text-amber-400 mb-2">{activeAward ? activeAward.name : "Premiação do Mês"}</h4>
-            <div className="text-sm text-white/60 mb-6 px-4">
-              {activeAward ? activeAward.description : (
-                <p>Nenhuma premiação ativa no momento. Participe e aguarde as próximas novidades!</p>
-              )}
-            </div>
-            <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-4">
-              <div className="h-full bg-amber-500 transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
-            </div>
-            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold font-mono" />
-          </GlassCard>
-        </div>
+              <GlassCard className="hidden md:flex p-6 rounded-2xl bg-amber-500/5 border-amber-500/10 flex-col justify-center items-center text-center">
+                <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mb-4 border border-amber-500/20">
+                  <Award className="w-8 h-8 text-amber-500" />
+                </div>
+                <h4 className="text-lg font-bold text-amber-400 mb-2">{activeAward ? activeAward.name : "Premiação do Mês"}</h4>
+                <div className="text-sm text-white/60 mb-6 px-4">
+                  {activeAward ? activeAward.description : (
+                    <p>Nenhuma premiação ativa no momento. Participe e aguarde as próximas novidades!</p>
+                  )}
+                </div>
+                <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-4">
+                  <div className="h-full bg-amber-500 transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
+                </div>
+                <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold font-mono" />
+              </GlassCard>
+            </>
+          )}
       </motion.section>
 
       {/* FRASES DO MULTIVERSO - CTA */}
       <motion.section variants={item} id="frases">
-        <Link href="/home/frases">
-          <GlassCard className="p-8 rounded-[2rem] bg-gradient-to-br from-primary/10 to-indigo-500/5 group hover:from-primary/20 hover:to-indigo-500/10 transition-all border-primary/20 cursor-pointer overflow-hidden relative">
+        <Link href={canSeePhrases ? "/home/frases" : "/home/planos"}>
+          <GlassCard className={`p-8 rounded-[2rem] bg-gradient-to-br from-primary/10 to-indigo-500/5 group hover:from-primary/20 hover:to-indigo-500/10 transition-all border-primary/20 cursor-pointer overflow-hidden relative ${!canSeePhrases ? 'opacity-80 grayscale-[0.5]' : ''}`}>
+            {!canSeePhrases && (
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-20 flex items-center justify-center flex-col gap-3">
+                <Lock className="w-8 h-8 text-white/50" />
+                <p className="text-white font-bold text-sm tracking-widest uppercase">Conteúdo Bloqueado</p>
+              </div>
+            )}
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32 transition-all group-hover:bg-primary/30" />
             <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex flex-col items-center md:items-start text-center md:text-left">
@@ -377,7 +421,7 @@ export default function HomeClient({
                   </div>
                 </div>
                 <Button className="bg-white text-black hover:bg-white/90 rounded-xl font-bold px-6 h-11 flex items-center gap-2 group-hover:translate-y-[-2px] transition-all">
-                  VER TODAS AS FRASES
+                  {canSeePhrases ? "VER TODAS AS FRASES" : "LIBERAR RECURSO"}
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
@@ -385,6 +429,7 @@ export default function HomeClient({
           </GlassCard>
         </Link>
       </motion.section>
+
     </motion.div>
   );
 }
