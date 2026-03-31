@@ -10,11 +10,15 @@ export const metadata: Metadata = {
   description: "Compartilhe e interaja com as frases mais marcantes dos seus livros favoritos.",
 };
 
+import { isAdmin } from "@/lib/is-admin";
+
 export default async function FrasesPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
   const userId = (session.user as any).id;
+  const isUserAdmin = await isAdmin({ userId });
+
   const phrasesRes = await readAllPhrasesAction({ currentUserId: userId, page: 1, limit: 12, onlyMine: false });
 
   const phrases = phrasesRes.success ? (phrasesRes.data as any[]) : [];
@@ -30,7 +34,9 @@ export default async function FrasesPage() {
         }}
         initialPhrases={phrases}
         initialPagination={pagination}
+        isAdmin={isUserAdmin}
       />
     </div>
   );
 }
+

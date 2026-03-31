@@ -46,9 +46,10 @@ interface FrasesClientProps {
     name: string;
     image: string | null;
   };
+  isAdmin?: boolean;
 }
 
-export default function FrasesClient({ initialPhrases, initialPagination, user }: FrasesClientProps) {
+export default function FrasesClient({ initialPhrases, initialPagination, user, isAdmin = false }: FrasesClientProps) {
   const [phrases, setPhrases] = useState<Phrase[]>(initialPhrases);
   const [pagination, setPagination] = useState(initialPagination);
   const [currentPage, setCurrentPage] = useState(1);
@@ -340,7 +341,7 @@ export default function FrasesClient({ initialPhrases, initialPagination, user }
                         Autoral
                       </div>
                     )}
-                    {Number(phrase.id_user) === Number(user.id) && (
+                    {(Number(phrase.id_user) === Number(user.id) || isAdmin) && (
                       <button
                         onClick={() => handleDeleteClick(phrase.id_phrases)}
                         className="text-white/10 hover:text-red-400 hover:bg-red-400/10 rounded-full h-8 w-8 flex items-center justify-center cursor-pointer transition-all border border-transparent hover:border-red-400/20"

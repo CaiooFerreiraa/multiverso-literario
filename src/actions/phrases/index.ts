@@ -2,6 +2,8 @@
 
 import { neonClient } from "@/infrastructure/database/neon";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/is-admin";
 
 export async function createPhraseAction(data: { description: string; id_user: number; is_autoral?: boolean }) {
   try {
@@ -103,6 +105,28 @@ export async function toggleLikePhraseAction(id_phrase: number, id_user: number)
 
 export async function deletePhraseAction(id_phrases: number) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return { success: false, error: "Não autorizado" };
+    }
+
+    const currentUserId = (session.user as any).id;
+    const isUserAdmin = await isAdmin({ userId: currentUserId });
+
+    // Check if the user is the owner of the phrase or an admin
+    const [phrase] = await neonClient.query(
+      `SELECT id_user FROM phrases WHERE id_phrases = $1`,
+      [id_phrases]
+    );
+
+    if (!phrase) {
+      return { success: false, error: "Frase não encontrada" };
+    }
+
+    if (phrase.id_user !== currentUserId && !isUserAdmin) {
+      return { success: false, error: "Você não tem permissão para excluir esta frase" };
+    }
+
     await neonClient.query(
       `DELETE FROM phrases WHERE id_phrases = $1`,
       [id_phrases]
