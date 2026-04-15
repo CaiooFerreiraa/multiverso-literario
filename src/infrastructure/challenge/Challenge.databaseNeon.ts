@@ -54,6 +54,7 @@ export class ChallengeDatabaseNeon implements ChallengeRepository {
         `SELECT rc.*, uc.completed_at, uc.points_earned
          FROM reading_challenges rc
          LEFT JOIN user_challenges uc ON rc.id_challenge = uc.id_challenge AND uc.id_user = $1
+         WHERE rc.challenge_type <> 'manual' OR uc.id_user IS NOT NULL
          ORDER BY rc.created_at DESC`,
         [id_user]
       );

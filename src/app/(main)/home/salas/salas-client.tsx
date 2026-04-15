@@ -46,6 +46,7 @@ interface Room {
   title: string;
   description: string;
   category: string;
+  meetingUrl: string | null;
   host: {
     name: string;
     avatar: string | null;
@@ -94,8 +95,9 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
       return {
         id: dr.slug || String(dr.id_room),
         title: dr.title,
-        description: dr.description,
-        category: dr.category,
+        description: dr.description || "Encontro pelo Google Meet",
+        category: dr.category || "Meet",
+        meetingUrl: dr.meeting_url || null,
         host: { name: dr.creator_name || "Admin", avatar: null },
         participants: [],
         isLive,
@@ -108,7 +110,7 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newRoom, setNewRoom] = useState({ title: "", description: "", category: "Literatura Brasileira" });
+  const [newRoom, setNewRoom] = useState({ title: "", description: "", category: "Literatura Brasileira", meetingUrl: "" });
   const [isCreating, setIsCreating] = useState(false);
 
   const filteredRooms = allRoomsFormatted.filter((room) => {
@@ -122,7 +124,10 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
   const upcomingRooms = filteredRooms.filter((r) => r.isUpcoming);
 
   const handleCreateRoom = async () => {
-    if (!newRoom.title.trim()) return;
+    if (!newRoom.title.trim() || !newRoom.meetingUrl.trim()) {
+      toast.error("Informe o nome da sala e o link do Meet");
+      return;
+    }
 
     setIsCreating(true);
     try {
@@ -130,13 +135,14 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
         title: newRoom.title,
         description: newRoom.description,
         category: newRoom.category,
+        meetingUrl: newRoom.meetingUrl,
         scheduledAt: new Date().toISOString(), // Criação imediata
       });
 
       if (result.success && result.data) {
         toast.success("Sala criada com sucesso!");
         setShowCreateModal(false);
-        setNewRoom({ title: "", description: "", category: "Literatura Brasileira" });
+        setNewRoom({ title: "", description: "", category: "Literatura Brasileira", meetingUrl: "" });
         router.push(`/home/salas/${result.data.slug}`);
       } else {
         toast.error(result.error || "Erro ao criar sala");
@@ -491,35 +497,27 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
-                      Descrição
+                      Link do Meet
                     </label>
-                    <textarea
-                      value={newRoom.description}
-                      onChange={(e) => setNewRoom({ ...newRoom, description: e.target.value })}
-                      placeholder="Descreva o tema da discussão..."
-                      rows={3}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-white/20 resize-none cursor-text"
+                    <Input
+                      value={newRoom.meetingUrl}
+                      onChange={(e) => setNewRoom({ ...newRoom, meetingUrl: e.target.value })}
+                      placeholder="https://meet.google.com/..."
+                      className="bg-white/5 border-white/10 rounded-xl h-11 text-sm focus-visible:ring-primary/50 placeholder:text-white/20 cursor-text"
                     />
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
-                      Categoria
+                      Descrição
                     </label>
-                    <div className="flex flex-wrap gap-2">
-                      {CATEGORIES.filter((c) => c !== "Todas").map((cat) => (
-                        <button
-                          key={cat}
-                          onClick={() => setNewRoom({ ...newRoom, category: cat })}
-                          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${newRoom.category === cat
-                            ? "bg-primary text-white"
-                            : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/70 border border-white/5"
-                            }`}
-                        >
-                          {cat}
-                        </button>
-                      ))}
-                    </div>
+                    <textarea
+                      value={newRoom.description}
+                      onChange={(e) => setNewRoom({ ...newRoom, description: e.target.value })}
+                      placeholder="Observação opcional..."
+                      rows={3}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-white/20 resize-none cursor-text"
+                    />
                   </div>
                 </div>
 
@@ -533,8 +531,8 @@ export default function SalasClient({ user, viewType, adminEmail, scheduledRooms
                   </Button>
                   <Button
                     onClick={handleCreateRoom}
-                    disabled={isCreating || !newRoom.title.trim()}
-                    className={`flex-1 h-11 rounded-xl font-bold gap-2 transition-all cursor-pointer ${newRoom.title.trim() && !isCreating
+                    disabled={isCreating || !newRoom.title.trim() || !newRoom.meetingUrl.trim()}
+                    className={`flex-1 h-11 rounded-xl font-bold gap-2 transition-all cursor-pointer ${newRoom.title.trim() && newRoom.meetingUrl.trim() && !isCreating
                       ? "bg-primary hover:bg-primary/90 shadow-[0_0_20px_rgba(109,40,217,0.3)]"
                       : "bg-white/5 text-white/30 cursor-not-allowed"
                       }`}

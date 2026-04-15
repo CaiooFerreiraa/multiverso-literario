@@ -5,7 +5,12 @@ import { NextResponse } from "next/server";
 
 // Mock das actions para isolar o teste do endpoint
 mock.module("@/actions/plans", () => ({
+  createPlanAction: mock(() => Promise.resolve({ success: true, data: { id: 1 } })),
+  deletePlanAction: mock(() => Promise.resolve({ success: true })),
+  readAllPlansAction: mock(() => Promise.resolve({ success: true, data: [] })),
   readPlanAction: mock(() => { }),
+  subscribeToPlanAction: mock(() => Promise.resolve({ success: true })),
+  updatePlanAction: mock(() => Promise.resolve({ success: true })),
 }));
 
 describe("Admin Plans API - GET", () => {

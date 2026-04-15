@@ -7,8 +7,9 @@ import { auth } from "@/auth";
 export interface CreateScheduledRoomDTO {
   title: string;
   description?: string;
-  category: string;
+  category?: string;
   scheduledAt: string; // ISO string
+  meetingUrl?: string;
   idTimelineBook?: number | null;
 }
 
@@ -17,6 +18,7 @@ export interface ScheduledRoom {
   title: string;
   description: string | null;
   category: string;
+  meeting_url: string | null;
   slug: string;
   scheduled_at: string;
   created_by: number;
@@ -38,6 +40,14 @@ function generateSlug(title: string): string {
     .replace(/^-+|-+$/g, "")
     .substring(0, 200)
     + "-" + Date.now().toString(36);
+}
+
+function normalizeMeetingUrl(rawUrl: string | undefined): string | null {
+  const value: string = (rawUrl ?? "").trim();
+  if (!value) return null;
+
+  if (/^https?:\/\//i.test(value)) return value;
+  return `https://${value}`;
 }
 
 export async function createScheduledRoomAction(data: CreateScheduledRoomDTO) {
@@ -62,19 +72,25 @@ export async function createScheduledRoomAction(data: CreateScheduledRoomDTO) {
     }
 
     const slug = generateSlug(data.title);
+    const meetingUrl: string | null = normalizeMeetingUrl(data.meetingUrl);
+
+    if (!meetingUrl) {
+      return { success: false, error: "Informe o link do Meet" };
+    }
 
     const result = await neonClient.query(
-      `INSERT INTO scheduled_rooms (title, description, category, slug, scheduled_at, created_by, id_timeline_book)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO scheduled_rooms (title, description, category, slug, scheduled_at, created_by, id_timeline_book, meeting_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
       [
         data.title,
         data.description || null,
-        data.category,
+        data.category || "Meet",
         slug,
         data.scheduledAt,
         userId,
         data.idTimelineBook || null,
+        meetingUrl,
       ]
     );
 

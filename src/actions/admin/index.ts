@@ -13,6 +13,11 @@ import { revalidatePath } from "next/cache";
 const getTimelineRepository = () => new TimelineNeonDatabase(neonClient);
 const getQuizRepository = () => new QuizDatabaseNeon(neonClient);
 
+function normalizeTimelineText(value: string | undefined, fallback: string): string {
+  const normalized: string = (value ?? "").trim();
+  return normalized.length > 0 ? normalized : fallback;
+}
+
 export async function createTimelineAction(data: CreateTimelineDTO) {
   try {
     const useCase = new TimelineCreate(getTimelineRepository());
@@ -65,9 +70,14 @@ export async function deleteQuizAction(id_quiz: number) {
 export async function readAllTimelinesAction() {
   try {
     const result = await neonClient.query(`
-      SELECT b.name as name_book, b.author as author_book, t.date_start, t.date_end, t.id_timeline
+      SELECT
+        COALESCE(NULLIF(b.name, ''), 'Cronograma sem livro') as name_book,
+        COALESCE(NULLIF(b.author, ''), 'Autor não informado') as author_book,
+        t.date_start,
+        t.date_end,
+        t.id_timeline
       FROM timeline t
-      JOIN timeline_book b ON t.id_timeline = b.id_timeline_book
+      LEFT JOIN timeline_book b ON t.id_timeline = b.id_timeline_book
       ORDER BY t.date_start DESC
     `);
     return { success: true, data: result };
@@ -104,6 +114,7 @@ export async function deleteTimelineAction(id_timeline: number) {
     });
     revalidatePath("/home");
     revalidatePath("/home/admin");
+    revalidatePath("/home/cronograma");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -112,18 +123,25 @@ export async function deleteTimelineAction(id_timeline: number) {
 
 export async function updateTimelineAction(id_timeline: number, data: CreateTimelineDTO) {
   try {
+    const nameBook: string = normalizeTimelineText(data.nameBook, "Cronograma sem livro");
+    const authorBook: string = normalizeTimelineText(data.authorBook, "Autor não informado");
+
     await neonClient.transaction(async (tx) => {
       await tx.query(
         `UPDATE timeline SET date_start = $1, date_end = $2 WHERE id_timeline = $3`,
         [data.dateStart, data.dateEnd, id_timeline]
       );
       await tx.query(
-        `UPDATE timeline_book SET name = $1, author = $2 WHERE id_timeline_book = $3`,
-        [data.nameBook, data.authorBook, id_timeline]
+        `INSERT INTO timeline_book (id_timeline_book, name, author)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (id_timeline_book)
+         DO UPDATE SET name = EXCLUDED.name, author = EXCLUDED.author`,
+        [id_timeline, nameBook, authorBook]
       );
     });
     revalidatePath("/home");
     revalidatePath("/home/admin");
+    revalidatePath("/home/cronograma");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -195,13 +213,13 @@ export async function readUsersAction(page: number = 1, limit: number = 10) {
           pe.title      AS plan_name,
           pe.view_type
          FROM users u
-         LEFT JOIN member m ON u.id_user = m.id_user
-         LEFT JOIN (
-           SELECT id_user, id_plan, MAX(created_at) as last_buy
+         LEFT JOIN LATERAL (
+           SELECT id_plan
            FROM buy
-           WHERE status = 'concluido'
-           GROUP BY id_user, id_plan
-         ) b ON b.id_user = u.id_user
+           WHERE id_user = u.id_user AND status = 'concluido'
+           ORDER BY created_at DESC, id_buy DESC
+           LIMIT 1
+         ) b ON true
          LEFT JOIN plan_expanded pe ON b.id_plan = pe.id_plan
          ORDER BY u.id_user DESC
          LIMIT $1 OFFSET $2`,
@@ -216,5 +234,59 @@ export async function readUsersAction(page: number = 1, limit: number = 10) {
   } catch (error: any) {
     console.error("[readUsersAction] Error:", error);
     return { success: false, error: error.message || "Erro ao listar usuários", data: [], total: 0, page, limit };
+  }
+}
+
+export async function assignAllUsersToStudentPlanAction() {
+  try {
+    const result = await neonClient.query<{ inserted_count: string }>(`
+      WITH student_plan AS (
+        SELECT id_plan, duraction, COALESCE(value, 0) AS value
+        FROM plan_expanded
+        WHERE title ILIKE 'Plano Meu Aluno'
+          AND is_active = true
+        ORDER BY id_plan DESC
+        LIMIT 1
+      ),
+      latest_buy AS (
+        SELECT DISTINCT ON (id_user) id_user, id_plan
+        FROM buy
+        WHERE status = 'concluido'
+        ORDER BY id_user, created_at DESC, id_buy DESC
+      ),
+      inserted AS (
+        INSERT INTO buy (
+          id_plan,
+          method_payment,
+          price_paid,
+          status,
+          id_user,
+          created_at,
+          maturity
+        )
+        SELECT
+          student_plan.id_plan,
+          'pix',
+          student_plan.value,
+          'concluido',
+          users.id_user,
+          CURRENT_DATE,
+          CURRENT_DATE + student_plan.duraction
+        FROM users
+        CROSS JOIN student_plan
+        LEFT JOIN latest_buy ON latest_buy.id_user = users.id_user
+        WHERE COALESCE(latest_buy.id_plan, 0) <> student_plan.id_plan
+        RETURNING id_buy
+      )
+      SELECT COUNT(*)::text AS inserted_count FROM inserted
+    `);
+
+    revalidatePath("/home");
+    revalidatePath("/home/admin");
+    revalidatePath("/home/planos");
+
+    return { success: true, count: Number(result[0]?.inserted_count ?? 0) };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Erro ao atualizar planos dos usuários" };
   }
 }

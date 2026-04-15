@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { readUsersAction } from "@/actions/admin";
+import { assignAllUsersToStudentPlanAction, readUsersAction } from "@/actions/admin";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, ChevronLeft, ChevronRight, Loader2, BookOpen, GraduationCap } from "lucide-react";
+import { Users, ChevronLeft, ChevronRight, Loader2, BookOpen, GraduationCap, UserCheck } from "lucide-react";
+import { toast } from "sonner";
 
 interface User {
   id_user: number;
@@ -72,6 +73,29 @@ export function AdminUsersTable({
     });
   }
 
+  function assignAllToStudentPlan(): void {
+    startTransition(async (): Promise<void> => {
+      const res = await assignAllUsersToStudentPlanAction();
+      if (res.success) {
+        const updatedCount: number = res.count ?? 0;
+        toast.success(
+          updatedCount > 0
+            ? `${updatedCount} usuário(s) movido(s) para o Plano Meu Aluno.`
+            : "Todos os usuários já estavam no Plano Meu Aluno."
+        );
+
+        const usersRes = await readUsersAction(page, limit);
+        if (usersRes.success) {
+          setUsers(usersRes.data as User[]);
+          setTotal(usersRes.total);
+          setPage(usersRes.page);
+        }
+      } else {
+        toast.error(res.error || "Erro ao atualizar planos");
+      }
+    });
+  }
+
   function formatDate(raw: string | null): string {
     if (!raw) return "—";
     return new Date(raw).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
@@ -87,9 +111,22 @@ export function AdminUsersTable({
             <span className="text-white font-black">{total}</span> usuários cadastrados
           </span>
         </div>
-        <span className="text-xs font-bold text-white/20 uppercase tracking-widest">
-          Página {page} / {totalPages}
-        </span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={assignAllToStudentPlan}
+            disabled={isPending}
+            className="h-9 px-3 rounded-xl border border-sky-500/20 bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 text-[10px] font-black uppercase tracking-widest cursor-pointer disabled:cursor-wait disabled:opacity-60 transition-all"
+          >
+            <span className="inline-flex items-center gap-2">
+              {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserCheck className="w-3.5 h-3.5" />}
+              Plano Meu Aluno
+            </span>
+          </button>
+          <span className="text-xs font-bold text-white/20 uppercase tracking-widest">
+            Página {page} / {totalPages}
+          </span>
+        </div>
       </div>
 
       {/* Table wrapper */}

@@ -16,22 +16,46 @@ interface TimelineFormProps {
   onCancel?: () => void;
 }
 
+function toDateInputValue(value: unknown): string {
+  if (!value) return "";
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+
+  const date: Date = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year: number = date.getFullYear();
+  const month: string = String(date.getMonth() + 1).padStart(2, "0");
+  const day: string = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export function TimelineForm({ initialData, onCancel }: TimelineFormProps) {
   const [isPending, startTransition] = useTransition();
 
   const now = new Date();
-  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const firstDay: string = toDateInputValue(new Date(now.getFullYear(), now.getMonth(), 1));
+  const lastDay: string = toDateInputValue(new Date(now.getFullYear(), now.getMonth() + 1, 0));
 
   const form = useForm<CreateTimelineDTO>({
     resolver: zodResolver(CreateTimelineSchema) as any,
     defaultValues: {
       nameBook: initialData?.name_book || "",
       authorBook: initialData?.author_book || "",
-      dateStart: initialData ? new Date(initialData.date_start) : firstDay,
-      dateEnd: initialData ? new Date(initialData.date_end) : lastDay,
+      dateStart: initialData ? toDateInputValue(initialData.date_start) : firstDay,
+      dateEnd: initialData ? toDateInputValue(initialData.date_end) : lastDay,
     } as any,
   } as any);
+
+  React.useEffect((): void => {
+    form.reset({
+      nameBook: initialData?.name_book || "",
+      authorBook: initialData?.author_book || "",
+      dateStart: initialData ? toDateInputValue(initialData.date_start) : firstDay,
+      dateEnd: initialData ? toDateInputValue(initialData.date_end) : lastDay,
+    } as CreateTimelineDTO);
+  }, [form, initialData, firstDay, lastDay]);
 
   async function onSubmit(data: CreateTimelineDTO) {
     startTransition(async () => {
@@ -41,7 +65,14 @@ export function TimelineForm({ initialData, onCancel }: TimelineFormProps) {
 
       if (result.success) {
         toast.success(initialData ? "Cronograma atualizado!" : "Cronograma criado!");
-        if (!initialData) form.reset();
+        if (!initialData) {
+          form.reset({
+            nameBook: "",
+            authorBook: "",
+            dateStart: firstDay,
+            dateEnd: lastDay,
+          } as CreateTimelineDTO);
+        }
         if (onCancel) onCancel();
       } else {
         toast.error(result.error || "Erro ao salvar cronograma");
@@ -108,8 +139,8 @@ export function TimelineForm({ initialData, onCancel }: TimelineFormProps) {
                     <Input
                       type="date"
                       {...field}
-                      value={field.value instanceof Date ? field.value.toISOString().split("T")[0] : field.value}
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value)}
                       className="bg-white/5 border-white/8 h-11 rounded-xl focus:border-emerald-500/40 text-sm cursor-text [color-scheme:dark]"
                     />
                   </FormControl>
@@ -130,8 +161,8 @@ export function TimelineForm({ initialData, onCancel }: TimelineFormProps) {
                     <Input
                       type="date"
                       {...field}
-                      value={field.value instanceof Date ? field.value.toISOString().split("T")[0] : field.value}
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value)}
                       className="bg-white/5 border-white/8 h-11 rounded-xl focus:border-amber-500/40 text-sm cursor-text [color-scheme:dark]"
                     />
                   </FormControl>

@@ -6,9 +6,11 @@ export async function readCurrentTimelineAction() {
   try {
     const result = await neonClient.query(
       `SELECT t.id_timeline, t.date_start, t.date_end,
-              tb.id_timeline_book, tb.name, tb.author
+              COALESCE(tb.id_timeline_book, t.id_timeline) as id_timeline_book,
+              COALESCE(NULLIF(tb.name, ''), 'Cronograma sem livro') as name,
+              COALESCE(NULLIF(tb.author, ''), 'Autor não informado') as author
        FROM timeline t
-       JOIN timeline_book tb ON t.id_timeline = tb.id_timeline_book
+       LEFT JOIN timeline_book tb ON t.id_timeline = tb.id_timeline_book
        WHERE t.date_end >= CURRENT_DATE
        ORDER BY t.date_start ASC
        LIMIT 1`
@@ -23,9 +25,11 @@ export async function readAllTimelinesAction() {
   try {
     const result = await neonClient.query(
       `SELECT t.id_timeline, t.date_start, t.date_end,
-              tb.id_timeline_book, tb.name, tb.author
+              COALESCE(tb.id_timeline_book, t.id_timeline) as id_timeline_book,
+              COALESCE(NULLIF(tb.name, ''), 'Cronograma sem livro') as name,
+              COALESCE(NULLIF(tb.author, ''), 'Autor não informado') as author
        FROM timeline t
-       JOIN timeline_book tb ON t.id_timeline = tb.id_timeline_book
+       LEFT JOIN timeline_book tb ON t.id_timeline = tb.id_timeline_book
        ORDER BY t.date_start DESC`
     );
     return { success: true, data: result };
@@ -57,7 +61,7 @@ export async function readUserPlanStatusAction(id_user: number) {
        JOIN plan_expanded pe ON b.id_plan = pe.id_plan
        WHERE b.id_user = $1 AND b.status = 'concluido'
        AND (b.created_at + pe.duraction) >= CURRENT_DATE
-       ORDER BY b.created_at DESC
+       ORDER BY b.created_at DESC, b.id_buy DESC
        LIMIT 1`,
       [id_user]
     );

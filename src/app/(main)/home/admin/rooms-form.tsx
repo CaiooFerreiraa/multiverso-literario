@@ -3,13 +3,6 @@
 import React, { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   createScheduledRoomAction,
@@ -23,10 +16,9 @@ import {
   Trash2,
   Calendar,
   Clock,
-  BookOpen,
   Users,
-  Tag,
-  Gamepad2,
+  Link as LinkIcon,
+  ExternalLink,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -41,24 +33,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-const ROOM_CATEGORIES = [
-  "Clube de Leitura",
-  "Debate",
-  "Análise Crítica",
-  "Leitura Coletiva",
-  "Oficina",
-];
-
 export function AdminRoomsForm() {
   const [isPending, startTransition] = useTransition();
   const [rooms, setRooms] = useState<any[]>([]);
   const [form, setForm] = useState({
     title: "",
-    description: "",
-    category: "Clube de Leitura",
     scheduledAt: "",
-    maxParticipants: 10,
-    isPrivate: false,
+    meetingUrl: "",
   });
 
   useEffect(() => { loadRooms(); }, []);
@@ -70,14 +51,16 @@ export function AdminRoomsForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title || !form.scheduledAt) {
-      toast.error("Preencha o título e a data");
+    if (!form.title || !form.scheduledAt || !form.meetingUrl) {
+      toast.error("Preencha o título, a data e o link do Meet");
       return;
     }
 
     startTransition(async () => {
       const res = await createScheduledRoomAction({
-        ...form,
+        title: form.title,
+        category: "Meet",
+        meetingUrl: form.meetingUrl,
         scheduledAt: new Date(form.scheduledAt).toISOString(),
       });
 
@@ -85,11 +68,8 @@ export function AdminRoomsForm() {
         toast.success("Sala agendada!");
         setForm({
           title: "",
-          description: "",
-          category: "Clube de Leitura",
           scheduledAt: "",
-          maxParticipants: 10,
-          isPrivate: false,
+          meetingUrl: "",
         });
         loadRooms();
       } else {
@@ -131,42 +111,10 @@ export function AdminRoomsForm() {
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="Ex: Debate: Dom Casmurro - Cap 1 a 10"
-                className="focus:border-primary/40"
+                className="focus:border-primary/40 cursor-text"
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
-                <Tag className="w-3 h-3 text-primary" /> Categoria
-              </label>
-              <Select
-                value={form.category}
-                onValueChange={(val) => setForm({ ...form, category: val })}
-              >
-                <SelectTrigger className="focus:border-primary/40">
-                  <SelectValue placeholder="Selecionar categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ROOM_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Descrição (opcional)</label>
-            <textarea
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="Tópicos e pontos de discussão..."
-              rows={3}
-              className="resize-none"
-            />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
               <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
                 <Calendar className="w-3 h-3 text-emerald-400" /> Data e hora
@@ -175,23 +123,21 @@ export function AdminRoomsForm() {
                 type="datetime-local"
                 value={form.scheduledAt}
                 onChange={(e) => setForm({ ...form, scheduledAt: e.target.value })}
-                className="[color-scheme:dark] focus:border-emerald-500/40"
+                className="[color-scheme:dark] focus:border-emerald-500/40 cursor-text"
               />
             </div>
+          </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
-                <Users className="w-3 h-3 text-amber-500" /> Limite de Pessoas
-              </label>
-              <Input
-                type="number"
-                min={2}
-                max={50}
-                value={form.maxParticipants}
-                onChange={(e) => setForm({ ...form, maxParticipants: Number(e.target.value) })}
-                className="focus:border-amber-500/40"
-              />
-            </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
+              <LinkIcon className="w-3 h-3 text-sky-400" /> Link do Meet
+            </label>
+            <Input
+              value={form.meetingUrl}
+              onChange={(e) => setForm({ ...form, meetingUrl: e.target.value })}
+              placeholder="https://meet.google.com/..."
+              className="focus:border-sky-500/40 cursor-text"
+            />
           </div>
 
           <Button
@@ -230,11 +176,23 @@ export function AdminRoomsForm() {
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-sm text-white truncate">{room.title}</p>
                   <p className="text-[10px] text-white/30 mt-0.5">
-                    {new Date(room.scheduled_at).toLocaleString('pt-BR')} · {room.category}
+                    {new Date(room.scheduled_at).toLocaleString('pt-BR')} · Google Meet
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {room.meeting_url && (
+                    <a
+                      href={room.meeting_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 inline-flex items-center gap-1.5"
+                    >
+                      Abrir Meet
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+
                   {room.is_active && (
                     <button
                       onClick={() => handleToggle(room.id_room, room.is_active)}

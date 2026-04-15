@@ -2,7 +2,12 @@ import { describe, it, expect, mock } from "bun:test";
 
 // Mock das actions
 mock.module("@/actions/plans", () => ({
+  createPlanAction: mock(() => Promise.resolve({ success: true, data: { id: 1 } })),
+  deletePlanAction: mock(() => Promise.resolve({ success: true })),
   readAllPlansAction: mock(() => Promise.resolve({ success: true, data: [{ id: 1 }] })),
+  readPlanAction: mock(() => Promise.resolve({ success: true, data: { id: 1 } })),
+  subscribeToPlanAction: mock(() => Promise.resolve({ success: true })),
+  updatePlanAction: mock(() => Promise.resolve({ success: true })),
 }));
 
 describe("TDD - Listar Todos os Planos", () => {

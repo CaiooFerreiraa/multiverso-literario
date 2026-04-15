@@ -4,7 +4,13 @@ import React, { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { createChallengeAction, readAllChallengesAction as listChallengesAction, deleteChallengeAction } from "@/actions/challenges";
+import {
+  createChallengeAction,
+  deleteChallengeAction,
+  grantManualPointsAction,
+  readAllChallengesAction as listChallengesAction,
+  readUsersForManualPointsAction,
+} from "@/actions/challenges";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +23,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Plus, Trophy, Trash2, Clock, Gamepad2 } from "lucide-react";
+import { Zap, Plus, Trophy, Trash2, Clock, Gamepad2, UserCheck, Award } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -29,18 +35,31 @@ import {
 export function AdminChallengesForm() {
   const [isPending, startTransition] = useTransition();
   const [challenges, setChallenges] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [newChallenge, setNewChallenge] = useState({
     title: "",
     description: "",
     points: 0,
-    type: "manual" as "manual" | "automatic",
+    challenge_type: "daily",
+    is_premium: false,
+  });
+  const [manualPoints, setManualPoints] = useState({
+    id_user: "",
+    title: "Desafio presencial",
+    description: "",
+    points: 0,
   });
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-    const res = await listChallengesAction();
-    if (res.success) setChallenges(res.data as any[]);
+    const [challengesRes, usersRes] = await Promise.all([
+      listChallengesAction(),
+      readUsersForManualPointsAction(),
+    ]);
+
+    if (challengesRes.success) setChallenges(challengesRes.data as any[]);
+    if (usersRes.success) setUsers(usersRes.data as any[]);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +73,32 @@ export function AdminChallengesForm() {
       const res = await createChallengeAction(newChallenge);
       if (res.success) {
         toast.success("Desafio criado!");
-        setNewChallenge({ title: "", description: "", points: 0, type: "manual" });
+        setNewChallenge({ title: "", description: "", points: 0, challenge_type: "daily", is_premium: false });
+        loadData();
+      } else {
+        toast.error("Erro: " + res.error);
+      }
+    });
+  };
+
+  const handleManualPointsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualPoints.id_user || manualPoints.points <= 0 || !manualPoints.title.trim()) {
+      toast.error("Selecione o usuário, o motivo e a pontuação");
+      return;
+    }
+
+    startTransition(async () => {
+      const res = await grantManualPointsAction({
+        id_user: Number(manualPoints.id_user),
+        title: manualPoints.title,
+        description: manualPoints.description,
+        points: manualPoints.points,
+      });
+
+      if (res.success) {
+        toast.success("Pontuação lançada!");
+        setManualPoints({ id_user: "", title: "Desafio presencial", description: "", points: 0 });
         loadData();
       } else {
         toast.error("Erro: " + res.error);
@@ -98,22 +142,26 @@ export function AdminChallengesForm() {
                   value={newChallenge.points || ""}
                   onChange={e => setNewChallenge({ ...newChallenge, points: Number(e.target.value) })}
                   placeholder="50"
-                  className="focus:border-amber-500/40"
+                  className="focus:border-amber-500/40 cursor-text"
                 />
               </div>
 
               <div className="flex flex-col gap-2">
                 <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Tipo</label>
                 <Select
-                  value={newChallenge.type}
-                  onValueChange={(val) => setNewChallenge({ ...newChallenge, type: val as any })}
+                  value={newChallenge.challenge_type}
+                  onValueChange={(val) => setNewChallenge({ ...newChallenge, challenge_type: val })}
                 >
-                  <SelectTrigger className="focus:border-primary/40">
+                  <SelectTrigger className="focus:border-primary/40 cursor-pointer">
                     <SelectValue placeholder="Selecionar tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="manual">Manual</SelectItem>
-                    <SelectItem value="automatic">Automático</SelectItem>
+                    <SelectItem value="daily">Diário</SelectItem>
+                    <SelectItem value="weekly">Semanal</SelectItem>
+                    <SelectItem value="interpretation">Interpretação</SelectItem>
+                    <SelectItem value="escrita">Escrita com PDF</SelectItem>
+                    <SelectItem value="time">Time com PDF</SelectItem>
+                    <SelectItem value="presencial">Presencial</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -127,7 +175,7 @@ export function AdminChallengesForm() {
               onChange={e => setNewChallenge({ ...newChallenge, description: e.target.value })}
               placeholder="Descreva o que o usuário deve fazer..."
               rows={3}
-              className="resize-none"
+              className="resize-none cursor-text"
             />
           </div>
 
@@ -138,6 +186,82 @@ export function AdminChallengesForm() {
           >
             {isPending ? <Clock className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             Criar Desafio
+          </Button>
+        </form>
+      </div>
+
+      <div className="bg-white/[0.025] border border-emerald-500/10 rounded-2xl p-6 md:p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+            <Award className="w-5 h-5 text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-black text-white uppercase tracking-widest">Pontuação Manual</h3>
+            <p className="text-xs text-white/30">Use para desafios extras presenciais e atividades fora da plataforma.</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleManualPointsSubmit} className="flex flex-col gap-6">
+          <div className="grid md:grid-cols-[1.4fr_1fr_0.7fr] gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1.5 ml-1">
+                <UserCheck className="w-3 h-3 text-emerald-400" /> Usuário
+              </label>
+              <Select
+                value={manualPoints.id_user}
+                onValueChange={(value: string) => setManualPoints({ ...manualPoints, id_user: value })}
+              >
+                <SelectTrigger className="focus:border-emerald-500/40 cursor-pointer">
+                  <SelectValue placeholder="Selecionar usuário" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map((user: any) => (
+                    <SelectItem key={user.id_user} value={String(user.id_user)}>
+                      {user.name || user.email || `Usuário #${user.id_user}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Motivo</label>
+              <Input
+                value={manualPoints.title}
+                onChange={(e) => setManualPoints({ ...manualPoints, title: e.target.value })}
+                placeholder="Ex: Encontro presencial"
+                className="focus:border-emerald-500/40 cursor-text"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Pontos</label>
+              <Input
+                type="number"
+                min={1}
+                value={manualPoints.points || ""}
+                onChange={(e) => setManualPoints({ ...manualPoints, points: Number(e.target.value) })}
+                placeholder="50"
+                className="focus:border-emerald-500/40 cursor-text"
+              />
+            </div>
+          </div>
+
+          <textarea
+            value={manualPoints.description}
+            onChange={(e) => setManualPoints({ ...manualPoints, description: e.target.value })}
+            placeholder="Observação opcional sobre a atividade presencial..."
+            rows={2}
+            className="resize-none cursor-text"
+          />
+
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="w-full h-12 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm uppercase tracking-wider gap-2 cursor-pointer disabled:cursor-wait transition-all shadow-lg shadow-emerald-500/10"
+          >
+            {isPending ? <Clock className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            Lançar Pontuação
           </Button>
         </form>
       </div>
@@ -166,7 +290,7 @@ export function AdminChallengesForm() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm text-white truncate">{ch.title}</p>
                   <p className="text-[10px] text-white/30 mt-0.5">
-                    {ch.type === "manual" ? "Atribuição Manual" : "Atribuição Automática"} · {ch.points} pontos
+                    {ch.challenge_type === "manual" ? "Pontuação Manual" : ch.challenge_type} · {ch.points} pontos
                   </p>
                 </div>
 
